@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="System">
+      <UniqueIdentifier>{5d5318f2-eb46-4584-9668-adb08afc8d99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game">
+      <UniqueIdentifier>{0e388283-cf0f-4fb4-b0fd-c3ed21a896cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Graphics">
+      <UniqueIdentifier>{9c5074de-7a5d-42d2-bf39-47a59447bb0c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Input">
+      <UniqueIdentifier>{565c9aac-81c7-4c44-9246-8e3b591ac94a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="System\AppWindow.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\IException.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\WinApp.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Graphics\Camera.h">
+      <Filter>Game\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Input\GameInput.h">
+      <Filter>Game\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Input\InputBinding.h">
+      <Filter>Game\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Input\InputSystem.h">
+      <Filter>Game\Input</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="System\GameWindow.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\IException.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Main.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Graphics\Camera.cpp">
+      <Filter>Game\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Input\GameInput.cpp">
+      <Filter>Game\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Input\InputBinding.cpp">
+      <Filter>Game\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Input\InputSystem.cpp">
+      <Filter>Game\Input</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
