@@ -22,5 +22,33 @@ void Game::Frame()
 
 }
 
+void Game::OnActivated()
+{
+}
+
+void Game::OnDeactivated()
+{
+}
+
+void Game::OnSuspending()
+{
+}
+
+void Game::OnResuming()
+{
+}
+
+void Game::OnMove()
+{
+}
+
+void Game::OnResize(int newWidth, int newHeight)
+{
+}
+
+void Game::GetDefaultSize(int& width, int& height)
+{
+}
+
 }
 

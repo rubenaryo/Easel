@@ -17,13 +17,81 @@ LRESULT GameWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_PAINT:
     case WM_MOVE:
     case WM_SIZE:
+        // If the window has just been minimized
+        if (wParam == SIZE_MINIMIZED)
+        {
+            if (!m_Minimized)
+            {
+                // Set minimized flag, suspend the game
+                m_Minimized = true;
+                if (!m_Suspended)
+                    m_pGame->OnSuspending();
+                m_Suspended = true;
+            }
+        }
+        else if (m_Minimized) // if we're minimized already, must be maximizing
+        {
+            // Set maximized flag, resume the game
+            m_Minimized = false;
+            if (m_Suspended)
+                m_pGame->OnResuming();
+            m_Suspended = false;
+        }
+        else if (m_Resizing)
+        {
+            m_pGame->OnResize(LOWORD(lParam), HIWORD(lParam));
+        }
+        break;
     case WM_ENTERSIZEMOVE:
+        m_Resizing = true;
+        break;
     case WM_EXITSIZEMOVE:
+    {
+        m_Resizing = false;
+        RECT rc;
+        GetClientRect(m_hwnd, &rc);
+        m_pGame->OnResize(static_cast<int>(rc.right - rc.left), static_cast<int>(rc.bottom - rc.top));  
+    }
+    break;
     case WM_GETMINMAXINFO:
+    {
+        // lParam represents default positions, dimensions, tracking sizes
+        auto info = reinterpret_cast<MINMAXINFO*>(lParam);
+        
+        // Override these values so the client area doesn't get too small
+        info->ptMinTrackSize.x = 320;
+        info->ptMinTrackSize.y = 200;
+    }
+    break;
     case WM_ACTIVATEAPP:
+        if (m_pGame)
+        {
+            if (wParam)
+                m_pGame->OnActivated();
+            else
+                m_pGame->OnDeactivated();
+        }
+        break;
     case WM_POWERBROADCAST:
-    case WM_SYSKEYDOWN:
+        switch (wParam)
+        {
+        case PBT_APMQUERYSUSPEND:
+            if (!m_Suspended)
+                m_pGame->OnSuspending();
+            m_Suspended = true;
+            return TRUE;
+        case PBT_APMRESUMESUSPEND:
+            if (!m_Minimized)
+            {
+                if (m_Suspended)
+                    m_pGame->OnResuming();
+                m_Suspended = false;
+            }
+            return TRUE;
+        }
+        break;
     case WM_MENUCHAR:
+        return MAKELRESULT(0, 1);
     default:
         return DefWindowProc(m_hwnd, uMsg, wParam, lParam);
     }
