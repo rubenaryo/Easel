@@ -1,11 +1,12 @@
 /*----------------------------------------------
 Ruben Young (rubenaryo@gmail.com)
 Date : 2019/12
-Description : An Object Oriented Approach to creating a window
+Description : Definitions for OO-Window Creation
 ----------------------------------------------*/
 #ifndef APPWINDOW_H
 #define APPWINDOW_H
 #include "WinApp.h"
+#include "../Game/Game.h"
 #include <memory>
 
 namespace System {
@@ -55,25 +56,31 @@ protected:
     // Pure virtual functions that must be derived by any windows
     virtual PCWSTR ClassName() const = 0;
     virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
+    virtual void InitGame(HWND hwnd, int width, int height) = 0;
 };
 
-// A derived MainWindow class
+// A derived GameWindow class
 class GameWindow : public BaseWindow<GameWindow>
 {
 public:
-    // Overriden pure virtual functions from BaseWindow
-    PCWSTR ClassName() const { return L"Game Window Class"; }
-    LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
-    void RunGame();
+    // Default constructor just initializes unique Game pointer
+    GameWindow() : m_pGame(std::make_unique<Game::Game>()) {};
 
+    // Overriden pure virtual functions from BaseWindow
+    PCWSTR ClassName() const final { return L"Game Window Class"; }
+    LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) final;
+    void InitGame(HWND hwnd, int width, int height) override final;
+    void RunGame();
+        
 private:
     // States of the window (used to send messages to directx on resize, move, etc)
-    bool m_Resizing = false;
-    bool m_Suspended = false;
-    bool m_Minimized = false;
+    bool m_Resizing   = false;
+    bool m_Suspended  = false;
+    bool m_Minimized  = false;
     bool m_Fullscreen = false;
 
-    //std::unique_ptr to game
+    // Unique pointer to game
+    std::unique_ptr<Game::Game> m_pGame;
 };
 
 // Definition of templated Create Method
@@ -100,7 +107,16 @@ BOOL BaseWindow<WindowType>::Create(PCWSTR lpWindowName, HINSTANCE hInstance, DW
 
     m_hwnd = CreateWindowExW(dwExStyle, ClassName(), lpWindowName, dwStyle, x, y, rc.right - rc.left, rc.bottom - rc.top, hWndParent, hMenu, hInstance, this);
 
-    return (m_hwnd ? TRUE : FALSE);
+    if (m_hwnd)
+    {
+        InitGame(m_hwnd, nWidth, nHeight);
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+
 }
 
 }

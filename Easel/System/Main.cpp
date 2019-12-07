@@ -19,7 +19,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     GameWindow window;
     DWORD style = CS_HREDRAW | CS_VREDRAW;
     DWORD ExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-    if (!window.Create(L"Main Game Window", hInstance, style, ExStyle))
+    if (!window.Create(L"Easel", hInstance, style, ExStyle))
         return 1;
 
     // Show the window

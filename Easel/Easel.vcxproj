@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Game\Game.h" />
     <ClInclude Include="Game\Graphics\Camera.h" />
     <ClInclude Include="Game\Input\GameInput.h" />
     <ClInclude Include="Game\Input\InputBinding.h" />
@@ -28,6 +29,7 @@
     <ClInclude Include="System\WinApp.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Game\Game.cpp" />
     <ClCompile Include="Game\Graphics\Camera.cpp" />
     <ClCompile Include="Game\Input\GameInput.cpp" />
     <ClCompile Include="Game\Input\InputBinding.cpp" />
