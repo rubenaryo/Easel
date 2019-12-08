@@ -24,6 +24,7 @@
     <ClInclude Include="Game\Input\GameInput.h" />
     <ClInclude Include="Game\Input\InputBinding.h" />
     <ClInclude Include="Game\Input\InputSystem.h" />
+    <ClInclude Include="Game\StepTimer.h" />
     <ClInclude Include="System\AppWindow.h" />
     <ClInclude Include="System\IException.h" />
     <ClInclude Include="System\WinApp.h" />

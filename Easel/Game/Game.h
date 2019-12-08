@@ -8,6 +8,8 @@ This class encapsulates all app functionality
 #define GAME_H
 
 #include "../System/WinApp.h"
+#include "Input/GameInput.h"
+#include "StepTimer.h"
 #include <memory>
 
 namespace Game {
@@ -28,6 +30,20 @@ public:
 
     // Properties
     void GetDefaultSize(_Out_ int& width, _Out_ int& height);
+
+private:
+    void Update(StepTimer const& timer);
+    void Render();
+
+    void Clear();
+
+    void CreateDeviceDependentResources();
+    void CreateWindowSizeDependentResources();
+
+    // unique_ptr to device resources
+
+    // Timer for the main game loop
+    StepTimer m_Timer;
 };
 }
 #endif

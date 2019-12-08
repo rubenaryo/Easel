@@ -117,7 +117,7 @@ void GameWindow::RunGame()
         }
         else
         {
-            //pGame->Tick();
+            m_pGame->Frame();
         }
     }
 }

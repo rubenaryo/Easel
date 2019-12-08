@@ -46,7 +46,29 @@ void Game::OnResize(int newWidth, int newHeight)
 {
 }
 
-void Game::GetDefaultSize(int& width, int& height)
+void Game::GetDefaultSize(_Out_ int& width, _Out_ int& height)
+{
+    width = 800;
+    height = 600;
+}
+
+void Game::Update(StepTimer const& timer)
+{
+}
+
+void Game::Render()
+{
+}
+
+void Game::Clear()
+{
+}
+
+void Game::CreateDeviceDependentResources()
+{
+}
+
+void Game::CreateWindowSizeDependentResources()
 {
 }
 
