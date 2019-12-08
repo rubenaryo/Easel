@@ -15,7 +15,7 @@ class IException : public std::exception
 {
 public: 
     IException(int a_Line, const wchar_t* a_Filename) noexcept;
-    virtual const wchar_t* what16() const noexcept;
+    virtual const wchar_t* What() const noexcept;
     virtual const wchar_t* GetType() const noexcept = 0;
     const std::wstring& GetFile() const noexcept;
     std::wstring GetOriginString() const noexcept;
