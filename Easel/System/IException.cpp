@@ -11,7 +11,7 @@ IException::IException(int a_Line, const wchar_t* a_Filename) noexcept
     : m_Line( a_Line ), m_File(a_Filename) {}
 
 // Collects information about the error and returns the address of our buffer
-const wchar_t* IException::What() const noexcept
+const wchar_t* IException::What() noexcept
 {
     // Write exception information into an output string object
     std::wstringstream oss;
