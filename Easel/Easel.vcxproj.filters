@@ -42,6 +42,12 @@
     <ClInclude Include="Game\StepTimer.h">
       <Filter>Game</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Graphics\D3D11App.h">
+      <Filter>Game\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Graphics\DeviceResources.h">
+      <Filter>Game\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="System\GameWindow.cpp">
@@ -67,6 +73,9 @@
     </ClCompile>
     <ClCompile Include="Game\Game.cpp">
       <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Graphics\DeviceResources.cpp">
+      <Filter>Game\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
