@@ -7,18 +7,25 @@ This class encapsulates all app functionality
 #ifndef GAME_H
 #define GAME_H
 
-#include "../System/WinApp.h"
+#include "Graphics/D3D11App.h"
 #include "Input/GameInput.h"
 #include "StepTimer.h"
-#include <memory>
+#include "Graphics/DeviceResources.h"
 
 namespace Game {
-class Game
+class Game final : public Graphics::IDeviceNotify
 {
 public:
     Game();
     void Init(HWND window, int width, int height);
+
+    // Main Game Loop
     void Frame();
+
+    // Implementation of IDeviceNotify
+    // Handles sudden loss of device
+    virtual void OnDeviceLost();
+    virtual void OnDeviceRestored();
 
     // Callbacks for windows messages
     void OnActivated();

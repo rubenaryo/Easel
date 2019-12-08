@@ -22,6 +22,14 @@ void Game::Frame()
 
 }
 
+void Game::OnDeviceLost()
+{
+}
+
+void Game::OnDeviceRestored()
+{
+}
+
 void Game::OnActivated()
 {
 }
