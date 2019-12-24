@@ -66,6 +66,7 @@ public:
     UINT                    GetBackBufferCount()    const { return m_BackBufferCount;            }
     DXGI_COLOR_SPACE_TYPE   GetColorSpace()         const { return m_ColorSpaceType;             }
     unsigned int            GetDeviceOptions()      const { return m_Options;                    }
+    RECT                    GetOutputSize()         const { return m_OutputSize;                 }
 
 private:
     void CreateFactory();
