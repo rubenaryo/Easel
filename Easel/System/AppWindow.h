@@ -74,7 +74,7 @@ public:
         
 private:
     // States of the window (used to send messages to directx on resize, move, etc)
-    bool m_Resizing   = false;
+    bool m_ResizeMove   = false;
     bool m_Suspended  = false;
     bool m_Minimized  = false;
     bool m_Fullscreen = false;

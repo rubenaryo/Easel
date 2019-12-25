@@ -132,7 +132,6 @@ void DeviceResources::CreateFactory()
 
 void DeviceResources::GetHardwareAdapter(IDXGIAdapter1** ppAdapter)
 {
-
 }
 
 void DeviceResources::UpdateColorSpace()
@@ -156,8 +155,8 @@ void DeviceResources::CreateWindowSizeDependentResources()
     m_pD3DContext->Flush();
 
     // Find the height of the render target, using std::max to ensure neither dimension is 0
-    UINT bbWidth = std::max<UINT>(static_cast<UINT>((m_OutputSize.right - m_OutputSize.left)), 1u);
-    UINT bbHeight = std::max<UINT>(static_cast<UINT>((m_OutputSize.bottom - m_OutputSize.top)), 1u);
+    UINT bbWidth  = std::max<UINT>(static_cast<UINT>((m_OutputSize.right - m_OutputSize.left)), 1U);
+    UINT bbHeight = std::max<UINT>(static_cast<UINT>((m_OutputSize.bottom - m_OutputSize.top)), 1U);
     DXGI_FORMAT bbFormat = m_BackBufferFormat;
 
     if (m_pSwapChain)

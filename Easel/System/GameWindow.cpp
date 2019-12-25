@@ -37,17 +37,13 @@ LRESULT GameWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
                 m_pGame->OnResuming();
             m_Suspended = false;
         }
-        else if (m_Resizing)
-        {
-            m_pGame->OnResize(LOWORD(lParam), HIWORD(lParam));
-        }
         break;
     case WM_ENTERSIZEMOVE:
-        m_Resizing = true;
+        m_ResizeMove = true;
         break;
     case WM_EXITSIZEMOVE:
     {
-        m_Resizing = false;
+        m_ResizeMove = false;
         RECT rc;
         GetClientRect(m_hwnd, &rc);
         m_pGame->OnResize(static_cast<int>(rc.right - rc.left), static_cast<int>(rc.bottom - rc.top));  

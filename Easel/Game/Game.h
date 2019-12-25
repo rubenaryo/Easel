@@ -47,7 +47,8 @@ private:
     void CreateDeviceDependentResources();
     void CreateWindowSizeDependentResources();
 
-    // unique_ptr to device resources
+    // Application's Device Resources, such as the necessary buffers/views in video memory
+    std::unique_ptr<Graphics::DeviceResources> m_pDeviceResources;
 
     // Timer for the main game loop
     StepTimer m_Timer;
