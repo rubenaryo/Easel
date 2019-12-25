@@ -352,12 +352,6 @@ void DeviceResources::Present()
         hr = m_pSwapChain->Present(1, 0);
     }
 
-    // Clear the Render Target View to Blue
-    m_pD3DContext->ClearRenderTargetView(m_pD3DRenderTargetView.Get(), reinterpret_cast<const float*>(&DirectX::Colors::CornflowerBlue));
-
-    // Clear the depth buffer to 1.0f and the stencil buffer to 0.
-    m_pD3DContext->ClearDepthStencilView(m_pD3DDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0U);
-
     // If the device was removed either by a disconnection or a driver upgrade, we
     // must recreate all device resources.
     if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
