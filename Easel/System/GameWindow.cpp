@@ -111,10 +111,9 @@ void GameWindow::RunGame()
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
-        else
-        {
-            m_pGame->Frame();
-        }
+        
+        // Process one gameplay frame
+        m_pGame->Frame();
     }
 }
 
