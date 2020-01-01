@@ -38,9 +38,9 @@ public:
 
 private:
     // Option Flags for m_Options field
-    static const unsigned int c_FlipPresent  = 0x1;
-    static const unsigned int c_AllowTearing = 0x2;
-    static const unsigned int c_EnableHDR    = 0x4;
+    static const unsigned int c_FlipPresent  = 1;
+    static const unsigned int c_AllowTearing = 1 << 1;
+    static const unsigned int c_EnableHDR    = 1 << 2;
 
 public:
     void CreateDeviceResources();
