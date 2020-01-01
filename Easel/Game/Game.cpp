@@ -12,17 +12,29 @@ Game::Game()
 {
     m_pDeviceResources = std::make_unique<Graphics::DeviceResources>();
     m_pDeviceResources->RegisterDeviceNotify(this);
+
+    m_pGeometryManager = std::make_unique<Graphics::GeometryManager>();
 }
 
 // Initialize device resource holder by creating all necessary resources
 void Game::Init(HWND window, int width, int height)
 {
+    // Create All Device Resources
     m_pDeviceResources->SetWindow(window, width, height);
     m_pDeviceResources->CreateDeviceResources();
     CreateDeviceDependentResources();
 
     m_pDeviceResources->CreateWindowSizeDependentResources();
     CreateWindowSizeDependentResources();
+
+    // Create Drawable Geometries
+    m_pGeometryManager->Initialize(m_pDeviceResources.get());
+
+    // Bind Vertex Buffer to Pipeline
+    const UINT stride = sizeof(Graphics::Vertex);
+    const UINT offset = 0u;
+    ID3D11Buffer* vbuffer = m_pGeometryManager->GetVertexBuffer();
+    m_pDeviceResources->GetD3DDeviceContext()->IASetVertexBuffers(0u, 1u, &vbuffer, &stride, &offset);
 
 }
 
@@ -105,8 +117,8 @@ void Game::Render()
     // Grab a reference to the d3d device context
     auto context = m_pDeviceResources->GetD3DDeviceContext();
     
-
-
+    // Draw the triangle
+    context->Draw(m_pGeometryManager->GetBufferSize(), 0u);
 
     // Show the new frame
     m_pDeviceResources->Present();

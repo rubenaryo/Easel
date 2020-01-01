@@ -8,6 +8,7 @@ This class encapsulates all app functionality
 #define GAME_H
 
 #include "Graphics/D3D11App.h"
+#include "Graphics/GeometryManager.h"
 #include "Input/GameInput.h"
 #include "StepTimer.h"
 #include "Graphics/DeviceResources.h"
@@ -50,6 +51,9 @@ private:
     // Application's Device Resources, such as the necessary buffers/views in video memory
     std::unique_ptr<Graphics::DeviceResources> m_pDeviceResources;
 
+    // Geometry Manager for the Application
+    std::unique_ptr<Graphics::GeometryManager> m_pGeometryManager;
+    
     // Timer for the main game loop
     StepTimer m_Timer;
 };
