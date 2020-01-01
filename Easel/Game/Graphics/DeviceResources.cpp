@@ -31,6 +31,9 @@ DeviceResources::DeviceResources(
     m_pDeviceNotify     (nullptr)
 {}
 
+// This initializes the following fields:
+// - Device
+// - Context
 void DeviceResources::CreateDeviceResources()
 {
     UINT createFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
@@ -117,6 +120,30 @@ void DeviceResources::CreateDeviceResources()
     // Check for failure when creating device
     ThrowIfFailed(hr);
 
+    // Query the D3D Info Queue Interface:
+#ifndef NDEBUG
+    ComPtr<ID3D11Debug> d3dDebug;
+    if (SUCCEEDED(device.As(&d3dDebug)))
+    {
+        ComPtr<ID3D11InfoQueue> d3dInfoQueue;
+        if (SUCCEEDED(d3dDebug.As(&d3dInfoQueue)))
+        {
+#ifdef _DEBUG
+            d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
+            d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
+#endif
+            D3D11_MESSAGE_ID hide[] =
+            {
+                D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS,
+            };
+            D3D11_INFO_QUEUE_FILTER filter = {};
+            filter.DenyList.NumIDs = _countof(hide);
+            filter.DenyList.pIDList = hide;
+            d3dInfoQueue->AddStorageFilterEntries(&filter);
+        }
+    }
+#endif
+
     // Hold created device and context as class members
     ThrowIfFailed(device.As(&m_pD3DDevice));
     ThrowIfFailed(context.As(&m_pD3DContext));
@@ -140,6 +167,12 @@ void DeviceResources::UpdateColorSpace()
 }
 
 // Callback method for when we initialize the window, or when there's a need to recreate the resources that are dependent on window size (when the window is resized basically)
+// This initializes the following members:
+// - Context
+// - RenderTarget View
+// - DepthStencil View
+// - RenderTarget
+// - DepthStencil Buffer
 void DeviceResources::CreateWindowSizeDependentResources()
 {
     if (!m_Window)
@@ -148,7 +181,6 @@ void DeviceResources::CreateWindowSizeDependentResources()
     // Clear current window dependent fields.
     m_pD3DContext->OMSetRenderTargets(0u, NULL, NULL);  // Reset bound render targets
     m_pD3DRenderTargetView.Reset();
-    m_pD3DDepthStencilView.Reset();
     m_pD3DDepthStencilView.Reset();
     m_pRenderTarget.Reset();
     m_pDepthStencil.Reset();
@@ -261,10 +293,12 @@ void DeviceResources::CreateWindowSizeDependentResources()
 
         // Set the 3D rendering viewport to target the entire window.
         m_ScreenViewport = CD3D11_VIEWPORT(
-            0.0f,
-            0.0f,
-            static_cast<float>(bbWidth),
-            static_cast<float>(bbHeight)
+            0.0f,                           // TopLeft X Coord
+            0.0f,                           // TopLeft Y Coord
+            static_cast<FLOAT>(bbWidth),    // Width
+            static_cast<FLOAT>(bbHeight),   // Height
+            0.0f,                           // Min Depth
+            1.0f                            // Max Depth
         );
     }
 }
