@@ -11,11 +11,6 @@ Description : Standard includes/ macros for a DirectX 11 app
 // Exception Interface
 #include "../../System/IException.h"
 
-// Link Direct3D Libraries
-#pragma comment(lib, "d3d11.lib")
-#pragma comment(lib, "dxgi.lib")
-#pragma comment(lib, "d3dcompiler.lib")
-
 // DirectX necessary includes
 #include <d3d11.h>
 #include <d3d11_1.h>
@@ -25,11 +20,17 @@ Description : Standard includes/ macros for a DirectX 11 app
 #include <d3d11sdklayers.h>
 #include <d3d11shader.h>
 #include <d3d11shadertracing.h>
+#include <d3dcompiler.h>
 #include <d3dcommon.h>
 #include <d3dcsx.h>
 #include <windows.graphics.directx.direct3d11.interop.h>
 #include <DirectXMath.h>
 #include <DirectXColors.h>
+
+// Link Direct3D Libraries
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "d3dcompiler.lib")
 
 // STL Includes
 #include <algorithm>
@@ -42,8 +43,6 @@ Description : Standard includes/ macros for a DirectX 11 app
 #ifdef _DEBUG
 #include <dxgidebug.h>
 #endif
-
-
 
 namespace Graphics {
 
@@ -58,7 +57,7 @@ static const D3D_FEATURE_LEVEL s_featureLevels[] =
     D3D_FEATURE_LEVEL_9_2,
     D3D_FEATURE_LEVEL_9_1,
 };
-    
+
 // Helper class for COM Exceptions
 class COMException : public IException
 {
