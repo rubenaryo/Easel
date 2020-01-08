@@ -10,12 +10,14 @@ namespace Graphics {
 
 GeometryManager::GeometryManager():
     m_pVertexBuffer(0),
+    m_NumVertices(0),
     m_pVertexShader(0),
     m_pPixelShader(0)
 {}
 
 GeometryManager::GeometryManager(const GeometryManager& other):
     m_pVertexBuffer(other.m_pVertexBuffer),
+    m_NumVertices(other.m_NumVertices),
     m_pVertexShader(other.m_pVertexShader),
     m_pPixelShader(other.m_pPixelShader)
 {}
@@ -25,6 +27,7 @@ GeometryManager& GeometryManager::operator=(const GeometryManager& other)
     m_pPixelShader = other.m_pPixelShader;
     m_pVertexShader = other.m_pVertexShader;
     m_pVertexBuffer = other.m_pVertexBuffer;
+    m_NumVertices = other.m_NumVertices;
 
     return (GeometryManager&) other;
 }
@@ -40,9 +43,9 @@ void GeometryManager::BuildVertexBuffers(DeviceResources* DR)
 {
     // Build Vertex Array
     const Vertex vertices[] = {
-        {{0.0f, 0.5f, 0.0f}},
-        {{0.5f, -0.5f, 0.0f}},
-        {{-0.5f, -0.5f, 0.0f}}
+        {{0.0f, 0.5f, 0.0f},   {1.f, 0.f, 0.0f}},
+        {{0.5f, -0.5f, 0.0f},  {0.0f, 1.f, 0.0f}},
+        {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.f}}
     };
 
     // Hold the number of vertices as a member field
@@ -97,7 +100,8 @@ void GeometryManager::CompileShaders(DeviceResources* DR)
     // Describe Input Layout
     const D3D11_INPUT_ELEMENT_DESC IED[] =
     {
-        {"Position", 0, DXGI_FORMAT_R32G32_FLOAT, 0,0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12u, D3D11_INPUT_PER_VERTEX_DATA, 0}
     };
     
     // Create Input Layout and hold as a member field
