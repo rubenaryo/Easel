@@ -17,12 +17,8 @@ namespace Input {
         GameInput();
         ~GameInput();
 
-        // Singleton Instance
-        static GameInput* GetInstance()
-        {
-            static GameInput* instance = new GameInput();
-            return instance;
-        }
+        // Actions run by the input system each frame
+        void Frame();
     
     protected:
         // Override implementation for setting default key mappings

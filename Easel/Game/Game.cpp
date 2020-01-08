@@ -14,6 +14,8 @@ Game::Game()
     m_pDeviceResources->RegisterDeviceNotify(this);
 
     m_pGeometryManager = std::make_unique<Graphics::GeometryManager>();
+
+    m_pInput = std::make_unique<Input::GameInput>();
 }
 
 // Initialize device resource holder by creating all necessary resources
@@ -90,6 +92,11 @@ void Game::OnResize(int newWidth, int newHeight)
     CreateWindowSizeDependentResources();
 }
 
+void Game::OnMouseMove(short newX, short newY)
+{
+    m_pInput->OnMouseMove(newX, newY);
+}
+
 // returns the default window size (hardcoded) by parameter
 void Game::GetDefaultSize(_Out_ int& width, _Out_ int& height)
 {
@@ -100,7 +107,12 @@ void Game::GetDefaultSize(_Out_ int& width, _Out_ int& height)
 void Game::Update(StepTimer const& timer)
 {
     float elapsedTime = float(timer.GetElapsedSeconds());
+    m_pInput->Frame();
 
+    std::wstringstream wss;
+    std::pair<short, short> pt= m_pInput->GetMousePosition();
+    wss << L"{" << pt.first << L"," << pt.second << L"}";
+    SetWindowText(m_pDeviceResources->GetWindow(), wss.str().c_str());
 }
 
 void Game::Render()

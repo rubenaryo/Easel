@@ -67,6 +67,7 @@ public:
     DXGI_COLOR_SPACE_TYPE   GetColorSpace()         const { return m_ColorSpaceType;             }
     unsigned int            GetDeviceOptions()      const { return m_Options;                    }
     RECT                    GetOutputSize()         const { return m_OutputSize;                 }
+    HWND                    GetWindow()             const { return m_Window;                     }
 
 private:
     void CreateFactory();

@@ -17,6 +17,25 @@ namespace Input {
     GameInput::~GameInput()
     {}
 
+    void GameInput::Frame()
+    {
+        GetInput();
+
+        // Act on user input:
+        // - Iterate through all active keys
+        // - Check for commands corresponding to activated chords
+        // - Do something based on those commands
+        for (auto pair : m_activeKeyMap)
+        {
+            switch (pair.first)
+            {
+            case GameCommands::Quit:
+                PostQuitMessage(0);
+                break;
+            }
+        }
+    }
+
     void GameInput::SetDefaultKeyMap()
     {
         m_keyMap.clear();

@@ -36,6 +36,9 @@ public:
     void OnMove();
     void OnResize(int newWidth, int newHeight);
 
+    // Input Callbacks
+    void OnMouseMove(short newX, short newY);
+
     // Properties
     void GetDefaultSize(_Out_ int& width, _Out_ int& height);
 
@@ -53,6 +56,9 @@ private:
 
     // Geometry Manager for the Application
     std::unique_ptr<Graphics::GeometryManager> m_pGeometryManager;
+
+    // Input Management
+    std::unique_ptr<Input::GameInput> m_pInput;
     
     // Timer for the main game loop
     StepTimer m_Timer;

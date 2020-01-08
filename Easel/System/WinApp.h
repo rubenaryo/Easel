@@ -51,6 +51,7 @@ by first defining macros that disable certain  features that go unused
 
 // Always include Windows.h at the very end
 #include <Windows.h>
+#include <WindowsX.h>
 
 // For ComPtr
 #include <wrl/client.h>

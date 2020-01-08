@@ -21,8 +21,8 @@ namespace Input {
         std::array<BYTE, 256> m_KeyboardPrevious;
 
         // Mouse States
-        POINTS m_MouseCurrent;
-        POINTS m_MousePrevious;
+        std::pair<short, short> m_MouseCurrent;
+        std::pair<short, short> m_MousePrevious;
 
         // Uses GetAsyncKeyState to read in 256 bytes
         void GetKeyboardState();
@@ -53,13 +53,13 @@ namespace Input {
         void GetInput();
 
         // On WM_MOUSEMOVE message, trigger this method
-        void OnMouseMove(POINTS mousePos);
+        void OnMouseMove(short newX, short newY);
 
         // Returns the current mouse position as a POINT
-        POINTS GetMousePosition() const { return m_MouseCurrent; }
+        std::pair<short, short> GetMousePosition() const { return m_MouseCurrent; }
 
         // Returns the difference between current and previous as a POINT
-        POINTS GetMouseDelta() const;
+        std::pair<short, short> GetMouseDelta() const;
 
     };
 }
