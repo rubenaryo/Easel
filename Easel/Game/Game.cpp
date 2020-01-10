@@ -37,6 +37,9 @@ void Game::Init(HWND window, int width, int height)
     const UINT offset = 0u;
     ID3D11Buffer* vbuffer = m_pGeometryManager->GetVertexBuffer();
     m_pDeviceResources->GetD3DDeviceContext()->IASetVertexBuffers(0u, 1u, &vbuffer, &stride, &offset);
+    
+    // Bind Index Buffer to Pipeline
+    m_pDeviceResources->GetD3DDeviceContext()->IASetIndexBuffer(m_pGeometryManager->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0u);
 
 }
 
@@ -109,10 +112,12 @@ void Game::Update(StepTimer const& timer)
     float elapsedTime = float(timer.GetElapsedSeconds());
     m_pInput->Frame();
 
+    #ifdef DEBUG
     std::wstringstream wss;
-    std::pair<short, short> pt= m_pInput->GetMousePosition();
-    wss << L"{" << pt.first << L"," << pt.second << L"}";
+    std::pair<short, short> pt = m_pInput->GetMousePosition();
+    wss << L"Cursor: {" << pt.first << L"," << pt.second << L"}  FPS:" << timer.GetFramesPerSecond();
     SetWindowText(m_pDeviceResources->GetWindow(), wss.str().c_str());
+    #endif
 }
 
 void Game::Render()
@@ -130,7 +135,7 @@ void Game::Render()
     auto context = m_pDeviceResources->GetD3DDeviceContext();
     
     // Draw the triangle
-    context->Draw(m_pGeometryManager->GetBufferSize(), 0u);
+    context->DrawIndexed(9u, 0u, 0u);
 
     // Show the new frame
     m_pDeviceResources->Present();
