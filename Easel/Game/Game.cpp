@@ -12,10 +12,14 @@ Game::Game()
 {
     m_pDeviceResources = std::make_unique<Graphics::DeviceResources>();
     m_pDeviceResources->RegisterDeviceNotify(this);
-
+    
     m_pGeometryManager = std::make_unique<Graphics::GeometryManager>();
-
     m_pInput = std::make_unique<Input::GameInput>();
+    
+    DirectX::XMVECTOR cameraPos = DirectX::XMVectorSet(1.f, 0.f, 0.f, 0.f);
+    DirectX::XMVECTOR cameraDir = DirectX::XMVectorSet(-1.f, 0.f, 0.f, 0.f);
+    DirectX::XMVECTOR cameraUp = DirectX::XMVectorSet(0.f, 1.f, 0.f, 0.f);
+    m_pCamera = std::make_unique<Graphics::Camera>(cameraPos, cameraDir, cameraUp, 0.5f, 10.0f);
 }
 
 // Initialize device resource holder by creating all necessary resources
@@ -27,7 +31,7 @@ void Game::Init(HWND window, int width, int height)
     CreateDeviceDependentResources();
 
     m_pDeviceResources->CreateWindowSizeDependentResources();
-    CreateWindowSizeDependentResources();
+    CreateWindowSizeDependentResources(width, height);
 
     // Create Drawable Geometries
     m_pGeometryManager->Initialize(m_pDeviceResources.get());
@@ -92,7 +96,7 @@ void Game::OnResize(int newWidth, int newHeight)
     if (!m_pDeviceResources->WindowSizeChanged(newWidth, newHeight))
         return;
 
-    CreateWindowSizeDependentResources();
+    CreateWindowSizeDependentResources(newWidth, newHeight);
 }
 
 void Game::OnMouseMove(short newX, short newY)
@@ -162,8 +166,10 @@ void Game::CreateDeviceDependentResources()
 {
 }
 
-void Game::CreateWindowSizeDependentResources()
+void Game::CreateWindowSizeDependentResources(int newWidth, int newHeight)
 {
+    float aspectRatio = (float)newWidth / (float)newHeight;
+    m_pCamera->UpdateProjection(aspectRatio);
 }
 
 }

@@ -14,10 +14,10 @@ using namespace DirectX;
 class Camera
 {
 public:
-    Camera();
+    Camera(XMVECTOR a_Pos, XMVECTOR a_Dir, XMVECTOR a_Up, float a_Near, float a_Far);
     ~Camera();
 
-private:
+public:
     // Updates Camera's View Matrix
     void UpdateView();
 
@@ -27,19 +27,12 @@ private:
 private:
     // Position + Local Axis Vectors
     XMVECTOR m_Position;
-    XMVECTOR m_Forward;
-    XMVECTOR m_Target;
+    XMVECTOR m_Direction;
     XMVECTOR m_Up;
-    XMVECTOR m_Right;
 
     // View and Projection Matrices
-    XMFLOAT4X4 m_View;
-    XMFLOAT4X4 m_Projection;
-
-    // Euler Angles used to compute rotation quaternions (Maybe)
-    float m_fYaw;
-    float m_fPitch;
-    float m_fRoll;
+    XMMATRIX m_View;
+    XMMATRIX m_Projection;
 
     // Position of near and far planes along forward axis
     float m_Near;

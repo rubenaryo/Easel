@@ -10,6 +10,7 @@ This class encapsulates all app functionality
 #include "Graphics/D3D11App.h"
 #include "Graphics/GeometryManager.h"
 #include "Input/GameInput.h"
+#include "Graphics/Camera.h"
 #include "StepTimer.h"
 #include "Graphics/DeviceResources.h"
 
@@ -49,7 +50,7 @@ private:
     void Clear();
 
     void CreateDeviceDependentResources();
-    void CreateWindowSizeDependentResources();
+    void CreateWindowSizeDependentResources(int newWidth, int newHeight);
 
     // Application's Device Resources, such as the necessary buffers/views in video memory
     std::unique_ptr<Graphics::DeviceResources> m_pDeviceResources;
@@ -59,6 +60,9 @@ private:
 
     // Input Management
     std::unique_ptr<Input::GameInput> m_pInput;
+
+    // Main Camera
+    std::unique_ptr<Graphics::Camera> m_pCamera;
     
     // Timer for the main game loop
     StepTimer m_Timer;

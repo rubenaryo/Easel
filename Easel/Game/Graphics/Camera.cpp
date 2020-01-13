@@ -8,24 +8,15 @@ Description : Implementation of Camera Class
 namespace Graphics {
 using namespace DirectX;
 
-Camera::Camera() :
-    m_Position(XMVectorSet(0.f,0.f,0.f,1.f)),
-    m_Forward(XMVectorSet(1.f, 0.f, 0.f, 1.f)),
-    m_Target(XMVectorSet(1.f, 0.f, 0.f, 1.f)),
-    m_Up(XMVectorSet(0.f, 1.f, 0.f, 1.f)),
-    m_Right(XMVectorSet(0.f, 0.f, 1.f, 1.f)),
-    m_fPitch(0.f),
-    m_fYaw(0.f),
-    m_fRoll(0.f),
-    m_Far(1000.f),
-    m_Near(10.f)
+Camera::Camera(XMVECTOR a_Pos, XMVECTOR a_Dir, XMVECTOR a_Up, float a_Near, float a_Far) :
+    m_Position(a_Pos),
+    m_Direction(a_Dir),
+    m_Up(a_Up),
+    m_Near(a_Near),
+    m_Far(a_Far)
 {
-    // Grab instance of input singleton
-    //m_pInput = Input::GameInput::GetInstance();
-
-    XMMATRIX I = XMMatrixIdentity();
-    XMStoreFloat4x4(&m_View, I);
-    XMStoreFloat4x4(&m_Projection, I);
+    UpdateView();
+    m_Projection = XMMatrixIdentity();
 }
 
 Camera::~Camera()
@@ -33,31 +24,12 @@ Camera::~Camera()
 
 void Camera::UpdateView()
 {
-    // Individual Angle Quaternions
-    XMVECTOR qPitch = XMQuaternionRotationAxis(m_Right, m_fPitch);
-    XMVECTOR qYaw = XMQuaternionRotationAxis(m_Up, m_fPitch);
-    XMVECTOR qRoll = XMQuaternionRotationAxis(m_Forward, m_fPitch);
-
-    // Grab how much mouse has moved this frame
-    // TODO: Make this work 
-    //POINTS mouseDelta = m_pInput->GetMouseDelta();
-
-    // Orientation Quaternion
-    XMVECTOR qOrientation = qPitch * qYaw;// *qRoll;
-    qOrientation = XMQuaternionNormalize(qOrientation);
-
-    XMMATRIX mat = XMMatrixRotationQuaternion(qOrientation);
-
-    //TODO: Translation Component
-
-    XMStoreFloat4x4(&m_View, mat);
+    m_View = XMMatrixLookAtLH(m_Position, m_Position + m_Direction, m_Up);
 }
 
 void Camera::UpdateProjection(float a_AspectRatio)
 {
-    XMMATRIX P = XMMatrixPerspectiveFovLH(XM_PIDIV4, a_AspectRatio, m_Near, m_Far);
-    XMStoreFloat4x4(&m_Projection, P);
-
+    m_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, a_AspectRatio, m_Near, m_Far);
 }
 
 }
