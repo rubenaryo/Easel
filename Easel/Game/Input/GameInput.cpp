@@ -17,7 +17,7 @@ namespace Input {
     GameInput::~GameInput()
     {}
 
-    void GameInput::Frame()
+    void GameInput::Frame(Graphics::Camera* a_Camera)
     {
         GetInput();
 
@@ -32,6 +32,16 @@ namespace Input {
             case GameCommands::Quit:
                 PostQuitMessage(0);
                 break;
+
+            case GameCommands::MoveForward:
+                a_Camera->GetTransform()->MoveRelative(0.0f, 0.0f, 0.5f);
+                break;
+            case GameCommands::MoveBackward:
+                break;
+            case GameCommands::MoveLeft:
+                break;
+            case GameCommands::MoveRight:
+                break;
             }
         }
     }
@@ -39,6 +49,10 @@ namespace Input {
     void GameInput::SetDefaultKeyMap()
     {
         m_keyMap.clear();
-        m_keyMap[GameCommands::Quit] = new Chord(L"Quit", VK_ESCAPE, KeyState::JustReleased);
+        m_keyMap[GameCommands::Quit]         = new Chord(L"Quit", VK_ESCAPE, KeyState::JustReleased);
+        m_keyMap[GameCommands::MoveForward]  = new Chord(L"Move Forward", 'W', KeyState::StillPressed);
+        m_keyMap[GameCommands::MoveBackward] = new Chord(L"Move Backward", 'S', KeyState::StillPressed);
+        m_keyMap[GameCommands::MoveLeft]     = new Chord(L"Move Left", 'A', KeyState::StillPressed);
+        m_keyMap[GameCommands::MoveRight]    = new Chord(L"Move Right", 'D', KeyState::StillPressed);
     }
 }

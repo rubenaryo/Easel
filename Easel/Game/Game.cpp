@@ -19,7 +19,10 @@ Game::Game()
 
 // Initialize device resource holder by creating all necessary resources
 void Game::Init(HWND window, int width, int height)
-{
+{   
+    // Initialize game camera
+    m_pCamera = std::make_unique<Graphics::Camera>(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 25.0f);
+    
     // Create All Device Resources
     m_pDeviceResources->SetWindow(window, width, height);
     m_pDeviceResources->CreateDeviceResources();
@@ -109,7 +112,12 @@ void Game::GetDefaultSize(_Out_ int& width, _Out_ int& height)
 void Game::Update(StepTimer const& timer)
 {
     float elapsedTime = float(timer.GetElapsedSeconds());
-    m_pInput->Frame();
+
+    // Update the input, passing in the camera so it will update its internal information
+    m_pInput->Frame(m_pCamera.get());
+
+    // Update the camera's view matrix
+    m_pCamera->UpdateView();
 
     #ifdef DEBUG
     std::wstringstream wss;
@@ -164,7 +172,7 @@ void Game::CreateDeviceDependentResources()
 void Game::CreateWindowSizeDependentResources(int newWidth, int newHeight)
 {
     float aspectRatio = (float)newWidth / (float)newHeight;
-    //m_pCamera->UpdateProjection(aspectRatio);
+    m_pCamera->UpdateProjection(aspectRatio);
 }
 
 }

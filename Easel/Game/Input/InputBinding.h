@@ -18,14 +18,17 @@ to be used by the Inputhandling InputSystem class
 namespace Input {
     
     // Enumeration of different GameCommands
-    enum GameCommands
+    enum class GameCommands
     {
         Quit,
-        ShowFPS
+        MoveForward,
+        MoveBackward,
+        MoveLeft,
+        MoveRight
     };
 
     // Enum to emphasize the different states of a key
-    enum KeyState
+    enum class KeyState
     {
         StillReleased,
         JustPressed,

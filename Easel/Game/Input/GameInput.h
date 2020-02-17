@@ -7,6 +7,7 @@ Description : Interface for GameInput child class
 #define GAMEINPUT_H
 
 #include "InputSystem.h"
+#include "../Graphics/Camera.h"
 
 namespace Input {
     
@@ -18,7 +19,7 @@ namespace Input {
         ~GameInput();
 
         // Actions run by the input system each frame
-        void Frame();
+        void Frame(Graphics::Camera* a_Camera);
     
     protected:
         // Override implementation for setting default key mappings
