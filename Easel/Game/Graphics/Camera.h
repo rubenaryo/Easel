@@ -19,9 +19,6 @@ public:
     ~Camera() = default;
 
 public:
-    // Main Update Method, runs per frame
-    void Update(float dt);
-
     // Updates Camera's View Matrix
     void UpdateView();
 

@@ -21,11 +21,6 @@ Camera::Camera(float x, float y, float z, float a_AspectRatio, float a_Near, flo
     UpdateProjection(a_AspectRatio);
 }
 
-void Camera::Update(float dt)
-{
-
-}
-
 // Creates a new view matrix based on current position and orientation
 void Camera::UpdateView()
 {
