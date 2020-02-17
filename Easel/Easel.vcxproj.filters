@@ -57,6 +57,9 @@
     <ClInclude Include="Game\Transform.h">
       <Filter>Game</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Graphics\Material.h">
+      <Filter>Game\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="System\GameWindow.cpp">
@@ -92,6 +95,7 @@
     <ClCompile Include="Game\Transform.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="Game\Graphics\Material.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Game\Graphics\Shaders\VertexShader.hlsl">
