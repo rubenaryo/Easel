@@ -62,7 +62,7 @@ private:
     std::unique_ptr<Input::GameInput> m_pInput;
 
     // Main Camera
-    std::unique_ptr<Graphics::Camera> m_pCamera;
+    //std::shared_ptr<Graphics::Camera> m_pCamera;
     
     // Timer for the main game loop
     StepTimer m_Timer;

@@ -5,31 +5,57 @@ Description : Implementation of Camera Class
 ----------------------------------------------*/
 #include "Camera.h"
 
-namespace Graphics {
 using namespace DirectX;
+namespace Graphics {
 
-Camera::Camera(XMVECTOR a_Pos, XMVECTOR a_Dir, XMVECTOR a_Up, float a_Near, float a_Far) :
-    m_Position(a_Pos),
-    m_Direction(a_Dir),
-    m_Up(a_Up),
+Camera::Camera(float x, float y, float z, float a_AspectRatio, float a_Near, float a_Far, float a_Sensitivity) :
     m_Near(a_Near),
-    m_Far(a_Far)
+    m_Far(a_Far),
+    m_Sensitivity(a_Sensitivity)
 {
+    // Initialize the transform of the camera
+    m_Transform.SetPosition(x, y, z);
+
+    // Create initial matrices
     UpdateView();
-    m_Projection = XMMatrixIdentity();
+    UpdateProjection(a_AspectRatio);
 }
 
-Camera::~Camera()
-{}
+void Camera::Update(float dt)
+{
 
+}
+
+// Creates a new view matrix based on current position and orientation
 void Camera::UpdateView()
 {
-    m_View = XMMatrixLookAtLH(m_Position, m_Position + m_Direction, m_Up);
+    // Grab rotation quaternion
+    XMVECTOR rotation = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&m_Transform.GetPitchYawRoll()));
+
+    // Calculate Forward vector
+    XMVECTOR zDir = XMVectorSet(0, 0, 1, 0);
+    XMVECTOR forward = XMVector3Rotate(zDir, rotation);
+
+    // Create view matrix
+    XMMATRIX view = XMMatrixLookToLH(
+        XMLoadFloat3(&m_Transform.GetPosition()),
+        forward,
+        XMVectorSet(0, 1, 0, 0));
+
+    // Store as a member field
+    XMStoreFloat4x4(&m_View, view);
 }
 
+// Updates the projection matrix (like on screen resize)
 void Camera::UpdateProjection(float a_AspectRatio)
 {
-    m_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, a_AspectRatio, m_Near, m_Far);
+    XMMATRIX projection = XMMatrixPerspectiveFovLH(
+        XM_PIDIV4,      // FOV
+        a_AspectRatio,  // Screen Aspect ratio
+        m_Near,         // Near clip plane
+        m_Far);         // Far clip plane
+
+    XMStoreFloat4x4(&m_Projection, projection);
 }
 
 }

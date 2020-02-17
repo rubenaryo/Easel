@@ -15,11 +15,6 @@ Game::Game()
     
     m_pGeometryManager = std::make_unique<Graphics::GeometryManager>();
     m_pInput = std::make_unique<Input::GameInput>();
-    
-    DirectX::XMVECTOR cameraPos = DirectX::XMVectorSet(1.f, 0.f, 0.f, 0.f);
-    DirectX::XMVECTOR cameraDir = DirectX::XMVectorSet(-1.f, 0.f, 0.f, 0.f);
-    DirectX::XMVECTOR cameraUp = DirectX::XMVectorSet(0.f, 1.f, 0.f, 0.f);
-    m_pCamera = std::make_unique<Graphics::Camera>(cameraPos, cameraDir, cameraUp, 0.5f, 10.0f);
 }
 
 // Initialize device resource holder by creating all necessary resources
@@ -169,7 +164,7 @@ void Game::CreateDeviceDependentResources()
 void Game::CreateWindowSizeDependentResources(int newWidth, int newHeight)
 {
     float aspectRatio = (float)newWidth / (float)newHeight;
-    m_pCamera->UpdateProjection(aspectRatio);
+    //m_pCamera->UpdateProjection(aspectRatio);
 }
 
 }

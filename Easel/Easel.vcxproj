@@ -28,6 +28,7 @@
     <ClInclude Include="Game\Input\InputBinding.h" />
     <ClInclude Include="Game\Input\InputSystem.h" />
     <ClInclude Include="Game\StepTimer.h" />
+    <ClInclude Include="Game\Transform.h" />
     <ClInclude Include="System\AppWindow.h" />
     <ClInclude Include="System\IException.h" />
     <ClInclude Include="System\WinApp.h" />
@@ -40,6 +41,7 @@
     <ClCompile Include="Game\Input\GameInput.cpp" />
     <ClCompile Include="Game\Input\InputBinding.cpp" />
     <ClCompile Include="Game\Input\InputSystem.cpp" />
+    <ClCompile Include="Game\Transform.cpp" />
     <ClCompile Include="System\GameWindow.cpp" />
     <ClCompile Include="System\IException.cpp" />
     <ClCompile Include="System\Main.cpp" />
