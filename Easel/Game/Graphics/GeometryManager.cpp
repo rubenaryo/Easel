@@ -54,35 +54,59 @@ void GeometryManager::DrawEntities(ID3D11DeviceContext* a_pContext, Camera* a_pC
     }
 }
 
+void GeometryManager::UpdateEntities(float dt)
+{
+    m_Entities[0]->GetTransform()->Rotate(0, 5*dt, 0);
+}
+
 void GeometryManager::BuildMeshes(DeviceResources* a_DR)
 {
-    // Build Vertex Array
-    Vertex vertices[] = {
-        {{0.0f, 0.0f, 0.0f},   {1.f, 1.f, 1.0f}},    // center
-        {{0.0f, 0.5f, 0.0f},   {0.f, 1.f, 1.0f}},
-        {{0.5f, -0.5f, 0.0f},  {0.5f, 0.5f, 0.0f}},
-        {{-0.5f, -0.5f, 0.0f}, {0.3f, 0.5f, 1.f}}
-    };
+    // sample colors
+    XMFLOAT4 white = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+    XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
+    XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+    XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 
-    int numVerts = std::size(vertices);
+    // Construct pyramid programatically
+    Vertex verts[5];
+    const float width = 1.0f;
+    const float yPos = -0.5f;
+    const float height = 1.0f;
+
+    for (int i = 0; i < 4; i++)
+    {
+        float angle = (i * XM_PIDIV2) + XM_PIDIV4;
+        float xPos = width / 2.0f * cosf(angle);
+        float zPos = width / 2.0f * sinf(angle);
+
+        verts[i].position = XMFLOAT3(xPos, yPos, zPos);
+    }
+
+    verts[4].position = XMFLOAT3(0.0f, height + yPos, 0.0f);
+
+    verts[0].color = blue;
+    verts[1].color = green;
+    verts[2].color = blue;
+    verts[3].color = green;
+    verts[4].color = red;
+
+
+    int numVerts = std::size(verts);
 
     // Make index list
     UINT indices[] = {
-        0u,
-        1u,
-        2u,
-        0u,
-        2u,
-        3u,
-        0u,
-        3u,
-        1u
+        2, 4, 3,    // front
+        3, 4, 0,    // right
+        0, 4, 1,    // back
+        1, 4, 2,    // left
+        1, 2, 3,    // bottom1
+        3, 0, 1     // bottom2
     };
 
     int numIndices = std::size(indices);
 
     // Make a mesh based on this geometry information
-    m_Meshes.push_back(new Game::Mesh(vertices, numVerts, indices, numIndices, a_DR->GetD3DDevice()));
+    m_Meshes.push_back(new Game::Mesh(verts, numVerts, indices, numIndices, a_DR->GetD3DDevice()));
 
     // Make an entity based on the mesh and the material
     m_Entities.push_back(new Game::Entity(m_Meshes[0], m_pBasicMaterial));
@@ -137,7 +161,7 @@ void GeometryManager::CompileShaders(DeviceResources* DR)
     const D3D11_INPUT_ELEMENT_DESC IED[] =
     {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12u, D3D11_INPUT_PER_VERTEX_DATA, 0}
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12u, D3D11_INPUT_PER_VERTEX_DATA, 0}
     };
     
     // Create Input Layout and hold as a member field

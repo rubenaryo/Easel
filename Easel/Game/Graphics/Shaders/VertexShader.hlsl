@@ -1,7 +1,7 @@
 struct VertexIn
 {
     float3 position : POSITION;
-    float3 color : COLOR;
+    float4 color : COLOR;
 };
 
 struct VertexOut
@@ -27,7 +27,7 @@ VertexOut main( VertexIn vi)
 
     // Transform position by camera matrix
     vo.position = mul(wvp, float4(vi.position, 1.0f));
-    vo.color = float4(vi.color,1);
+    vo.color = vi.color;
     
     return vo;
 }
