@@ -12,10 +12,10 @@ namespace Input {
     {
         m_KeyboardCurrent.fill(0);
         m_KeyboardPrevious.fill(0);
-        m_MousePrevious.first  = 0;
-        m_MousePrevious.second = 0;
-        m_MouseCurrent.first   = 0;
-        m_MouseCurrent.second  = 0;
+        m_MousePrevious.x = 0;
+        m_MousePrevious.y = 0;
+        m_MouseCurrent.x = 0;
+        m_MouseCurrent.y = 0;
     }
 
     // Release all dynamic memory
@@ -50,11 +50,11 @@ namespace Input {
         m_MouseCurrent = { newX, newY };
     }
 
-    std::pair<short, short> InputSystem::GetMouseDelta() const
+    std::pair<float,float> InputSystem::GetMouseDelta() const
     {
-        std::pair<short, short> pt;
-        pt.first = m_MouseCurrent.first - m_MousePrevious.first;
-        pt.second = m_MouseCurrent.second - m_MouseCurrent.second;
+        std::pair<float, float> pt;
+        pt.first = m_MouseCurrent.x - m_MousePrevious.x;
+        pt.second = m_MouseCurrent.y - m_MousePrevious.y;
         return pt;
     }
 

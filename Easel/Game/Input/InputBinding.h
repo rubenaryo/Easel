@@ -24,7 +24,8 @@ namespace Input {
         MoveForward,
         MoveBackward,
         MoveLeft,
-        MoveRight
+        MoveRight,
+        CameraRotation
     };
 
     // Enum to emphasize the different states of a key

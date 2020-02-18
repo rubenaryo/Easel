@@ -24,6 +24,7 @@ public:
     void Init(DeviceResources* a_DR);
 
     void DrawEntities(ID3D11DeviceContext* a_pContext, Camera* a_pCamera);
+    void UpdateEntities(float dt);
 
 private:
     // Creates vertex/index arrays and populates m_Meshes/m_Entities

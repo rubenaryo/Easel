@@ -21,7 +21,7 @@ Game::Game()
 void Game::Init(HWND window, int width, int height)
 {   
     // Initialize game camera
-    m_pCamera = std::make_unique<Graphics::Camera>(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 25.0f);
+    m_pCamera = std::make_unique<Graphics::Camera>(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 0.8f);
     
     // Create All Device Resources
     m_pDeviceResources->SetWindow(window, width, height);
@@ -112,10 +112,14 @@ void Game::Update(StepTimer const& timer)
     // Update the camera's view matrix
     m_pCamera->UpdateView();
 
+    // Update the pyramid
+    m_pGeometryManager->UpdateEntities(elapsedTime);
+
     #ifdef DEBUG
     std::wstringstream wss;
-    std::pair<short, short> pt = m_pInput->GetMousePosition();
-    wss << L"Cursor: {" << pt.first << L"," << pt.second << L"}  FPS:" << timer.GetFramesPerSecond();
+    POINT pt = m_pInput->GetMousePosition();
+    std::pair<float, float> dp = m_pInput->GetMouseDelta();
+    wss << L"Cursor: {" << pt.x << L"," << pt.y << L"}  FPS:" << timer.GetFramesPerSecond();
     SetWindowText(m_pDeviceResources->GetWindow(), wss.str().c_str());
     #endif
 }

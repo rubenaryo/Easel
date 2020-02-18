@@ -19,9 +19,7 @@ namespace Input {
 
     void GameInput::Frame(float dt, Graphics::Camera* a_Camera)
     {
-        GetInput();
-
-        float speed = 3 * dt;
+        float speed = 5 * dt;
 
         // Act on user input:
         // - Iterate through all active keys
@@ -34,7 +32,6 @@ namespace Input {
             case GameCommands::Quit:
                 PostQuitMessage(0);
                 break;
-
             case GameCommands::MoveForward:
                 a_Camera->GetTransform()->MoveRelative(0.0f, 0.0f, speed);
                 break;
@@ -47,8 +44,23 @@ namespace Input {
             case GameCommands::MoveRight:
                 a_Camera->GetTransform()->MoveRelative(speed, 0.0f, 0.0f);
                 break;
+            case GameCommands::CameraRotation:
+            {
+                std::pair<float, float> delta = this->GetMouseDelta();
+
+                float mouseSensitivity = a_Camera->GetSensitivity();
+
+                delta.first *= mouseSensitivity * dt;
+                delta.second *= mouseSensitivity * dt;
+
+                
+                a_Camera->GetTransform()->Rotate(delta.second, delta.first, 0.0f);
+                break;
+            }
             }
         }
+        
+        GetInput();
     }
 
     void GameInput::SetDefaultKeyMap()
@@ -59,5 +71,7 @@ namespace Input {
         m_keyMap[GameCommands::MoveBackward] = new Chord(L"Move Backward", 'S', KeyState::StillPressed);
         m_keyMap[GameCommands::MoveLeft]     = new Chord(L"Move Left", 'A', KeyState::StillPressed);
         m_keyMap[GameCommands::MoveRight]    = new Chord(L"Move Right", 'D', KeyState::StillPressed);
+
+        m_keyMap[GameCommands::CameraRotation] = new Chord(L"Camera Rotation", VK_RBUTTON, KeyState::StillPressed);
     }
 }
