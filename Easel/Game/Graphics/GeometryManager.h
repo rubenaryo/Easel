@@ -9,46 +9,41 @@ buffers, input layouts, shader compilation
 
 #include "D3D11App.h"
 #include "DeviceResources.h"
+#include "Vertex.h"
+#include <vector>
+#include "../Mesh.h"
+#include "../Entity.h"
+#include "Camera.h"
 
-using Microsoft::WRL::ComPtr;
 namespace Graphics {
 class GeometryManager final {
 public:
-    // The Big Three
     GeometryManager();
-    GeometryManager(const GeometryManager& other);
-    GeometryManager& operator=(const GeometryManager& other);
+    ~GeometryManager();
 
-    void Initialize(DeviceResources* a_DR);
+    void Init(DeviceResources* a_DR);
 
-    // Accessors for member fields
-    ID3D11Buffer*       GetVertexBuffer() const { return m_pVertexBuffer.Get(); }
-    ID3D11Buffer*       GetIndexBuffer()  const { return m_pIndexBuffer.Get();  }
-    ID3D11VertexShader* GetVertexShader() const { return m_pVertexShader.Get(); }
-    ID3D11PixelShader*  GetPixelShader()  const { return m_pPixelShader.Get();  }
-    UINT                GetBufferSize()   const { return m_NumVertices;         }
+    void DrawEntities(ID3D11DeviceContext* a_pContext, Camera* a_pCamera);
 
 private:
-    void BuildVertexBuffers(DeviceResources* a_DR);
-    void BuildIndexBuffers(DeviceResources* a_DR);
+    // Creates vertex/index arrays and populates m_Meshes/m_Entities
+    void BuildMeshes(DeviceResources* a_DR);
+
+    // Builds the constant buffer needed for the WVP matrix in the vertex shader
+    void BuildConstantBuffer(DeviceResources* a_DR);
+
+    // Compiles shader files, 
     void CompileShaders(DeviceResources* a_DR);
 
 private:
-    ComPtr<ID3D11Buffer>       m_pVertexBuffer;
-    ComPtr<ID3D11Buffer>       m_pIndexBuffer;
-    ComPtr<ID3D11VertexShader> m_pVertexShader;
-    ComPtr<ID3D11PixelShader>  m_pPixelShader;
-    ComPtr<ID3D11InputLayout>  m_pInputLayout;
+    Microsoft::WRL::ComPtr<ID3D11InputLayout>  m_pInputLayout;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> m_pVSConstantBuffer;
 
-    UINT                       m_NumVertices;
+    std::vector<Game::Mesh*>   m_Meshes;
+    std::vector<Game::Entity*> m_Entities;
 
-};
+    Material* m_pBasicMaterial;
 
-// Vertex Structure Definition (TEMP)
-struct Vertex
-{
-    float pos[3];
-    float color[3];
 };
 
 }

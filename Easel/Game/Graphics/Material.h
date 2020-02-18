@@ -10,6 +10,7 @@ Description : Material class for shader information
 using namespace Microsoft::WRL;
 namespace Graphics {
 class Material {
+public:
     Material(ComPtr<ID3D11VertexShader> a_pVS, ComPtr<ID3D11PixelShader> a_pPS);
     ~Material() = default;
 

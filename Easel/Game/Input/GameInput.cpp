@@ -17,9 +17,11 @@ namespace Input {
     GameInput::~GameInput()
     {}
 
-    void GameInput::Frame(Graphics::Camera* a_Camera)
+    void GameInput::Frame(float dt, Graphics::Camera* a_Camera)
     {
         GetInput();
+
+        float speed = 3 * dt;
 
         // Act on user input:
         // - Iterate through all active keys
@@ -34,13 +36,16 @@ namespace Input {
                 break;
 
             case GameCommands::MoveForward:
-                a_Camera->GetTransform()->MoveRelative(0.0f, 0.0f, 0.5f);
+                a_Camera->GetTransform()->MoveRelative(0.0f, 0.0f, speed);
                 break;
             case GameCommands::MoveBackward:
+                a_Camera->GetTransform()->MoveRelative(0.0f, 0.0f, -speed);
                 break;
             case GameCommands::MoveLeft:
+                a_Camera->GetTransform()->MoveRelative(-speed, 0.0f, 0.0f);
                 break;
             case GameCommands::MoveRight:
+                a_Camera->GetTransform()->MoveRelative(speed, 0.0f, 0.0f);
                 break;
             }
         }

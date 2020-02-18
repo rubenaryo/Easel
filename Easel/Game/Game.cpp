@@ -32,16 +32,9 @@ void Game::Init(HWND window, int width, int height)
     CreateWindowSizeDependentResources(width, height);
 
     // Create Drawable Geometries
-    m_pGeometryManager->Initialize(m_pDeviceResources.get());
+    m_pGeometryManager->Init(m_pDeviceResources.get());
 
     // Bind Vertex Buffer to Pipeline
-    const UINT stride = sizeof(Graphics::Vertex);
-    const UINT offset = 0u;
-    ID3D11Buffer* vbuffer = m_pGeometryManager->GetVertexBuffer();
-    m_pDeviceResources->GetD3DDeviceContext()->IASetVertexBuffers(0u, 1u, &vbuffer, &stride, &offset);
-    
-    // Bind Index Buffer to Pipeline
-    m_pDeviceResources->GetD3DDeviceContext()->IASetIndexBuffer(m_pGeometryManager->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0u);
 
 }
 
@@ -114,7 +107,7 @@ void Game::Update(StepTimer const& timer)
     float elapsedTime = float(timer.GetElapsedSeconds());
 
     // Update the input, passing in the camera so it will update its internal information
-    m_pInput->Frame(m_pCamera.get());
+    m_pInput->Frame(elapsedTime, m_pCamera.get());
 
     // Update the camera's view matrix
     m_pCamera->UpdateView();
@@ -141,8 +134,8 @@ void Game::Render()
     // Grab a reference to the d3d device context
     auto context = m_pDeviceResources->GetD3DDeviceContext();
     
-    // Draw the triangle
-    context->DrawIndexed(9u, 0u, 0u);
+    // Draw all geometries
+    m_pGeometryManager->DrawEntities(context, m_pCamera.get());
 
     // Show the new frame
     m_pDeviceResources->Present();

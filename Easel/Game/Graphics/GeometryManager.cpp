@@ -5,77 +5,69 @@ Description : Implementation of Geometry Manager
 ----------------------------------------------*/
 
 #include "GeometryManager.h"
+#include "CBufferStructs.h"
 
 namespace Graphics {
 
 GeometryManager::GeometryManager():
-    m_pVertexBuffer(0),
-    m_pIndexBuffer(0),
-    m_NumVertices(0),
-    m_pVertexShader(0),
-    m_pPixelShader(0)
+    m_pInputLayout(0)
 {}
 
-GeometryManager::GeometryManager(const GeometryManager& other):
-    m_pVertexBuffer(other.m_pVertexBuffer),
-    m_pIndexBuffer(other.m_pIndexBuffer),
-    m_NumVertices(other.m_NumVertices),
-    m_pVertexShader(other.m_pVertexShader),
-    m_pPixelShader(other.m_pPixelShader)
-{}
-
-GeometryManager& GeometryManager::operator=(const GeometryManager& other)
+GeometryManager::~GeometryManager()
 {
-    m_pPixelShader = other.m_pPixelShader;
-    m_pVertexShader = other.m_pVertexShader;
-    m_pVertexBuffer = other.m_pVertexBuffer;
-    m_pIndexBuffer = other.m_pIndexBuffer;
-    m_NumVertices = other.m_NumVertices;
+    // Cleanup all heap-allocated meshes
+    for (auto& mesh : m_Meshes)
+    {
+        delete mesh;
+    }
 
-    return (GeometryManager&) other;
+    // Cleanup all heap-allocated entities
+    for (auto& entity : m_Entities)
+    {
+        delete entity;
+    }
+
+    // Cleanup base material
+    delete m_pBasicMaterial;
 }
 
-void GeometryManager::Initialize(DeviceResources* DR)
+void GeometryManager::Init(DeviceResources* DR)
 {
-    BuildVertexBuffers(DR);
-    BuildIndexBuffers(DR);
     CompileShaders(DR);
+    BuildMeshes(DR);
+    BuildConstantBuffer(DR);
 }
 
-void GeometryManager::BuildVertexBuffers(DeviceResources* DR)
+void GeometryManager::DrawEntities(ID3D11DeviceContext* a_pContext, Camera* a_pCamera)
+{
+    // Bind Constant Buffer
+    a_pContext->VSSetConstantBuffers(
+        0,  // slot 0
+        1,  // 1 buffer
+        m_pVSConstantBuffer.GetAddressOf()
+    );
+
+    // draw all entities in the scene
+    for (Game::Entity* e : m_Entities)
+    {
+        e->Draw(a_pContext, m_pVSConstantBuffer.Get(), a_pCamera);
+    }
+}
+
+void GeometryManager::BuildMeshes(DeviceResources* a_DR)
 {
     // Build Vertex Array
-    const Vertex vertices[] = {
+    Vertex vertices[] = {
         {{0.0f, 0.0f, 0.0f},   {1.f, 1.f, 1.0f}},    // center
-        {{0.0f, 0.5f, 0.0f},   {0.f, 1.f, 1.0f}},    
+        {{0.0f, 0.5f, 0.0f},   {0.f, 1.f, 1.0f}},
         {{0.5f, -0.5f, 0.0f},  {0.5f, 0.5f, 0.0f}},
         {{-0.5f, -0.5f, 0.0f}, {0.3f, 0.5f, 1.f}}
     };
 
-    // Hold the number of vertices as a member field
-    UINT numVerts = (UINT)std::size(vertices);
-    m_NumVertices = numVerts;
-    
-    // Create Descriptors
-    D3D11_BUFFER_DESC bd = {};
-    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.CPUAccessFlags = 0u;
-    bd.MiscFlags = 0u;
-    bd.ByteWidth = sizeof(vertices);
-    bd.StructureByteStride = sizeof(Vertex);
-    D3D11_SUBRESOURCE_DATA sd = {};
-    sd.pSysMem = vertices;
-    
-    // Pipe data into member field
-    ThrowIfFailed(DR->GetD3DDevice()->CreateBuffer(&bd, &sd, &m_pVertexBuffer));
+    int numVerts = std::size(vertices);
 
-}
-
-void GeometryManager::BuildIndexBuffers(DeviceResources* a_DR)
-{
     // Make index list
-    const UINT indices[] = {
+    UINT indices[] = {
         0u,
         1u,
         2u,
@@ -87,19 +79,32 @@ void GeometryManager::BuildIndexBuffers(DeviceResources* a_DR)
         1u
     };
 
-    // Create Descriptors
-    D3D11_BUFFER_DESC bd = {};
-    bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.CPUAccessFlags = 0u;
-    bd.MiscFlags = 0u;
-    bd.ByteWidth = sizeof(indices);
-    bd.StructureByteStride = sizeof(UINT);
-    D3D11_SUBRESOURCE_DATA sd = {};
-    sd.pSysMem = indices;
+    int numIndices = std::size(indices);
 
-    // Pipe Data into member field
-    ThrowIfFailed(a_DR->GetD3DDevice()->CreateBuffer(&bd, &sd, &m_pIndexBuffer));
+    // Make a mesh based on this geometry information
+    m_Meshes.push_back(new Game::Mesh(vertices, numVerts, indices, numIndices, a_DR->GetD3DDevice()));
+
+    // Make an entity based on the mesh and the material
+    m_Entities.push_back(new Game::Entity(m_Meshes[0], m_pBasicMaterial));
+}
+
+void GeometryManager::BuildConstantBuffer(DeviceResources* a_DR)
+{
+    // Get the size of the constant buffer struct as a multiple of 16
+    unsigned int size = sizeof(VSBasicData);
+    size = (size + 15) / 16 * 16;
+
+    // Describe the constant buffer and create it
+    D3D11_BUFFER_DESC cbDesc = {};
+    cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    cbDesc.ByteWidth = size;
+    cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+    cbDesc.MiscFlags = 0;
+    cbDesc.StructureByteStride = 0;
+
+    // Store the cbuffer as a member field
+    a_DR->GetD3DDevice()->CreateBuffer(&cbDesc, 0, m_pVSConstantBuffer.GetAddressOf());
 }
 
 // Programmatically Compiles and then Binds Shaders to the Render pipeline.
@@ -112,24 +117,21 @@ void GeometryManager::CompileShaders(DeviceResources* DR)
 
     ComPtr<ID3D10Blob> pBlob = 0;
     HRESULT hr;
+
+    ComPtr<ID3D11VertexShader> pVS;
+    ComPtr<ID3D11PixelShader> pPS;
     
     // Create Pixel Shader
     hr = D3DReadFileToBlob(L"..\\_Binary\\PixelShader.cso", &pBlob);
     ThrowIfFailed(hr);
-    hr = device->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), 0, &m_pPixelShader);
+    hr = device->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), 0, &pPS);
     ThrowIfFailed(hr);
-
-    // Bind Pixel Shader
-    context->PSSetShader(m_pPixelShader.Get(), NULL, 0U);
 
     // Create Vertex Shader
     hr = D3DReadFileToBlob(L"..\\_Binary\\VertexShader.cso", &pBlob);
     ThrowIfFailed(hr);
-    hr = device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), 0, &m_pVertexShader);
+    hr = device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), 0, &pVS);
     ThrowIfFailed(hr);
-
-    // Bind Vertex Shader
-    context->VSSetShader(m_pVertexShader.Get(), NULL, 0U);
 
     // Describe Input Layout
     const D3D11_INPUT_ELEMENT_DESC IED[] =
@@ -153,6 +155,9 @@ void GeometryManager::CompileShaders(DeviceResources* DR)
 
     // Set Primitive Topology of the input assembler stage
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    // Create material based on compiled vertex/pixel shaders
+    m_pBasicMaterial = new Material(pVS, pPS);
 }
 
 }
