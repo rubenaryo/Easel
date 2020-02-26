@@ -10,7 +10,8 @@ Description : Implementation of Geometry Manager
 namespace Graphics {
 
 GeometryManager::GeometryManager():
-    m_pInputLayout(0)
+    m_pInputLayout(0),
+    m_pBasicMaterial(0)
 {}
 
 GeometryManager::~GeometryManager()
@@ -91,7 +92,7 @@ void GeometryManager::BuildMeshes(DeviceResources* a_DR)
     verts[4].color = red;
 
 
-    int numVerts = std::size(verts);
+    int numVerts = ARRAYSIZE(verts);
 
     // Make index list
     UINT indices[] = {
@@ -103,7 +104,7 @@ void GeometryManager::BuildMeshes(DeviceResources* a_DR)
         3, 0, 1     // bottom2
     };
 
-    int numIndices = std::size(indices);
+    int numIndices = ARRAYSIZE(indices);
 
     // Make a mesh based on this geometry information
     m_Meshes.push_back(new Game::Mesh(verts, numVerts, indices, numIndices, a_DR->GetD3DDevice()));
