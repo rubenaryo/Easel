@@ -7,6 +7,8 @@ DeviceResources - Member of Game, encapsulates the creation and setup of device 
 ----------------------------------------------*/
 #ifndef DEVICERESOURCES_H
 #define DEVICERESOURCES_H
+#pragma warning(push)
+#pragma warning(disable : 26812) // disable enum class warning, DX's fault
 
 #include "D3D11App.h"
 
@@ -33,7 +35,7 @@ public:
         DXGI_FORMAT       depthBufferFormat = DXGI_FORMAT_D32_FLOAT,
         UINT              backBufferCount   = 2,
         D3D_FEATURE_LEVEL minFeatureLevel   = D3D_FEATURE_LEVEL_10_0,
-        unsigned int      flags             = c_FlipPresent
+        unsigned int      flags             = c_FlipPresent | c_EnableMSAA
     ) noexcept;
 
 private:
@@ -41,6 +43,7 @@ private:
     static const unsigned int c_FlipPresent  = 1;
     static const unsigned int c_AllowTearing = 1 << 1;
     static const unsigned int c_EnableHDR    = 1 << 2;
+    static const unsigned int c_EnableMSAA   = 1 << 3;
 
 public:
     void CreateDeviceResources();
@@ -50,24 +53,25 @@ public:
     void HandleDeviceLost();
     void RegisterDeviceNotify(IDeviceNotify* device) { m_pDeviceNotify = device; }
     void Present();
+    void Clear(const FLOAT*);
 
     // Member field accessors
-    ID3D11Device*           GetD3DDevice()          const { return m_pD3DDevice.Get();           }
-    ID3D11DeviceContext*    GetD3DDeviceContext()   const { return m_pD3DContext.Get();          }
-    IDXGISwapChain*         GetSwapChain()          const { return m_pSwapChain.Get();           }
-    D3D_FEATURE_LEVEL       GetDeviceFeatureLevel() const { return m_D3DFeatureLevel;            }
-    ID3D11Texture2D*        GetRenderTarget()       const { return m_pRenderTarget.Get();        }
-    ID3D11Texture2D*        GetDepthStencil()       const { return m_pDepthStencil.Get();        }
-    ID3D11RenderTargetView* GetRenderTargetView()   const { return m_pD3DRenderTargetView.Get(); }
-    ID3D11DepthStencilView* GetDepthStencilView()   const { return m_pD3DDepthStencilView.Get(); }
-    DXGI_FORMAT             GetBackBufferFormat()   const { return m_BackBufferFormat;           }
-    DXGI_FORMAT             GetDepthBufferFormat()  const { return m_DepthBufferFormat;          }
-    D3D11_VIEWPORT          GetScreenViewport()     const { return m_ScreenViewport;             }
-    UINT                    GetBackBufferCount()    const { return m_BackBufferCount;            }
-    DXGI_COLOR_SPACE_TYPE   GetColorSpace()         const { return m_ColorSpaceType;             }
-    unsigned int            GetDeviceOptions()      const { return m_Options;                    }
-    RECT                    GetOutputSize()         const { return m_OutputSize;                 }
-    HWND                    GetWindow()             const { return m_Window;                     }
+    ID3D11Device*            GetD3DDevice()         const { return m_pD3DDevice.Get();           }
+    ID3D11DeviceContext*     GetD3DDeviceContext()  const { return m_pD3DContext.Get();          }
+    IDXGISwapChain*          GetSwapChain()         const { return m_pSwapChain.Get();           }
+    D3D_FEATURE_LEVEL        GetDeviceFeatureLevel()const { return m_D3DFeatureLevel;            }
+    ID3D11Texture2D*         GetRenderTarget()      const { return m_pRenderTarget.Get();        }
+    ID3D11Texture2D*         GetDepthStencil()      const { return m_pDepthStencil.Get();        }
+    ID3D11RenderTargetView*  GetRenderTargetView()  const { return m_pD3DRenderTargetView.Get(); }
+    ID3D11DepthStencilView*  GetDepthStencilView()  const { return m_pD3DDepthStencilView.Get(); }
+    DXGI_FORMAT              GetBackBufferFormat()  const { return m_BackBufferFormat;           }
+    DXGI_FORMAT              GetDepthBufferFormat() const { return m_DepthBufferFormat;          }
+    D3D11_VIEWPORT           GetScreenViewport()    const { return m_ScreenViewport;             }
+    UINT                     GetBackBufferCount()   const { return m_BackBufferCount;            }
+    DXGI_COLOR_SPACE_TYPE    GetColorSpace()        const { return m_ColorSpaceType;             }
+    unsigned int             GetDeviceOptions()     const { return m_Options;                    }
+    RECT                     GetOutputSize()        const { return m_OutputSize;                 }
+    HWND                     GetWindow()            const { return m_Window;                     }
 
 private:
     void CreateFactory();
@@ -76,38 +80,45 @@ private:
 
     // Direct3D Objects
     // I use ComPtr here to utilize the underlying refcount functionality
-    ComPtr<IDXGIFactory2>              m_pDXGIFactory;
-    ComPtr<ID3D11Device>               m_pD3DDevice;
-    ComPtr<ID3D11DeviceContext>        m_pD3DContext;
-    ComPtr<IDXGISwapChain1>            m_pSwapChain;
-    ComPtr<ID3DUserDefinedAnnotation>  m_pD3DAnnotation;
-
-    // Direct3D Rendering Objects
-    ComPtr<ID3D11Texture2D>            m_pRenderTarget;
-    ComPtr<ID3D11Texture2D>            m_pDepthStencil;
-    ComPtr<ID3D11RenderTargetView>     m_pD3DRenderTargetView;
-    ComPtr<ID3D11DepthStencilView>     m_pD3DDepthStencilView;
-    D3D11_VIEWPORT                     m_ScreenViewport;
-
-    // Direct3D Properties
-    DXGI_FORMAT                        m_BackBufferFormat;
-    DXGI_FORMAT                        m_DepthBufferFormat;
-    UINT                               m_BackBufferCount;
-    D3D_FEATURE_LEVEL                  m_D3DMinFeatureLevel;
-
-    // Cached Device Properties
-    HWND                               m_Window;
-    D3D_FEATURE_LEVEL                  m_D3DFeatureLevel;
-    RECT                               m_OutputSize;
-
-    // HDR Support
-    DXGI_COLOR_SPACE_TYPE              m_ColorSpaceType;
-
-    // DeviceResource Options
-    unsigned int                       m_Options;
-
+    ComPtr<IDXGIFactory2>               m_pDXGIFactory;
+    ComPtr<ID3D11Device>                m_pD3DDevice;
+    ComPtr<ID3D11DeviceContext>         m_pD3DContext;
+    ComPtr<IDXGISwapChain1>             m_pSwapChain;
+    ComPtr<ID3DUserDefinedAnnotation>   m_pD3DAnnotation;
+                                        
+    // Direct3D Rendering Objects       
+    ComPtr<ID3D11Texture2D>             m_pRenderTarget;
+    ComPtr<ID3D11Texture2D>             m_pDepthStencil;
+    ComPtr<ID3D11RenderTargetView>      m_pD3DRenderTargetView;
+    ComPtr<ID3D11DepthStencilView>      m_pD3DDepthStencilView;
+    D3D11_VIEWPORT                      m_ScreenViewport;
+                                        
+    // Necessary members for MSAA       
+    ComPtr<ID3D11Texture2D>             m_pMsaaRenderTarget;
+    ComPtr<ID3D11RenderTargetView>      m_pMsaaRenderTargetView;
+    ComPtr<ID3D11DepthStencilView>      m_pMsaaDepthStencilView;
+    unsigned int                        m_MsaaSampleCount;
+                                        
+    // Direct3D Properties              
+    DXGI_FORMAT                         m_BackBufferFormat;
+    DXGI_FORMAT                         m_DepthBufferFormat;
+    UINT                                m_BackBufferCount;
+    D3D_FEATURE_LEVEL                   m_D3DMinFeatureLevel;
+                                        
+                                        
+    // Cached Device Properties         
+    HWND                                m_Window;
+    D3D_FEATURE_LEVEL                   m_D3DFeatureLevel;
+    RECT                                m_OutputSize;
+                                        
+    // HDR Support                      
+    DXGI_COLOR_SPACE_TYPE               m_ColorSpaceType;
+                                        
+    // DeviceResource Options           
+    unsigned int                        m_Options;
+                                        
     // Pointer to DeviceNotify Interface
-    IDeviceNotify*                     m_pDeviceNotify;
+    IDeviceNotify*                      m_pDeviceNotify;
 
 };
 

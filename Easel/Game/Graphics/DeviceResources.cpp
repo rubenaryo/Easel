@@ -27,7 +27,8 @@ DeviceResources::DeviceResources(
     m_D3DFeatureLevel   (D3D_FEATURE_LEVEL_9_1),
     m_OutputSize        ({0,0,1,1}),
     m_ColorSpaceType    (DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709),
-    m_Options           (a_Flags | c_FlipPresent),
+    m_Options           (a_Flags),
+    m_MsaaSampleCount   (4),
     m_pDeviceNotify     (nullptr)
 {}
 
@@ -120,6 +121,30 @@ void DeviceResources::CreateDeviceResources()
     // Check for failure when creating device
     ThrowIfFailed(hr);
 
+    // Check for MSAA Support
+    while (m_MsaaSampleCount > 1)
+    {
+        UINT levels = 0;
+        if (FAILED(device->CheckMultisampleQualityLevels(m_BackBufferFormat, m_MsaaSampleCount, &levels)))
+            continue;
+
+        if (levels > 0)
+            break;
+
+        // Decrease Sample count by powers of two
+        m_MsaaSampleCount /= 2;
+    }
+
+    // MSAA not supported or not a power of two or too high
+    if (m_MsaaSampleCount < 2 || m_MsaaSampleCount % 2 || m_MsaaSampleCount > 16)
+    {
+        // Turn off MSAA support
+        m_Options &= ~c_EnableMSAA;
+
+        // Ensure Consistency of sample count
+        m_MsaaSampleCount = 1;
+    }
+
     // Query the D3D Info Queue Interface:
 #ifndef NDEBUG
     ComPtr<ID3D11Debug> d3dDebug;
@@ -169,10 +194,13 @@ void DeviceResources::UpdateColorSpace()
 // Callback method for when we initialize the window, or when there's a need to recreate the resources that are dependent on window size (when the window is resized basically)
 // This initializes the following members:
 // - Context
-// - RenderTarget View
-// - DepthStencil View
-// - RenderTarget
-// - DepthStencil Buffer
+// - Render Target View
+// - MSAA Render Target View
+// - Depth/Stencil View
+// - MSAA Depth/Stencil View
+// - Render Target
+// - MSAA Render Target
+// - Depth Stencil Buffer
 void DeviceResources::CreateWindowSizeDependentResources()
 {
     if (!m_Window)
@@ -182,6 +210,9 @@ void DeviceResources::CreateWindowSizeDependentResources()
     m_pD3DContext->OMSetRenderTargets(0u, NULL, NULL);  // Reset bound render targets
     m_pD3DRenderTargetView.Reset();
     m_pD3DDepthStencilView.Reset();
+    m_pMsaaRenderTargetView.Reset();
+    m_pMsaaDepthStencilView.Reset();
+    m_pMsaaRenderTarget.Reset();
     m_pRenderTarget.Reset();
     m_pDepthStencil.Reset();
     m_pD3DContext->Flush();
@@ -228,9 +259,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
         scDesc.Format = bbFormat;
         scDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         scDesc.BufferCount = m_BackBufferCount;
-
-        //TODO: Evaluate the need to support 4xMSAA
-        scDesc.SampleDesc.Count = 1;
+        scDesc.SampleDesc.Count   = 1;
         scDesc.SampleDesc.Quality = 0;
         scDesc.Scaling = DXGI_SCALING_STRETCH;
         scDesc.SwapEffect = (m_Options & (c_FlipPresent | c_AllowTearing | c_EnableHDR)) ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_DISCARD;
@@ -240,8 +269,10 @@ void DeviceResources::CreateWindowSizeDependentResources()
         DXGI_SWAP_CHAIN_FULLSCREEN_DESC fsDesc = {0};
         fsDesc.Windowed = TRUE;
 
+        auto device = m_pD3DDevice.Get();
+
         ThrowIfFailed(m_pDXGIFactory->CreateSwapChainForHwnd(
-            m_pD3DDevice.Get(),
+            device,
             m_Window,
             &scDesc,
             &fsDesc,
@@ -259,10 +290,39 @@ void DeviceResources::CreateWindowSizeDependentResources()
         CD3D11_RENDER_TARGET_VIEW_DESC RTVD(D3D11_RTV_DIMENSION_TEXTURE2D, m_BackBufferFormat);
 
         // Create a Render Target View from this Description, holding it as a member variable
-        ThrowIfFailed(m_pD3DDevice->CreateRenderTargetView(
+        ThrowIfFailed(device->CreateRenderTargetView(
             m_pRenderTarget.Get(),
             &RTVD,
             m_pD3DRenderTargetView.ReleaseAndGetAddressOf()
+        ));
+
+        // Create an MSAA Render Target
+        CD3D11_TEXTURE2D_DESC MsaaRTD(
+            m_BackBufferFormat,
+            bbWidth,
+            bbHeight,
+            1, // The render target view has only one texture.
+            1, // Use a single mipmap level.
+            D3D11_BIND_RENDER_TARGET,
+            D3D11_USAGE_DEFAULT,
+            0,
+            m_MsaaSampleCount
+        );
+
+        ThrowIfFailed(device->CreateTexture2D(
+            &MsaaRTD,
+            nullptr,
+            m_pMsaaRenderTarget.ReleaseAndGetAddressOf()
+        ));
+
+        // Create a new MSAA Render Target View Description
+        CD3D11_RENDER_TARGET_VIEW_DESC MsaaRTVD(D3D11_RTV_DIMENSION_TEXTURE2DMS, m_BackBufferFormat);
+
+        // Create an MSAA Render Target View from this Description, holding it as a member variable
+        ThrowIfFailed(device->CreateRenderTargetView(
+            m_pMsaaRenderTarget.Get(),
+            &MsaaRTVD,
+            m_pMsaaRenderTargetView.ReleaseAndGetAddressOf()
         ));
 
         if (m_DepthBufferFormat != DXGI_FORMAT_UNKNOWN)
@@ -276,7 +336,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
                 1, // Use a single mipmap level.
                 D3D11_BIND_DEPTH_STENCIL
             );
-            ThrowIfFailed(m_pD3DDevice->CreateTexture2D(
+            ThrowIfFailed(device->CreateTexture2D(
                 &depthStencilDesc,
                 nullptr,
                 m_pDepthStencil.ReleaseAndGetAddressOf()
@@ -284,10 +344,38 @@ void DeviceResources::CreateWindowSizeDependentResources()
 
             // Fill out descriptor to create Depth Stencil View, holding onto it as a member
             CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D);
-            ThrowIfFailed(m_pD3DDevice->CreateDepthStencilView(
+            ThrowIfFailed(device->CreateDepthStencilView(
                 m_pDepthStencil.Get(),
                 &depthStencilViewDesc,
                 m_pD3DDepthStencilView.ReleaseAndGetAddressOf()
+            ));
+
+            // Do the same for MSAA
+            CD3D11_TEXTURE2D_DESC MsaaDSD(
+                m_DepthBufferFormat,
+                bbWidth,
+                bbHeight,
+                1, // This depth stencil view has only one texture.
+                1, // Use a single mipmap level.
+                D3D11_BIND_DEPTH_STENCIL,
+                D3D11_USAGE_DEFAULT,
+                0,
+                m_MsaaSampleCount
+            );
+
+            // fill temporary texture
+            ComPtr<ID3D11Texture2D> MsaaDepthStencil;
+            ThrowIfFailed(device->CreateTexture2D(
+                &MsaaDSD,
+                nullptr,
+                MsaaDepthStencil.GetAddressOf()
+            ));
+
+            // fill member MsaaDepthStencilView
+            ThrowIfFailed(device->CreateDepthStencilView(
+                MsaaDepthStencil.Get(),
+                nullptr,
+                m_pMsaaDepthStencilView.ReleaseAndGetAddressOf()
             ));
         }
 
@@ -301,6 +389,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
             1.0f                            // Max Depth
         );
     }
+
 }
 
 // Setter for member fields that may change depending on window state
@@ -342,6 +431,9 @@ void DeviceResources::HandleDeviceLost()
     m_pD3DDepthStencilView.Reset();
     m_pD3DRenderTargetView.Reset();
     m_pRenderTarget.Reset();
+    m_pMsaaDepthStencilView.Reset();
+    m_pMsaaRenderTarget.Reset();
+    m_pMsaaRenderTargetView.Reset();
     m_pDepthStencil.Reset();
     m_pSwapChain.Reset();
     m_pD3DContext.Reset();
@@ -373,6 +465,13 @@ void DeviceResources::HandleDeviceLost()
 void DeviceResources::Present()
 {
     HRESULT hr;
+
+    // Resolve the MSAA Render Target
+    if (m_Options & c_EnableMSAA)
+    {
+        m_pD3DContext->ResolveSubresource(m_pRenderTarget.Get(), 0, m_pMsaaRenderTarget.Get(), 0, m_BackBufferFormat);
+    }
+
     if (m_Options & c_AllowTearing)
     {
         // Recommended to always use tearing if supported when using a sync interval of 0.
@@ -408,6 +507,31 @@ void DeviceResources::Present()
             CreateFactory();
         }
     }
+
+}
+
+// Clears the backbuffer to a_BackgroundColor, taking into account MSAA
+void DeviceResources::Clear(const FLOAT* a_BackgroundColor)
+{
+    auto context = m_pD3DContext.Get();
+
+    // Clear views
+    if (m_Options & c_EnableMSAA)
+    {
+        context->ClearRenderTargetView(m_pMsaaRenderTargetView.Get(), a_BackgroundColor);
+        context->ClearDepthStencilView(m_pMsaaDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+        context->OMSetRenderTargets(1, m_pMsaaRenderTargetView.GetAddressOf(), m_pMsaaDepthStencilView.Get());
+    }
+    else
+    {
+        context->ClearRenderTargetView(m_pD3DRenderTargetView.Get(), a_BackgroundColor);
+        context->ClearDepthStencilView(m_pD3DDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+        context->OMSetRenderTargets(1, m_pD3DRenderTargetView.GetAddressOf(), m_pD3DDepthStencilView.Get());
+    }
+    
+    // Set the viewport
+    context->RSSetViewports(1, &m_ScreenViewport);
+
 }
 
 }

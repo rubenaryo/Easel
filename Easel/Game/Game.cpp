@@ -132,34 +132,20 @@ void Game::Render()
         return;
     }
 
+    // Grab pointer to device resources
+    auto dr = m_pDeviceResources.get();
+
     // Clear the necessary backbuffer
-    Clear();
+    dr->Clear(DirectX::Colors::CornflowerBlue);
 
     // Grab a reference to the d3d device context
-    auto context = m_pDeviceResources->GetD3DDeviceContext();
+    auto context = dr->GetD3DDeviceContext();
     
     // Draw all geometries
     m_pGeometryManager->DrawEntities(context, m_pCamera.get());
 
     // Show the new frame
-    m_pDeviceResources->Present();
-}
-
-// Clears all the views, then resets the viewport
-void Game::Clear()
-{
-    auto context = m_pDeviceResources->GetD3DDeviceContext();
-    auto renderTarget = m_pDeviceResources->GetRenderTargetView();
-    auto depthStencil = m_pDeviceResources->GetDepthStencilView();
-
-    // Clear all views
-    context->ClearRenderTargetView(renderTarget, DirectX::Colors::CornflowerBlue);
-    context->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-    context->OMSetRenderTargets(1, &renderTarget, depthStencil);
-
-    // Set the viewport
-    auto viewport = m_pDeviceResources->GetScreenViewport();
-    context->RSSetViewports(1, &viewport);
+    dr->Present();
 }
 
 void Game::CreateDeviceDependentResources()
