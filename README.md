@@ -1,6 +1,14 @@
 # Easel
 This is a framework I've created to aid with the initial setup of a graphics application
 
+## Dependencies
+Part of the point of making this project was to attempt to create a basic rendering system while using as few libraries as possible. While I'm still committed to this goal, certain features I would like to implement are too impractical to try to learn and create myself while still focusing my own growth in graphics programming specifically, such as Audio or Online Play. The following is a list of the external libraries I'll be making use of and why.
+* DirectX Toolkit 2017 (NuGet)
+ * Reading image files for texture generation
+ * Audio (future)
+* DirectXMesh 2017 (NuGet)
+ * Loading 3D models for mesh generation
+
 ## Visual Studio Configuration
 The development environment used is Visual Studio 2019, configured such that
 * On compilation, all binary executables get placed in the "_Binary" folder
