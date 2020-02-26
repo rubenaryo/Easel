@@ -461,6 +461,29 @@ void DeviceResources::HandleDeviceLost()
 
 }
 
+void DeviceResources::UpdateTitleBar(float FPS)
+{
+    std::wstringstream wss;
+    wss <<
+        L"    Width: " << m_ScreenViewport.Width <<
+        L"    Height: " << m_ScreenViewport.Height <<
+        L"    FPS: " << FPS;
+
+    switch (m_D3DFeatureLevel)
+    {
+    case D3D_FEATURE_LEVEL_11_1: wss << "    Direct3D 11.1"; break;
+    case D3D_FEATURE_LEVEL_11_0: wss << "    Direct3D 11.0"; break;
+    case D3D_FEATURE_LEVEL_10_1: wss << "    Direct3D 10.1"; break;
+    case D3D_FEATURE_LEVEL_10_0: wss << "    Direct3D 10.0"; break;
+    case D3D_FEATURE_LEVEL_9_3:  wss << "    Direct3D 9.3";  break;
+    case D3D_FEATURE_LEVEL_9_2:  wss << "    Direct3D 9.2";  break;
+    case D3D_FEATURE_LEVEL_9_1:  wss << "    Direct3D 9.1";  break;
+    default:                     wss << "    Direct3D ???";  break;
+    }
+
+    SetWindowText(GetWindow(), wss.str().c_str());
+}
+
 // Presents the contents of the swap chain
 void DeviceResources::Present()
 {

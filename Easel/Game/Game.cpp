@@ -47,6 +47,10 @@ void Game::Frame()
     });
 
     Render();
+
+    #ifdef DEBUG 
+    m_pDeviceResources->UpdateTitleBar(m_Timer.GetFramesPerSecond());
+    #endif
 }
 
 void Game::OnDeviceLost()
@@ -114,14 +118,6 @@ void Game::Update(StepTimer const& timer)
 
     // Update the pyramid
     m_pGeometryManager->UpdateEntities(elapsedTime);
-
-    #ifdef DEBUG
-    std::wstringstream wss;
-    POINT pt = m_pInput->GetMousePosition();
-    std::pair<float, float> dp = m_pInput->GetMouseDelta();
-    wss << L"Cursor: {" << pt.x << L"," << pt.y << L"}  FPS:" << timer.GetFramesPerSecond();
-    SetWindowText(m_pDeviceResources->GetWindow(), wss.str().c_str());
-    #endif
 }
 
 void Game::Render()
