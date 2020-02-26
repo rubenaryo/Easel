@@ -99,13 +99,6 @@ void Game::OnMouseMove(short newX, short newY)
     m_pInput->OnMouseMove(newX, newY);
 }
 
-// returns the default window size (hardcoded) by parameter
-void Game::GetDefaultSize(_Out_ int& width, _Out_ int& height)
-{
-    width = 800;
-    height = 600;
-}
-
 void Game::Update(StepTimer const& timer)
 {
     float elapsedTime = float(timer.GetElapsedSeconds());

@@ -40,9 +40,6 @@ public:
     // Input Callbacks
     void OnMouseMove(short newX, short newY);
 
-    // Properties
-    void GetDefaultSize(_Out_ int& width, _Out_ int& height);
-
 private:
     void Update(StepTimer const& timer);
     void Render();
