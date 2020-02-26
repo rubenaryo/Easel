@@ -22,9 +22,9 @@ DeviceResources::DeviceResources(
     m_BackBufferFormat  (a_BackBufferFormat),
     m_DepthBufferFormat (a_DepthBufferFormat),
     m_BackBufferCount   (a_BackBufferCount),
-    m_D3DMinFeatureLevel(a_MinFeatureLevel),
+    m_MinFeatureLevel(a_MinFeatureLevel),
     m_Window            (nullptr),
-    m_D3DFeatureLevel   (D3D_FEATURE_LEVEL_9_1),
+    m_FeatureLevel   (D3D_FEATURE_LEVEL_9_1),
     m_OutputSize        ({0,0,1,1}),
     m_ColorSpaceType    (DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709),
     m_Options           (a_Flags),
@@ -69,7 +69,7 @@ void DeviceResources::CreateDeviceResources()
     UINT featLevelCount = 0;
     while(featLevelCount < _countof(s_featureLevels))
     {
-        if (s_featureLevels[featLevelCount] < m_D3DMinFeatureLevel)
+        if (s_featureLevels[featLevelCount] < m_MinFeatureLevel)
             break;
 
         featLevelCount++;
@@ -94,7 +94,7 @@ void DeviceResources::CreateDeviceResources()
         featLevelCount,           // Feature Level Count
         D3D11_SDK_VERSION,        // SDK Version (UINT) : Always D3D11_SDK_VERSION
         device.GetAddressOf(),    // ID3D11Device** : Pass device pointer to member field
-        &m_D3DFeatureLevel,       // D3D_FEATURE_LEVEL* : Return first supported feature level
+        &m_FeatureLevel,       // D3D_FEATURE_LEVEL* : Return first supported feature level
         context.GetAddressOf()    // ID3D11DeviceContext** : Pass created device context to member field
     );
 
@@ -110,7 +110,7 @@ void DeviceResources::CreateDeviceResources()
             featLevelCount,
             D3D11_SDK_VERSION,
             device.GetAddressOf(),
-            &m_D3DFeatureLevel,
+            &m_FeatureLevel,
             context.GetAddressOf()
         );
 
@@ -170,9 +170,9 @@ void DeviceResources::CreateDeviceResources()
 #endif
 
     // Hold created device and context as class members
-    ThrowIfFailed(device.As(&m_pD3DDevice));
-    ThrowIfFailed(context.As(&m_pD3DContext));
-    ThrowIfFailed(context.As(&m_pD3DAnnotation));
+    ThrowIfFailed(device.As(&m_pDevice));
+    ThrowIfFailed(context.As(&m_pContext));
+    ThrowIfFailed(context.As(&m_pAnnotation));
 }
 
 // Wrapper function for CreateDXGIFactory
@@ -207,15 +207,15 @@ void DeviceResources::CreateWindowSizeDependentResources()
         throw std::exception("m_Window member not set!");
 
     // Clear current window dependent fields.
-    m_pD3DContext->OMSetRenderTargets(0u, NULL, NULL);  // Reset bound render targets
-    m_pD3DRenderTargetView.Reset();
-    m_pD3DDepthStencilView.Reset();
+    m_pContext->OMSetRenderTargets(0u, NULL, NULL);  // Reset bound render targets
+    m_pRenderTargetView.Reset();
+    m_pDepthStencilView.Reset();
     m_pMsaaRenderTargetView.Reset();
     m_pMsaaDepthStencilView.Reset();
     m_pMsaaRenderTarget.Reset();
     m_pRenderTarget.Reset();
     m_pDepthStencil.Reset();
-    m_pD3DContext->Flush();
+    m_pContext->Flush();
 
     // Find the height of the render target, using std::max to ensure neither dimension is 0
     UINT bbWidth  = std::max<UINT>(static_cast<UINT>((m_OutputSize.right - m_OutputSize.left)), 1U);
@@ -237,7 +237,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
         if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
         {
             char buf[256];
-            sprintf_s(buf, "Device Lost on Resize Buffers: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pD3DDevice->GetDeviceRemovedReason() : hr);
+            sprintf_s(buf, "Device Lost on Resize Buffers: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pDevice->GetDeviceRemovedReason() : hr);
             OutputDebugStringA(buf);
 
             // A new device and swapchain need to be created
@@ -269,7 +269,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
         DXGI_SWAP_CHAIN_FULLSCREEN_DESC fsDesc = {0};
         fsDesc.Windowed = TRUE;
 
-        auto device = m_pD3DDevice.Get();
+        auto device = m_pDevice.Get();
 
         ThrowIfFailed(m_pDXGIFactory->CreateSwapChainForHwnd(
             device,
@@ -293,7 +293,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
         ThrowIfFailed(device->CreateRenderTargetView(
             m_pRenderTarget.Get(),
             &RTVD,
-            m_pD3DRenderTargetView.ReleaseAndGetAddressOf()
+            m_pRenderTargetView.ReleaseAndGetAddressOf()
         ));
 
         // Create an MSAA Render Target
@@ -347,7 +347,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
             ThrowIfFailed(device->CreateDepthStencilView(
                 m_pDepthStencil.Get(),
                 &depthStencilViewDesc,
-                m_pD3DDepthStencilView.ReleaseAndGetAddressOf()
+                m_pDepthStencilView.ReleaseAndGetAddressOf()
             ));
 
             // Do the same for MSAA
@@ -428,28 +428,28 @@ void DeviceResources::HandleDeviceLost()
     if (m_pDeviceNotify)
         m_pDeviceNotify->OnDeviceLost();
 
-    m_pD3DDepthStencilView.Reset();
-    m_pD3DRenderTargetView.Reset();
+    m_pDepthStencilView.Reset();
+    m_pRenderTargetView.Reset();
     m_pRenderTarget.Reset();
     m_pMsaaDepthStencilView.Reset();
     m_pMsaaRenderTarget.Reset();
     m_pMsaaRenderTargetView.Reset();
     m_pDepthStencil.Reset();
     m_pSwapChain.Reset();
-    m_pD3DContext.Reset();
-    m_pD3DAnnotation.Reset();
+    m_pContext.Reset();
+    m_pAnnotation.Reset();
 
     #ifdef _DEBUG
     {
         ComPtr<ID3D11Debug> d3dDebug;
-        if (SUCCEEDED(m_pD3DDevice.As(&d3dDebug)))
+        if (SUCCEEDED(m_pDevice.As(&d3dDebug)))
         {
             d3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY);
         }
     }
     #endif
 
-    m_pD3DDevice.Reset();
+    m_pDevice.Reset();
     m_pDXGIFactory.Reset();
 
     // Recreate all device resources
@@ -469,7 +469,7 @@ void DeviceResources::UpdateTitleBar(float FPS)
         L"    Height: " << m_ScreenViewport.Height <<
         L"    FPS: " << FPS;
 
-    switch (m_D3DFeatureLevel)
+    switch (m_FeatureLevel)
     {
     case D3D_FEATURE_LEVEL_11_1: wss << "    Direct3D 11.1"; break;
     case D3D_FEATURE_LEVEL_11_0: wss << "    Direct3D 11.0"; break;
@@ -492,7 +492,7 @@ void DeviceResources::Present()
     // Resolve the MSAA Render Target
     if (m_Options & c_EnableMSAA)
     {
-        m_pD3DContext->ResolveSubresource(m_pRenderTarget.Get(), 0, m_pMsaaRenderTarget.Get(), 0, m_BackBufferFormat);
+        m_pContext->ResolveSubresource(m_pRenderTarget.Get(), 0, m_pMsaaRenderTarget.Get(), 0, m_BackBufferFormat);
     }
 
     if (m_Options & c_AllowTearing)
@@ -514,7 +514,7 @@ void DeviceResources::Present()
     {
         #ifdef _DEBUG
         char buff[64] = {0};
-        sprintf_s(buff, "Device Lost on Present: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pD3DDevice->GetDeviceRemovedReason() : hr);
+        sprintf_s(buff, "Device Lost on Present: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pDevice->GetDeviceRemovedReason() : hr);
         OutputDebugStringA(buff);
         #endif
 
@@ -536,7 +536,7 @@ void DeviceResources::Present()
 // Clears the backbuffer to a_BackgroundColor, taking into account MSAA
 void DeviceResources::Clear(const FLOAT* a_BackgroundColor)
 {
-    auto context = m_pD3DContext.Get();
+    auto context = m_pContext.Get();
 
     // Clear views
     if (m_Options & c_EnableMSAA)
@@ -547,9 +547,9 @@ void DeviceResources::Clear(const FLOAT* a_BackgroundColor)
     }
     else
     {
-        context->ClearRenderTargetView(m_pD3DRenderTargetView.Get(), a_BackgroundColor);
-        context->ClearDepthStencilView(m_pD3DDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-        context->OMSetRenderTargets(1, m_pD3DRenderTargetView.GetAddressOf(), m_pD3DDepthStencilView.Get());
+        context->ClearRenderTargetView(m_pRenderTargetView.Get(), a_BackgroundColor);
+        context->ClearDepthStencilView(m_pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+        context->OMSetRenderTargets(1, m_pRenderTargetView.GetAddressOf(), m_pDepthStencilView.Get());
     }
     
     // Set the viewport

@@ -57,14 +57,14 @@ public:
     void Clear(const FLOAT*);
 
     // Member field accessors
-    ID3D11Device*            GetD3DDevice()         const { return m_pD3DDevice.Get();           }
-    ID3D11DeviceContext*     GetD3DDeviceContext()  const { return m_pD3DContext.Get();          }
+    ID3D11Device*            GetD3DDevice()         const { return m_pDevice.Get();           }
+    ID3D11DeviceContext*     GetD3DDeviceContext()  const { return m_pContext.Get();          }
     IDXGISwapChain*          GetSwapChain()         const { return m_pSwapChain.Get();           }
-    D3D_FEATURE_LEVEL        GetDeviceFeatureLevel()const { return m_D3DFeatureLevel;            }
+    D3D_FEATURE_LEVEL        GetDeviceFeatureLevel()const { return m_FeatureLevel;            }
     ID3D11Texture2D*         GetRenderTarget()      const { return m_pRenderTarget.Get();        }
     ID3D11Texture2D*         GetDepthStencil()      const { return m_pDepthStencil.Get();        }
-    ID3D11RenderTargetView*  GetRenderTargetView()  const { return m_pD3DRenderTargetView.Get(); }
-    ID3D11DepthStencilView*  GetDepthStencilView()  const { return m_pD3DDepthStencilView.Get(); }
+    ID3D11RenderTargetView*  GetRenderTargetView()  const { return m_pRenderTargetView.Get(); }
+    ID3D11DepthStencilView*  GetDepthStencilView()  const { return m_pDepthStencilView.Get(); }
     DXGI_FORMAT              GetBackBufferFormat()  const { return m_BackBufferFormat;           }
     DXGI_FORMAT              GetDepthBufferFormat() const { return m_DepthBufferFormat;          }
     D3D11_VIEWPORT           GetScreenViewport()    const { return m_ScreenViewport;             }
@@ -82,16 +82,16 @@ private:
     // Direct3D Objects
     // I use ComPtr here to utilize the underlying refcount functionality
     ComPtr<IDXGIFactory2>               m_pDXGIFactory;
-    ComPtr<ID3D11Device>                m_pD3DDevice;
-    ComPtr<ID3D11DeviceContext>         m_pD3DContext;
+    ComPtr<ID3D11Device>                m_pDevice;
+    ComPtr<ID3D11DeviceContext>         m_pContext;
     ComPtr<IDXGISwapChain1>             m_pSwapChain;
-    ComPtr<ID3DUserDefinedAnnotation>   m_pD3DAnnotation;
+    ComPtr<ID3DUserDefinedAnnotation>   m_pAnnotation;
                                         
     // Direct3D Rendering Objects       
     ComPtr<ID3D11Texture2D>             m_pRenderTarget;
     ComPtr<ID3D11Texture2D>             m_pDepthStencil;
-    ComPtr<ID3D11RenderTargetView>      m_pD3DRenderTargetView;
-    ComPtr<ID3D11DepthStencilView>      m_pD3DDepthStencilView;
+    ComPtr<ID3D11RenderTargetView>      m_pRenderTargetView;
+    ComPtr<ID3D11DepthStencilView>      m_pDepthStencilView;
     D3D11_VIEWPORT                      m_ScreenViewport;
                                         
     // Necessary members for MSAA       
@@ -104,12 +104,12 @@ private:
     DXGI_FORMAT                         m_BackBufferFormat;
     DXGI_FORMAT                         m_DepthBufferFormat;
     UINT                                m_BackBufferCount;
-    D3D_FEATURE_LEVEL                   m_D3DMinFeatureLevel;
+    D3D_FEATURE_LEVEL                   m_MinFeatureLevel;
                                         
                                         
     // Cached Device Properties         
     HWND                                m_Window;
-    D3D_FEATURE_LEVEL                   m_D3DFeatureLevel;
+    D3D_FEATURE_LEVEL                   m_FeatureLevel;
     RECT                                m_OutputSize;
                                         
     // HDR Support                      
