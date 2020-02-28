@@ -4,55 +4,99 @@ Date : 2020/2
 Description : Mesh functionality
 ----------------------------------------------*/
 #include "Mesh.h"
-#include <vector>
 
 using namespace Graphics;
 namespace Game {
 
-Mesh::Mesh(Vertex* a_VertexArray, int a_NumVertices, unsigned int* a_IndexArray, int a_NumIndices, ID3D11Device* a_pDevice)
+Mesh::Mesh(Vertex* a_VertexArray, unsigned int a_NumVertices, unsigned int* a_IndexArray, unsigned int a_NumIndices, ID3D11Device* a_pDevice)
 {
     CreateBuffers(a_VertexArray, a_NumVertices, a_IndexArray, a_NumIndices, a_pDevice);
 }
 
-Mesh::Mesh(const std::string& pFile)
+Mesh::Mesh(const std::string& a_pFile, ID3D11Device* a_pDevice)
 {
     Assimp::Importer Importer;
 
     // Load assimpScene with proper flags
-    const aiScene* scene = Importer.ReadFile(
-        pFile,
+    const aiScene* pScene = Importer.ReadFile(
+        a_pFile,
         aiProcess_Triangulate           |
         aiProcess_JoinIdenticalVertices |   // Remove unnecessary duplicate information
-        aiProcess_MakeLeftHanded        |   // Must make left handed for DirectX
         aiProcess_GenNormals            |   // Ensure normals are generated
         aiProcess_CalcTangentSpace          // Needed for normal mapping
     );
 
-    if (scene)
+    if (pScene)
     {
-        LoadModelInfo(scene);
+        LoadSceneInfo(pScene, a_pDevice);
     }
     else
     {
         char buf[64];
-        sprintf_s(buf, "Error parsing '%s': '%s'\n", pFile.c_str(), Importer.GetErrorString());
+        sprintf_s(buf, "Error parsing '%s': '%s'\n", a_pFile.c_str(), Importer.GetErrorString());
         throw std::exception(buf);
     }
 }
 
 // Loads imports the model data passed in by an Assimp scene into 
 // Easel's Mesh interface, which can be worked with
-void Mesh::LoadModelInfo(const aiScene* a_pScene)
+void Mesh::LoadSceneInfo(const aiScene* a_pScene, ID3D11Device* a_pDevice)
 {
+    // temporary vectors to hold vertex/index information
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+
     // aiScenes may be composed of multiple submeshes,
     // we want to coagulate this into a single vertex/index buffer
     for (unsigned int i = 0; i < a_pScene->mNumMeshes; ++i)
     {
-        //TODO: import code
+        const aiMesh* pMesh = a_pScene->mMeshes[i];
+        const aiVector3D cZero(0.0f, 0.0f, 0.0f);
+
+        // Process Vertices for this mesh
+        for (unsigned int j = 0; j < pMesh->mNumVertices; ++j)
+        {
+            // Every vertex has a position
+            const aiVector3D position = pMesh->mVertices[j];
+
+            // Check for normals
+            const aiVector3D normal   = pMesh->HasNormals() ? pMesh->mNormals[j] : cZero;
+            
+            // Assume every vertex holds only one set of uv coords
+            const aiVector3D texCoord = pMesh->HasTextureCoords(0) ? pMesh->mTextureCoords[0][j] : cZero;
+        
+            // Create one of our vertices with this information
+            Vertex v;
+            v.position = DirectX::XMFLOAT3(position.x, position.y, position.z);
+            v.normal = DirectX::XMFLOAT3(normal.x, normal.y, normal.z);
+            v.uv = DirectX::XMFLOAT2(texCoord.x, texCoord.y);
+
+            vertices.push_back(v);
+        }
+
+        // Process Indices next
+        for (unsigned int j = 0; j < pMesh->mNumFaces; ++j)
+        {
+            const aiFace& face = pMesh->mFaces[j];
+            assert(face.mNumIndices == 3); // Sanity check
+            
+            // All the indices of this face are valid, add to list
+            indices.push_back(face.mIndices[0]);
+            indices.push_back(face.mIndices[1]);
+            indices.push_back(face.mIndices[2]);
+        }
+
     }
+
+    // Now, we have the vertices and indices for every mesh in the scene, so we make the buffers.
+    // These temporary variables are to avoid compiler warnings
+    unsigned int numVerts = static_cast<unsigned int>(vertices.size());
+    unsigned int numIndices = static_cast<unsigned int>(indices.size());
+    
+    CreateBuffers(&vertices[0], numVerts, &indices[0], numIndices, a_pDevice);
 }
 
-void Mesh::CreateBuffers(Vertex* a_VertexArray, int a_NumVertices, unsigned int* a_IndexArray, int a_NumIndices, ID3D11Device* a_pDevice)
+void Mesh::CreateBuffers(Vertex* a_VertexArray, unsigned int a_NumVertices, unsigned int* a_IndexArray, unsigned int a_NumIndices, ID3D11Device* a_pDevice)
 {
     // Create the vertex buffer
     D3D11_BUFFER_DESC vbd;

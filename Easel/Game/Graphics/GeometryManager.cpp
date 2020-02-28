@@ -57,7 +57,7 @@ void GeometryManager::DrawEntities(ID3D11DeviceContext* a_pContext, Camera* a_pC
 
 void GeometryManager::UpdateEntities(float dt)
 {
-    m_Entities[0]->GetTransform()->Rotate(0, 5*dt, 0);
+    m_Entities[0]->GetTransform()->Rotate(0, dt, 0);
 }
 
 void GeometryManager::BuildMeshes(DeviceResources* a_DR)
@@ -85,11 +85,11 @@ void GeometryManager::BuildMeshes(DeviceResources* a_DR)
 
     verts[4].position = XMFLOAT3(0.0f, height + yPos, 0.0f);
 
-    verts[0].color = blue;
-    verts[1].color = green;
-    verts[2].color = blue;
-    verts[3].color = green;
-    verts[4].color = red;
+    //verts[0].color = blue;
+    //verts[1].color = green;
+    //verts[2].color = blue;
+    //verts[3].color = green;
+    //verts[4].color = red;
 
 
     int numVerts = ARRAYSIZE(verts);
@@ -107,10 +107,12 @@ void GeometryManager::BuildMeshes(DeviceResources* a_DR)
     int numIndices = ARRAYSIZE(indices);
 
     // Make a mesh based on this geometry information
-    m_Meshes.push_back(new Game::Mesh(verts, numVerts, indices, numIndices, a_DR->GetD3DDevice()));
+    m_Meshes.push_back(new Game::Mesh(MODELPATH("teapot.obj"), a_DR->GetD3DDevice()));
 
     // Make an entity based on the mesh and the material
     m_Entities.push_back(new Game::Entity(m_Meshes[0], m_pBasicMaterial));
+    m_Entities[0]->GetTransform()->SetRotation(-XM_PIDIV2, 0, 0);
+    m_Entities[0]->GetTransform()->SetScale(0.1f, 0.1f, 0.1f);
 }
 
 void GeometryManager::BuildConstantBuffer(DeviceResources* a_DR)
@@ -161,8 +163,9 @@ void GeometryManager::CompileShaders(DeviceResources* DR)
     // Describe Input Layout
     const D3D11_INPUT_ELEMENT_DESC IED[] =
     {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12u, D3D11_INPUT_PER_VERTEX_DATA, 0}
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
     
     // Create Input Layout and hold as a member field

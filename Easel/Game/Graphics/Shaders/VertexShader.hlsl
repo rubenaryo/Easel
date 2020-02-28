@@ -1,13 +1,15 @@
 struct VertexIn
 {
     float3 position : POSITION;
-    float4 color : COLOR;
+    float3 normal   : NORMAL;
+    float3 uv       : TEXCOORD;
 };
 
 struct VertexOut
 {
-    float4 position: SV_POSITION;
-    float4 color : COLOR;
+    float4 position : SV_POSITION;
+    float4 color    : COLOR;
+    float3 normal   : NORMAL;
 };
 
 // Basic camera matrix
@@ -27,7 +29,11 @@ VertexOut main( VertexIn vi)
 
     // Transform position by camera matrix
     vo.position = mul(wvp, float4(vi.position, 1.0f));
-    vo.color = vi.color;
+
+    // Transform normal too
+    vo.normal = mul((float3x3)world, vi.normal);
+
+    vo.color = float4(1, 1, 1, 1);
     
     return vo;
 }

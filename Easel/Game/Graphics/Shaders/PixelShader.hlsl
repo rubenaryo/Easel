@@ -1,11 +1,12 @@
-struct PSInput
+struct VertexOut
 {
-    float4 pos : SV_POSITION;
-    float4 color : COLOR;
+    float4 position : SV_POSITION;
+    float4 color    : COLOR;
+    float3 normal   : NORMAL;
 };
 
-
-float4 main(PSInput input) : SV_TARGET
+float4 main(VertexOut input) : SV_TARGET
 {
-	return input.color;
+    input.normal = normalize(input.normal);
+    return float4(input.normal, 1);
 }

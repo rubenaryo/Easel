@@ -63,4 +63,9 @@ by first defining macros that disable certain  features that go unused
 #define __WFILE__ WIDEN(__FILE__)
 #define __WLINE__ WIDEN(__LINE__)
 
+// Helper macros for getting correct paths. WILL ONLY WORK IN THIS PROJECT CONFIG
+#define ASSETPATH "..\\Assets\\"
+#define MODELPATH(fileName) (ASSETPATH ## "Models\\" ## fileName)
+
+
 #endif

@@ -11,14 +11,15 @@ Description : Mesh holds the internal vertex/index buffers for a particular obje
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+#include <vector>
 
 namespace Game {
 
 class Mesh
 {
 public:
-    Mesh(Graphics::Vertex* a_VertexArray, int a_NumVertices, unsigned int* a_IndexArray, int a_NumIndices, ID3D11Device* a_pDevice);
-    Mesh(const std::string& pFile);
+    Mesh(Graphics::Vertex* a_VertexArray, unsigned int a_NumVertices, unsigned int* a_IndexArray, unsigned int a_NumIndices, ID3D11Device* a_pDevice);
+    Mesh(const std::string& pFile, ID3D11Device* a_pDevice);
     Mesh() = delete;
     ~Mesh() = default;
 
@@ -32,7 +33,7 @@ public:
 
 protected:
     // Model Loading Helper Functions
-    void LoadModelInfo(const aiScene* a_pScene);
+    void LoadSceneInfo(const aiScene* a_pScene, ID3D11Device* a_pDevice);
 
     // Internal buffers
     Microsoft::WRL::ComPtr<ID3D11Buffer> m_pVertexBuffer;
@@ -42,7 +43,7 @@ protected:
     int m_IndexCount;
 
     // Creates the internally held vertex/index buffers
-    void CreateBuffers(Graphics::Vertex* a_VertexArray, int a_NumVertices, unsigned int* a_IndexArray, int a_NumIndices, ID3D11Device* a_pDevice);
+    void CreateBuffers(Graphics::Vertex* a_VertexArray, unsigned int a_NumVertices, unsigned int* a_IndexArray, unsigned int a_NumIndices, ID3D11Device* a_pDevice);
 };
 
 }
