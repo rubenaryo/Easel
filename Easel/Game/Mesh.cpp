@@ -35,7 +35,7 @@ Mesh::Mesh(const std::string& pFile)
     else
     {
         char buf[64];
-        sprintf(buf, "Error parsing '%s': '%s'\n", pFile.c_str(), Importer.GetErrorString());
+        sprintf_s(buf, "Error parsing '%s': '%s'\n", pFile.c_str(), Importer.GetErrorString());
         throw std::exception(buf);
     }
 }
