@@ -52,7 +52,7 @@ public:
     bool WindowSizeChanged(int a_Width, int a_Height);
     void HandleDeviceLost();
     void RegisterDeviceNotify(IDeviceNotify* device) { m_pDeviceNotify = device; }
-    void UpdateTitleBar(float FPS);
+    void UpdateTitleBar(uint32_t FPS);
     void Present();
     void Clear(const FLOAT*);
 

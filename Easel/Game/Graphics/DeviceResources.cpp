@@ -461,7 +461,7 @@ void DeviceResources::HandleDeviceLost()
 
 }
 
-void DeviceResources::UpdateTitleBar(float FPS)
+void DeviceResources::UpdateTitleBar(uint32_t FPS)
 {
     std::wstringstream wss;
     wss <<
