@@ -461,25 +461,34 @@ void DeviceResources::HandleDeviceLost()
 
 }
 
-void DeviceResources::UpdateTitleBar(uint32_t FPS)
+void DeviceResources::UpdateTitleBar(uint32_t a_FPS, uint32_t a_FrameCount)
 {
-    std::wstringstream wss;
-    wss <<
-        L"    Width: " << m_ScreenViewport.Width <<
-        L"    Height: " << m_ScreenViewport.Height <<
-        L"    FPS: " << FPS;
+    // Update title bar every 60 frames
+    if (a_FrameCount % 60 == 0)
+        return;
 
+    std::wstringstream wss;
+
+    // Window Information
+    wss <<  L"Width: "      << m_ScreenViewport.Width  <<
+        L"    Height: "     << m_ScreenViewport.Height <<
+        L"    FPS: "        << a_FPS;
+
+    // Check and Print Feature Level
     switch (m_FeatureLevel)
     {
-    case D3D_FEATURE_LEVEL_11_1: wss << "    Direct3D 11.1"; break;
-    case D3D_FEATURE_LEVEL_11_0: wss << "    Direct3D 11.0"; break;
-    case D3D_FEATURE_LEVEL_10_1: wss << "    Direct3D 10.1"; break;
-    case D3D_FEATURE_LEVEL_10_0: wss << "    Direct3D 10.0"; break;
-    case D3D_FEATURE_LEVEL_9_3:  wss << "    Direct3D 9.3";  break;
-    case D3D_FEATURE_LEVEL_9_2:  wss << "    Direct3D 9.2";  break;
-    case D3D_FEATURE_LEVEL_9_1:  wss << "    Direct3D 9.1";  break;
-    default:                     wss << "    Direct3D ???";  break;
+    case D3D_FEATURE_LEVEL_11_1: wss << L"    Direct3D 11.1"; break;
+    case D3D_FEATURE_LEVEL_11_0: wss << L"    Direct3D 11.0"; break;
+    case D3D_FEATURE_LEVEL_10_1: wss << L"    Direct3D 10.1"; break;
+    case D3D_FEATURE_LEVEL_10_0: wss << L"    Direct3D 10.0"; break;
+    case D3D_FEATURE_LEVEL_9_3:  wss << L"    Direct3D 9.3";  break;
+    case D3D_FEATURE_LEVEL_9_2:  wss << L"    Direct3D 9.2";  break;
+    case D3D_FEATURE_LEVEL_9_1:  wss << L"    Direct3D 9.1";  break;
+    default:                     wss << L"    Direct3D ???";  break;
     }
+    
+    // MSAA Level
+    wss << L"    " << m_MsaaSampleCount << L"xMSAA";
 
     SetWindowText(GetWindow(), wss.str().c_str());
 }

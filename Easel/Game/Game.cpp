@@ -49,7 +49,7 @@ void Game::Frame()
     Render();
 
     #ifdef DEBUG 
-    m_pDeviceResources->UpdateTitleBar(m_Timer.GetFramesPerSecond());
+    m_pDeviceResources->UpdateTitleBar(m_Timer.GetFramesPerSecond(), m_Timer.GetFrameCount());
     #endif
 }
 
