@@ -7,8 +7,6 @@ DeviceResources - Member of Game, encapsulates the creation and setup of device 
 ----------------------------------------------*/
 #ifndef DEVICERESOURCES_H
 #define DEVICERESOURCES_H
-#pragma warning(push)
-#pragma warning(disable : 26812) // disable enum class warning, DX's fault
 
 #include "D3D11App.h"
 

@@ -49,12 +49,14 @@ by first defining macros that disable certain  features that go unused
 
 #define STRICT
 
+// For ComPtr
+#include <wrl/client.h>
+
 // Always include Windows.h at the very end
 #include <Windows.h>
 #include <WindowsX.h>
 
-// For ComPtr
-#include <wrl/client.h>
+
 
 // Helper macro for wide strings
 #define WIDEN2(x) L ## x

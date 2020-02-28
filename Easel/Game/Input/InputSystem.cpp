@@ -53,8 +53,9 @@ namespace Input {
     std::pair<float,float> InputSystem::GetMouseDelta() const
     {
         std::pair<float, float> pt;
-        pt.first = m_MouseCurrent.x - m_MousePrevious.x;
-        pt.second = m_MouseCurrent.y - m_MousePrevious.y;
+        
+        pt.first  = static_cast<float>(m_MouseCurrent.x - m_MousePrevious.x);
+        pt.second = static_cast<float>(m_MouseCurrent.y - m_MousePrevious.y);
         return pt;
     }
 
