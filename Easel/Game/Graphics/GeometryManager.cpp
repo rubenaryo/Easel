@@ -8,6 +8,7 @@ Description : Implementation of Geometry Manager
 #include "CBufferStructs.h"
 
 namespace Graphics {
+using namespace DirectX;
 
 GeometryManager::GeometryManager():
     m_pInputLayout(0),

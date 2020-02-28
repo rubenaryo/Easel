@@ -7,6 +7,7 @@ Description : Entity class functionality
 #include "Graphics/CBufferStructs.h"
 
 namespace Game {
+using Graphics::VSBasicData;
 
 Entity::Entity(Mesh* a_pMesh, Material* a_pMaterial) :
     m_pMesh(a_pMesh),

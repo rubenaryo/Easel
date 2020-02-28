@@ -10,8 +10,9 @@ Description : Entity is an instance of a mesh with a unique transform and materi
 #include "Graphics/Camera.h"
 #include "Transform.h"
 
-using namespace Graphics;
 namespace Game {
+using Graphics::Material;
+using Graphics::Camera;
 
 class Entity
 {

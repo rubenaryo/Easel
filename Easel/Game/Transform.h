@@ -7,9 +7,10 @@ Description : Transform class for game objects
 #define TRANSFORM_H
 #include "Graphics/D3D11App.h"
 
-using namespace DirectX;
-
 namespace Game {
+using DirectX::XMFLOAT4X4;
+using DirectX::XMFLOAT3;
+
 class Transform
 {
 public:

@@ -5,8 +5,8 @@ Description : Transform class implementation
 ----------------------------------------------*/
 #include "Transform.h"
 
-using namespace DirectX;
 namespace Game {
+using namespace DirectX;
 
 Transform::Transform() :
     m_Position(0.0f, 0.0f, 0.0f),

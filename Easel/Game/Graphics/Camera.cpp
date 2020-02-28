@@ -5,8 +5,8 @@ Description : Implementation of Camera Class
 ----------------------------------------------*/
 #include "Camera.h"
 
-using namespace DirectX;
 namespace Graphics {
+using namespace DirectX;
 
 Camera::Camera(float x, float y, float z, float a_AspectRatio, float a_Near, float a_Far, float a_Sensitivity) :
     m_Near(a_Near),

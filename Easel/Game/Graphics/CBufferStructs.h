@@ -8,9 +8,7 @@ Description : Declation of structs used as constant buffers by various shaders
 
 #include <DirectXMath.h>
 
-using namespace DirectX;
 namespace Graphics {
-
 struct VSBasicData
 {
     XMFLOAT4X4 world;

@@ -5,8 +5,8 @@ Description : Mesh functionality
 ----------------------------------------------*/
 #include "Mesh.h"
 
-using namespace Graphics;
 namespace Game {
+using namespace Graphics;
 
 Mesh::Mesh(Vertex* a_VertexArray, unsigned int a_NumVertices, unsigned int* a_IndexArray, unsigned int a_NumIndices, ID3D11Device* a_pDevice)
 {
