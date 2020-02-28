@@ -8,6 +8,9 @@ Description : Mesh holds the internal vertex/index buffers for a particular obje
 
 #include "Graphics/Vertex.h"
 #include "Graphics/D3D11App.h"
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
 
 namespace Game {
 
@@ -15,6 +18,7 @@ class Mesh
 {
 public:
     Mesh(Graphics::Vertex* a_VertexArray, int a_NumVertices, unsigned int* a_IndexArray, int a_NumIndices, ID3D11Device* a_pDevice);
+    Mesh(const std::string& pFile);
     Mesh() = delete;
     ~Mesh() = default;
 
@@ -26,7 +30,10 @@ public:
     inline ID3D11Buffer* GetIndexBuffer()  const { return m_pIndexBuffer.Get();  }
     inline int           GetIndexCount()   const { return m_IndexCount;          }
 
-private:
+protected:
+    // Model Loading Helper Functions
+    void LoadModelInfo(const aiScene* a_pScene);
+
     // Internal buffers
     Microsoft::WRL::ComPtr<ID3D11Buffer> m_pVertexBuffer;
     Microsoft::WRL::ComPtr<ID3D11Buffer> m_pIndexBuffer;
