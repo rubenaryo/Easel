@@ -6,7 +6,6 @@ Description : Transform class implementation
 #include "Transform.h"
 
 namespace Game {
-using namespace DirectX;
 
 Transform::Transform() :
     m_Position(0.0f, 0.0f, 0.0f),
@@ -14,7 +13,7 @@ Transform::Transform() :
     m_PitchYawRoll(0.0f, 0.0f, 0.0f),
     m_MatrixDirty(false)
 {
-    XMStoreFloat4x4(&m_World, XMMatrixIdentity());
+    XMStoreFloat4x4(&m_World, DirectX::XMMatrixIdentity());
 }
 
 void Transform::MoveAbsolute(float x, float y, float z)
@@ -27,11 +26,12 @@ void Transform::MoveAbsolute(float x, float y, float z)
 
 void Transform::MoveRelative(float x, float y, float z)
 {
+    using namespace DirectX;
     XMVECTOR movement = XMVectorSet(x, y, z, 0);
     XMVECTOR rotation = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&m_PitchYawRoll));
 
     // Rotate by the quaternion
-    XMVECTOR dir = XMVector3Rotate(movement, rotation);
+    XMVECTOR dir = DirectX::XMVector3Rotate(movement, rotation);
 
     // Store as member field
     XMStoreFloat3(&m_Position, XMLoadFloat3(&m_Position) + dir);
@@ -85,12 +85,15 @@ DirectX::XMFLOAT3 Transform::GetScale() const { return m_Scale; }
 
 DirectX::XMFLOAT4X4 Transform::GetWorldMatrix()
 {
+    using namespace DirectX;
+    
     if (m_MatrixDirty) // Recalculate World Matrix?
     {
+        
         // Calculate individual pieces
         XMMATRIX translation = XMMatrixTranslationFromVector(XMLoadFloat3(&m_Position));
-        XMMATRIX rotation = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&m_PitchYawRoll));
-        XMMATRIX scaling = XMMatrixScalingFromVector(XMLoadFloat3(&m_Scale));
+        XMMATRIX rotation    = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&m_PitchYawRoll));
+        XMMATRIX scaling     = XMMatrixScalingFromVector(XMLoadFloat3(&m_Scale));
 
         // Calculate world matrix
         XMMATRIX worldmat = scaling * rotation * translation;

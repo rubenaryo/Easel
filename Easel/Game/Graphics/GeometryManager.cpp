@@ -8,7 +8,6 @@ Description : Implementation of Geometry Manager
 #include "CBufferStructs.h"
 
 namespace Graphics {
-using namespace DirectX;
 
 GeometryManager::GeometryManager():
     m_pInputLayout(0),
@@ -63,6 +62,7 @@ void GeometryManager::UpdateEntities(float dt)
 
 void GeometryManager::BuildMeshes(DeviceResources* a_DR)
 {
+    using namespace DirectX;
     // sample colors
     XMFLOAT4 white = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
     XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -140,12 +140,10 @@ void GeometryManager::BuildConstantBuffer(DeviceResources* a_DR)
 // Compiles Shaders and creates the basic material
 void GeometryManager::CompileShaders(DeviceResources* DR)
 {
-    using Microsoft::WRL::ComPtr;
-
     ID3D11Device* device = DR->GetD3DDevice();
     ID3D11DeviceContext* context = DR->GetD3DDeviceContext();
 
-    ComPtr<ID3D10Blob> pBlob = 0;
+    Microsoft::WRL::ComPtr<ID3D10Blob> pBlob = 0;
     HRESULT hr;
     
     // Create Pixel Shader

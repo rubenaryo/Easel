@@ -8,19 +8,16 @@ Description : Transform class for game objects
 #include "Graphics/D3D11App.h"
 
 namespace Game {
-using DirectX::XMFLOAT4X4;
-using DirectX::XMFLOAT3;
 
 class Transform
 {
 public:
     Transform();
 
-    XMFLOAT4X4 GetWorldMatrix();
-    XMFLOAT3   GetPosition() const;
-    XMFLOAT3   GetScale() const;
-    XMFLOAT3   GetPitchYawRoll() const;
-    bool       NeedsUpdate() const noexcept { return m_MatrixDirty; }
+    DirectX::XMFLOAT4X4 GetWorldMatrix();
+    DirectX::XMFLOAT3   GetPosition()       const;
+    DirectX::XMFLOAT3   GetScale()          const;
+    DirectX::XMFLOAT3   GetPitchYawRoll()   const;
 
     // Setters
     void SetPosition(float x, float y, float z);
@@ -38,10 +35,10 @@ private:
     bool m_MatrixDirty = true;
 
     // Information about world position
-    XMFLOAT4X4  m_World;
-    XMFLOAT3    m_Position;
-    XMFLOAT3    m_Scale;
-    XMFLOAT3    m_PitchYawRoll;
+    DirectX::XMFLOAT4X4  m_World;
+    DirectX::XMFLOAT3    m_Position;
+    DirectX::XMFLOAT3    m_Scale;
+    DirectX::XMFLOAT3    m_PitchYawRoll;
 };
 }
 #endif

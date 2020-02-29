@@ -10,19 +10,18 @@ Description : Entity is an instance of a mesh with a unique transform and materi
 #include "Graphics/Camera.h"
 #include "Transform.h"
 
-namespace Game {
-using Graphics::Material;
-using Graphics::Camera;
+namespace Game
+{
 
 class Entity
 {
 public:
-    Entity(Mesh* a_pMesh, Material* a_pMaterial);
+    Entity(Mesh* a_pMesh, Graphics::Material* a_pMaterial);
     Entity() = delete;
     ~Entity() = default;
 
     // Set constant buffer information and draw the underlying mesh
-    void Draw(ID3D11DeviceContext* a_pContext, ID3D11Buffer* a_pVSCBuffer, Camera* a_pCamera);
+    void Draw(ID3D11DeviceContext* a_pContext, ID3D11Buffer* a_pVSCBuffer, Graphics::Camera* a_pCamera);
 
     // Accessors
     inline Mesh*      GetMesh() const;
@@ -30,7 +29,7 @@ public:
 private:
     // Entity information
     Mesh*     m_pMesh;
-    Material* m_pMaterial;
+    Graphics::Material* m_pMaterial;
     Transform m_Transform;
 };
 

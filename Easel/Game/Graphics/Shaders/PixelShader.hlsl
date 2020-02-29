@@ -20,8 +20,6 @@ cbuffer LightBuffer : register(b0)
 
 float4 main(VertexOut input) : SV_TARGET
 {
-    float3 diffusecolor = lights[1].diffuse;
-    return float4(diffusecolor, 1);
     input.normal = normalize(input.normal);
     return float4(input.normal, 1);
 }

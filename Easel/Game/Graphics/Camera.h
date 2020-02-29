@@ -10,7 +10,6 @@ Description : Interface for Quaternion-Based Camera functionality
 
 namespace Graphics {    
 using DirectX::XMFLOAT4X4;
-using Game::Transform;
 
 class Camera
 {
@@ -27,14 +26,14 @@ public:
     void UpdateProjection(float a_AspectRatio);
 
     // Accessors:
-    Transform* GetTransform()           { return &m_Transform;  }
+    Game::Transform* GetTransform()           { return &m_Transform;  }
     XMFLOAT4X4 GetView()                { return m_View;        }
     XMFLOAT4X4 GetProjection()          { return m_Projection;  }
     float      GetSensitivity()         { return m_Sensitivity; }
 
 private:
     // Information about camera position and rotation
-    Transform m_Transform;
+    Game::Transform m_Transform;
 
     // View and Projection Matrices
     XMFLOAT4X4 m_View;

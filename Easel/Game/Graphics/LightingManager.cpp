@@ -7,8 +7,6 @@ Description : Implementation of LightingManager.h
 
 namespace Graphics
 {
-    using DirectX::XMFLOAT3;
-
     LightingManager::LightingManager(ID3D11Device* a_pDevice) : m_NeedsRebind(true)
     {
         InitLights();
@@ -30,12 +28,12 @@ namespace Graphics
     {
         m_pLightBuffer = new LightBuffer();
 
-        SetAmbient(XMFLOAT3(0.1f, 0.1f, 0.1f));
+        SetAmbient(DirectX::XMFLOAT3(0.1f, 0.1f, 0.1f));
 
-        GetLight(0).diffuseColor  = XMFLOAT3(+1.0f, +1.0f, +1.0f);
-        GetLight(0).direction     = XMFLOAT3(+0.0f, -1.0f, +0.0f);
-        GetLight(1).diffuseColor  = XMFLOAT3(+0.0f, +1.0f, +0.0f);
-        GetLight(1).direction     = XMFLOAT3(+0.0f, -1.0f, +0.0f);
+        GetLight(0).diffuseColor  = DirectX::XMFLOAT3(+1.0f, +1.0f, +1.0f);
+        GetLight(0).direction     = DirectX::XMFLOAT3(+0.0f, -1.0f, +0.0f);
+        GetLight(1).diffuseColor  = DirectX::XMFLOAT3(+0.0f, +1.0f, +0.0f);
+        GetLight(1).direction     = DirectX::XMFLOAT3(+0.0f, -1.0f, +0.0f);
 
         m_pLightBuffer->numLights = 2;
     }

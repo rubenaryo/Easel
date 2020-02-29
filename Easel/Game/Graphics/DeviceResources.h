@@ -10,9 +10,8 @@ DeviceResources - Member of Game, encapsulates the creation and setup of device 
 
 #include "D3D11App.h"
 
-using Microsoft::WRL::ComPtr;
 namespace Graphics {
-
+using Microsoft::WRL::ComPtr;
 // Interface for any device that uses device resources.
 // This is because it needs to be able to handle loss of device so it can recreate the necessary device resources
 interface IDeviceNotify

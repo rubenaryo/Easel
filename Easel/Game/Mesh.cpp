@@ -6,9 +6,8 @@ Description : Mesh functionality
 #include "Mesh.h"
 
 namespace Game {
-using namespace Graphics;
 
-Mesh::Mesh(Vertex* a_VertexArray, unsigned int a_NumVertices, unsigned int* a_IndexArray, unsigned int a_NumIndices, ID3D11Device* a_pDevice)
+Mesh::Mesh(Graphics::Vertex* a_VertexArray, unsigned int a_NumVertices, unsigned int* a_IndexArray, unsigned int a_NumIndices, ID3D11Device* a_pDevice)
 {
     CreateBuffers(a_VertexArray, a_NumVertices, a_IndexArray, a_NumIndices, a_pDevice);
 }
@@ -43,7 +42,7 @@ Mesh::Mesh(const std::string& a_pFile, ID3D11Device* a_pDevice)
 void Mesh::LoadSceneInfo(const aiScene* a_pScene, ID3D11Device* a_pDevice)
 {
     // temporary vectors to hold vertex/index information
-    std::vector<Vertex> vertices;
+    std::vector<Graphics::Vertex> vertices;
     std::vector<unsigned int> indices;
 
     // aiScenes may be composed of multiple submeshes,
@@ -66,7 +65,7 @@ void Mesh::LoadSceneInfo(const aiScene* a_pScene, ID3D11Device* a_pDevice)
             const aiVector3D texCoord = pMesh->HasTextureCoords(0) ? pMesh->mTextureCoords[0][j] : cZero;
         
             // Create one of our vertices with this information
-            Vertex v;
+            Graphics::Vertex v;
             v.position = DirectX::XMFLOAT3(position.x, position.y, position.z);
             v.normal = DirectX::XMFLOAT3(normal.x, normal.y, normal.z);
             v.uv = DirectX::XMFLOAT2(texCoord.x, texCoord.y);
@@ -96,12 +95,12 @@ void Mesh::LoadSceneInfo(const aiScene* a_pScene, ID3D11Device* a_pDevice)
     CreateBuffers(&vertices[0], numVerts, &indices[0], numIndices, a_pDevice);
 }
 
-void Mesh::CreateBuffers(Vertex* a_VertexArray, unsigned int a_NumVertices, unsigned int* a_IndexArray, unsigned int a_NumIndices, ID3D11Device* a_pDevice)
+void Mesh::CreateBuffers(Graphics::Vertex* a_VertexArray, unsigned int a_NumVertices, unsigned int* a_IndexArray, unsigned int a_NumIndices, ID3D11Device* a_pDevice)
 {
     // Create the vertex buffer
     D3D11_BUFFER_DESC vbd;
     vbd.Usage = D3D11_USAGE_IMMUTABLE;
-    vbd.ByteWidth = sizeof(Vertex) * a_NumVertices; // Number of vertices
+    vbd.ByteWidth = sizeof(Graphics::Vertex) * a_NumVertices; // Number of vertices
     vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     vbd.CPUAccessFlags = 0;
     vbd.MiscFlags = 0;
@@ -129,7 +128,7 @@ void Mesh::CreateBuffers(Vertex* a_VertexArray, unsigned int a_NumVertices, unsi
 void Mesh::Draw(ID3D11DeviceContext* a_pContext)
 {
     // Bind buffers to IA
-    UINT stride = sizeof(Vertex);
+    UINT stride = sizeof(Graphics::Vertex);
     UINT offset = 0u;
     
     a_pContext->IASetVertexBuffers(0u, 1u, m_pVertexBuffer.GetAddressOf(), &stride, &offset);

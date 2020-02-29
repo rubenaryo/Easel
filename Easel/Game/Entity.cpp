@@ -7,17 +7,16 @@ Description : Entity class functionality
 #include "Graphics/CBufferStructs.h"
 
 namespace Game {
-using Graphics::VSBasicData;
 
-Entity::Entity(Mesh* a_pMesh, Material* a_pMaterial) :
+Entity::Entity(Mesh* a_pMesh, Graphics::Material* a_pMaterial) :
     m_pMesh(a_pMesh),
     m_pMaterial(a_pMaterial)
 {}
 
-void Entity::Draw(ID3D11DeviceContext* a_pContext, ID3D11Buffer* a_pVSCBuffer, Camera* a_pCamera)
+void Entity::Draw(ID3D11DeviceContext* a_pContext, ID3D11Buffer* a_pVSCBuffer, Graphics::Camera* a_pCamera)
 {
     // Fill out data to be passed to the shader
-    VSBasicData vsData;
+    Graphics::VSBasicData vsData;
     vsData.world = this->GetTransform()->GetWorldMatrix();
     vsData.view = a_pCamera->GetView();
     vsData.projection = a_pCamera->GetProjection();

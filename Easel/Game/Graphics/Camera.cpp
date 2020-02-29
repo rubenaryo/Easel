@@ -6,7 +6,6 @@ Description : Implementation of Camera Class
 #include "Camera.h"
 
 namespace Graphics {
-using namespace DirectX;
 
 Camera::Camera(float x, float y, float z, float a_AspectRatio, float a_Near, float a_Far, float a_Sensitivity) :
     m_Near(a_Near),
@@ -24,6 +23,7 @@ Camera::Camera(float x, float y, float z, float a_AspectRatio, float a_Near, flo
 // Creates a new view matrix based on current position and orientation
 void Camera::UpdateView()
 {
+    using namespace DirectX;
     // Grab rotation quaternion
     XMVECTOR rotation = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&m_Transform.GetPitchYawRoll()));
 
@@ -44,6 +44,7 @@ void Camera::UpdateView()
 // Updates the projection matrix (like on screen resize)
 void Camera::UpdateProjection(float a_AspectRatio)
 {
+    using namespace DirectX;
     XMMATRIX projection = XMMatrixPerspectiveFovLH(
         XM_PIDIV4,      // FOV
         a_AspectRatio,  // Screen Aspect ratio

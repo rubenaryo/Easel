@@ -23,7 +23,7 @@ public:
     void Update(ID3D11DeviceContext* a_pContext);
     
     // Public Setter for the scene to be able to change the ambient color in the light buffer
-    inline void SetAmbient(XMFLOAT3 ambientColor)
+    inline void SetAmbient(DirectX::XMFLOAT3 ambientColor)
     {
         m_pLightBuffer->ambientColor = ambientColor;
         m_NeedsRebind = true;
@@ -55,13 +55,13 @@ private:
 
 private:
     // Structure
-    LightBuffer*                m_pLightBuffer;
+    LightBuffer* m_pLightBuffer;
 
     // Indicates whether we need to rebind
-    bool                        m_NeedsRebind;
+    bool m_NeedsRebind;
 
     // Constant buffer to be sent to the pixel shader
-    ComPtr<ID3D11Buffer>        m_cbLights;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbLights;
 };
 
 }

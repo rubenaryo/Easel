@@ -11,11 +11,12 @@ Description : This file contains the main function (entry point) for the applica
 #include <stdlib.h>  
 #include <crtdbg.h> 
 #endif
-using namespace System;
 
 // Entry point for the application
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
+    using System::GameWindow;
+
     // On Debug Builds: Enable Runtime memory check
     #if defined(DEBUG) | defined(_DEBUG)
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
