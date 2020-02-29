@@ -5,6 +5,8 @@ Description : Implementation of Game.h
 ----------------------------------------------*/
 #include "Game.h"
 
+#include <comdef.h> // _com_error
+
 namespace Game {
 
 // Initialize unique pointer to device resources, and link up this game to be notified of device updates
@@ -37,12 +39,19 @@ void Game::Init(HWND window, int width, int height)
     m_pCamera = std::make_unique<Graphics::Camera>(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 0.8f);
 
     // Create All Device Resources
-    m_pDeviceResources->SetWindow(window, width, height);
-    m_pDeviceResources->CreateDeviceResources();
-    CreateDeviceDependentResources();
+    try
+    {
+        m_pDeviceResources->SetWindow(window, width, height);
+        m_pDeviceResources->CreateDeviceResources();
+        CreateDeviceDependentResources();
 
-    m_pDeviceResources->CreateWindowSizeDependentResources();
-    CreateWindowSizeDependentResources(width, height);
+        m_pDeviceResources->CreateWindowSizeDependentResources();
+        CreateWindowSizeDependentResources(width, height);
+    }
+    catch (_com_error e)
+    {
+        MessageBox(m_pDeviceResources->GetWindow(), e.ErrorMessage(), L"COM Exception!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+    }
 
     // Create Drawable Geometries
     m_pGeometryManager->Init(m_pDeviceResources.get());
@@ -144,8 +153,14 @@ void Game::OnResize(int newWidth, int newHeight)
 {
     if (!m_pDeviceResources->WindowSizeChanged(newWidth, newHeight))
         return;
-
-    CreateWindowSizeDependentResources(newWidth, newHeight);
+    try
+    {
+        CreateWindowSizeDependentResources(newWidth, newHeight);
+    }
+    catch (_com_error e)
+    {
+        MessageBox(m_pDeviceResources->GetWindow(), e.ErrorMessage(), L"COM Exception!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+    }
 }
 
 void Game::OnMouseMove(short newX, short newY)

@@ -8,7 +8,9 @@ DeviceResources - Member of Game, encapsulates the creation and setup of device 
 #ifndef DEVICERESOURCES_H
 #define DEVICERESOURCES_H
 
-#include "D3D11App.h"
+#include "DXCore.h"
+
+#include <wrl/client.h>
 
 namespace Graphics {
 using Microsoft::WRL::ComPtr;

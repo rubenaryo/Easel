@@ -12,7 +12,8 @@ LRESULT GameWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
     switch (uMsg)
     {
     case WM_MOUSEMOVE:
-        m_pGame->OnMouseMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        POINTS pt = MAKEPOINTS(lParam);
+        m_pGame->OnMouseMove(pt.x, pt.y);
         return 0;
 
     case WM_DESTROY:

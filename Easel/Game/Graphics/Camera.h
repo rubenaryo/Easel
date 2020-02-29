@@ -6,7 +6,7 @@ Description : Interface for Quaternion-Based Camera functionality
 #ifndef CAMERA_H
 #define CAMERA_H
 #include "../Transform.h"
-#include "D3D11App.h"
+#include "DXCore.h"
 
 namespace Graphics {    
 using DirectX::XMFLOAT4X4;

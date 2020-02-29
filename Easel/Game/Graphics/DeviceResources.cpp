@@ -8,6 +8,11 @@ Description : Implementation of DeviceResources.h
 ----------------------------------------------*/
 #include "DeviceResources.h"
 
+#include <comdef.h>  // _com_error
+#include <stdexcept> // std::exception, std::out_of_range
+#include <algorithm> // std::min, std::max
+#include <sstream>   // wstringstream
+
 namespace Graphics {
 
 // Initializer List for Member Fields
@@ -119,7 +124,7 @@ void DeviceResources::CreateDeviceResources()
     }
 
     // Check for failure when creating device
-    ThrowIfFailed(hr);
+    if (FAILED(hr)) throw _com_error(hr);
 
     // Check for MSAA Support
     while (m_MsaaSampleCount > 1)
@@ -170,25 +175,30 @@ void DeviceResources::CreateDeviceResources()
 #endif
 
     // Hold created device and context as class members
-    ThrowIfFailed(device.As(&m_pDevice));
-    ThrowIfFailed(context.As(&m_pContext));
-    ThrowIfFailed(context.As(&m_pAnnotation));
+    hr = device.As(&m_pDevice);
+    if (FAILED(hr)) throw _com_error(hr);
+    hr = context.As(&m_pContext);
+    if (FAILED(hr)) throw _com_error(hr);
+    hr = context.As(&m_pAnnotation);
+    if (FAILED(hr)) throw _com_error(hr);
 }
 
 // Wrapper function for CreateDXGIFactory
 // Retrieves the REFIID and checks the HRESULT of the function for failure
 void DeviceResources::CreateFactory()
 {
-    ThrowIfFailed(CreateDXGIFactory(IID_PPV_ARGS(m_pDXGIFactory.ReleaseAndGetAddressOf())));
+    HRESULT hr = CreateDXGIFactory(IID_PPV_ARGS(m_pDXGIFactory.ReleaseAndGetAddressOf()));
+    if (FAILED(hr)) throw _com_error(hr);
 }
 
 void DeviceResources::GetHardwareAdapter(IDXGIAdapter1** ppAdapter)
 {
+    // TODO: implement later
 }
 
 void DeviceResources::UpdateColorSpace()
 {
-    
+    // TODO: implement later
 }
 
 // Callback method for when we initialize the window, or when there's a need to recreate the resources that are dependent on window size (when the window is resized basically)
@@ -247,7 +257,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
         }
         else
         {
-            ThrowIfFailed(hr);
+            if (FAILED(hr)) throw _com_error(hr);
         }
     }
     else // Create a new swap chain
@@ -271,30 +281,34 @@ void DeviceResources::CreateWindowSizeDependentResources()
 
         auto device = m_pDevice.Get();
 
-        ThrowIfFailed(m_pDXGIFactory->CreateSwapChainForHwnd(
+        HRESULT hr = m_pDXGIFactory->CreateSwapChainForHwnd(
             device,
             m_Window,
             &scDesc,
             &fsDesc,
             NULL,
             m_pSwapChain.ReleaseAndGetAddressOf()
-        ));
+        );
+        if (FAILED(hr)) throw _com_error(hr);
 
         // Prevent Alt+Enter by monitoring the app message queue
-        ThrowIfFailed(m_pDXGIFactory->MakeWindowAssociation(m_Window, DXGI_MWA_NO_ALT_ENTER));
+        hr = m_pDXGIFactory->MakeWindowAssociation(m_Window, DXGI_MWA_NO_ALT_ENTER);
+        if (FAILED(hr)) throw _com_error(hr);
     
         // Create a Render Target View of the SC Back Buffer
-        ThrowIfFailed(m_pSwapChain->GetBuffer(0, IID_PPV_ARGS(m_pRenderTarget.ReleaseAndGetAddressOf())));
+        hr = m_pSwapChain->GetBuffer(0, IID_PPV_ARGS(m_pRenderTarget.ReleaseAndGetAddressOf()));
+        if (FAILED(hr)) throw _com_error(hr);
 
         // Create a new Render Target View Description
         CD3D11_RENDER_TARGET_VIEW_DESC RTVD(D3D11_RTV_DIMENSION_TEXTURE2D, m_BackBufferFormat);
 
         // Create a Render Target View from this Description, holding it as a member variable
-        ThrowIfFailed(device->CreateRenderTargetView(
+        hr = device->CreateRenderTargetView(
             m_pRenderTarget.Get(),
             &RTVD,
             m_pRenderTargetView.ReleaseAndGetAddressOf()
-        ));
+        );
+        if (FAILED(hr)) throw _com_error(hr);
 
         // Create an MSAA Render Target
         CD3D11_TEXTURE2D_DESC MsaaRTD(
@@ -309,21 +323,23 @@ void DeviceResources::CreateWindowSizeDependentResources()
             m_MsaaSampleCount
         );
 
-        ThrowIfFailed(device->CreateTexture2D(
+        hr = device->CreateTexture2D(
             &MsaaRTD,
             nullptr,
             m_pMsaaRenderTarget.ReleaseAndGetAddressOf()
-        ));
+        );
+        if (FAILED(hr)) throw _com_error(hr);
 
         // Create a new MSAA Render Target View Description
         CD3D11_RENDER_TARGET_VIEW_DESC MsaaRTVD(D3D11_RTV_DIMENSION_TEXTURE2DMS, m_BackBufferFormat);
 
         // Create an MSAA Render Target View from this Description, holding it as a member variable
-        ThrowIfFailed(device->CreateRenderTargetView(
+        hr = device->CreateRenderTargetView(
             m_pMsaaRenderTarget.Get(),
             &MsaaRTVD,
             m_pMsaaRenderTargetView.ReleaseAndGetAddressOf()
-        ));
+        );
+        if (FAILED(hr)) throw _com_error(hr);
 
         if (m_DepthBufferFormat != DXGI_FORMAT_UNKNOWN)
         {
@@ -336,19 +352,22 @@ void DeviceResources::CreateWindowSizeDependentResources()
                 1, // Use a single mipmap level.
                 D3D11_BIND_DEPTH_STENCIL
             );
-            ThrowIfFailed(device->CreateTexture2D(
+
+            hr = device->CreateTexture2D(
                 &depthStencilDesc,
                 nullptr,
                 m_pDepthStencil.ReleaseAndGetAddressOf()
-            ));
+            );
+            if (FAILED(hr)) throw _com_error(hr);
 
             // Fill out descriptor to create Depth Stencil View, holding onto it as a member
             CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D);
-            ThrowIfFailed(device->CreateDepthStencilView(
+            hr = device->CreateDepthStencilView(
                 m_pDepthStencil.Get(),
                 &depthStencilViewDesc,
                 m_pDepthStencilView.ReleaseAndGetAddressOf()
-            ));
+            );
+            if (FAILED(hr)) throw _com_error(hr);
 
             // Do the same for MSAA
             CD3D11_TEXTURE2D_DESC MsaaDSD(
@@ -365,18 +384,20 @@ void DeviceResources::CreateWindowSizeDependentResources()
 
             // fill temporary texture
             ComPtr<ID3D11Texture2D> MsaaDepthStencil;
-            ThrowIfFailed(device->CreateTexture2D(
+            hr = device->CreateTexture2D(
                 &MsaaDSD,
                 nullptr,
                 MsaaDepthStencil.GetAddressOf()
-            ));
+            );
+            if (FAILED(hr)) throw _com_error(hr);
 
             // fill member MsaaDepthStencilView
-            ThrowIfFailed(device->CreateDepthStencilView(
+            hr = device->CreateDepthStencilView(
                 MsaaDepthStencil.Get(),
                 nullptr,
                 m_pMsaaDepthStencilView.ReleaseAndGetAddressOf()
-            ));
+            );
+            if (FAILED(hr)) throw _com_error(hr);
         }
 
         // Set the 3D rendering viewport to target the entire window.
@@ -531,8 +552,6 @@ void DeviceResources::Present()
     }
     else
     {
-        ThrowIfFailed(hr);
-
         if (!m_pDXGIFactory->IsCurrent())
         {
             // Output information is cached on the DXGI Factory. If it is stale we need to create a new factory.

@@ -7,6 +7,9 @@ Description : Implementation of Geometry Manager
 #include "GeometryManager.h"
 #include "CBufferStructs.h"
 
+#include <comdef.h> // _com_error
+#include "../../System/PathMacros.h"
+
 namespace Graphics {
 
 GeometryManager::GeometryManager():
@@ -149,15 +152,15 @@ void GeometryManager::CompileShaders(DeviceResources* DR)
     
     // Create Pixel Shader
     hr = D3DReadFileToBlob(L"..\\_Binary\\PixelShader.cso", &pBlob);
-    ThrowIfFailed(hr);
+    if (FAILED(hr)) throw _com_error(hr);
     hr = device->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), 0, m_pPixelShader.GetAddressOf());
-    ThrowIfFailed(hr);
+    if (FAILED(hr)) throw _com_error(hr);
 
     // Create Vertex Shader
     hr = D3DReadFileToBlob(L"..\\_Binary\\VertexShader.cso", &pBlob);
-    ThrowIfFailed(hr);
+    if (FAILED(hr)) throw _com_error(hr);
     hr = device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), 0, m_pVertexShader.GetAddressOf());
-    ThrowIfFailed(hr);
+    if (FAILED(hr)) throw _com_error(hr);
 
     // Describe Input Layout
     const D3D11_INPUT_ELEMENT_DESC IED[] =
@@ -175,7 +178,7 @@ void GeometryManager::CompileShaders(DeviceResources* DR)
         pBlob->GetBufferSize(),
         &m_pInputLayout);
 
-    ThrowIfFailed(hr);
+    if (FAILED(hr)) throw _com_error(hr);
 
     // Bind input layout to Input Assembler Stage
     context->IASetInputLayout(m_pInputLayout.Get());

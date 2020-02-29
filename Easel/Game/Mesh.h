@@ -6,12 +6,14 @@ Description : Mesh holds the internal vertex/index buffers for a particular obje
 #ifndef MESH_H
 #define MESH_H
 
+#include "Graphics/DXCore.h"
 #include "Graphics/Vertex.h"
-#include "Graphics/D3D11App.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 #include <vector>
+
+#include <wrl/client.h>
 
 namespace Game {
 

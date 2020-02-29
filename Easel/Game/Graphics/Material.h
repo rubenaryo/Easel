@@ -6,7 +6,7 @@ Description : Material class for shader information
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-#include "D3D11App.h"
+#include "DXCore.h"
 
 namespace Graphics {
 

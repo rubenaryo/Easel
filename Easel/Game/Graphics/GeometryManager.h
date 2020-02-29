@@ -7,7 +7,7 @@ buffers, input layouts, shader compilation
 #ifndef GEOMETRYMANAGER_H
 #define GEOMETRYMANAGER_H
 
-#include "D3D11App.h"
+#include "DXCore.h"
 #include "DeviceResources.h"
 #include "Vertex.h"
 #include <vector>

@@ -21,9 +21,6 @@
     <ClInclude Include="System\AppWindow.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="System\IException.h">
-      <Filter>System</Filter>
-    </ClInclude>
     <ClInclude Include="System\WinApp.h">
       <Filter>System</Filter>
     </ClInclude>
@@ -44,9 +41,6 @@
     </ClInclude>
     <ClInclude Include="Game\StepTimer.h">
       <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="Game\Graphics\D3D11App.h">
-      <Filter>Game\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Game\Graphics\DeviceResources.h">
       <Filter>Game\Graphics</Filter>
@@ -78,12 +72,18 @@
     <ClInclude Include="Game\Graphics\LightingManager.h">
       <Filter>Game\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Graphics\Renderer.h">
+      <Filter>Game\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="System\PathMacros.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Graphics\DXCore.h">
+      <Filter>Game\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="System\GameWindow.cpp">
-      <Filter>System</Filter>
-    </ClCompile>
-    <ClCompile Include="System\IException.cpp">
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="System\Main.cpp">

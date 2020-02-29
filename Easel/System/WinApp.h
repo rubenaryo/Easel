@@ -14,7 +14,7 @@ by first defining macros that disable certain  features that go unused
 // Disable unused windows.h features
 #define WIN32_LEAN_AND_MEAN
 #define NOGDICAPMASKS
-//#define NOSYSMETRICS // TODO: Evaluate the use of this at some point
+#define NOSYSMETRICS
 #define NOMENUS
 #define NOICONS
 #define NOSYSCOMMANDS
@@ -29,7 +29,7 @@ by first defining macros that disable certain  features that go unused
 #define NONLS
 #define NOMEMMGR
 #define NOMETAFILE
-#define NOMINMAX
+//#define NOMINMAX DEFINED IN VS CONFIG
 #define NOOPENFILE
 #define NOSCROLL
 #define NOSERVICE
@@ -47,27 +47,7 @@ by first defining macros that disable certain  features that go unused
 #define NOIMAGE
 #define NOTAPE
 
-#define STRICT
-
-// For ComPtr
-#include <wrl/client.h>
-
 // Always include Windows.h at the very end
 #include <Windows.h>
-#include <WindowsX.h>
-
-
-
-// Helper macro for wide strings
-#define WIDEN2(x) L ## x
-#define WIDEN(x) WIDEN2(x)
-
-#define __WFILE__ WIDEN(__FILE__)
-#define __WLINE__ WIDEN(__LINE__)
-
-// Helper macros for getting correct paths. WILL ONLY WORK IN THIS PROJECT CONFIG
-#define ASSETPATH "..\\Assets\\"
-#define MODELPATH(fileName) (ASSETPATH ## "Models\\" ## fileName)
-
 
 #endif

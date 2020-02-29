@@ -6,12 +6,13 @@ Description : Interface for management of lights in the scene
 #ifndef LIGHTINGMANAGER_H
 #define LIGHTINGMANAGER_H
 
-#include "D3D11App.h"
+#include "DXCore.h"
 #include "LightStructs.h"
 #include "CBufferStructs.h"
 
+#include <wrl/client.h>
+
 namespace Graphics {
-using Microsoft::WRL::ComPtr;
 
 class LightingManager
 {

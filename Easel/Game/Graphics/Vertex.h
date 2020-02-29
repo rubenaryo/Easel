@@ -6,7 +6,7 @@ Description : Vertex structure definitions
 #ifndef VERTEX_H
 #define VERTEX_H
 
-#include "D3D11App.h"
+#include "DXCore.h"
 
 namespace Graphics {
 

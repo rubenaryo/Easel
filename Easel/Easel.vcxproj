@@ -15,7 +15,7 @@
     <ClInclude Include="Game\Game.h" />
     <ClInclude Include="Game\Graphics\Camera.h" />
     <ClInclude Include="Game\Graphics\CBufferStructs.h" />
-    <ClInclude Include="Game\Graphics\D3D11App.h" />
+    <ClInclude Include="Game\Graphics\DXCore.h" />
     <ClInclude Include="Game\Graphics\DeviceResources.h" />
     <ClInclude Include="Game\Graphics\GeometryManager.h" />
     <ClInclude Include="Game\Graphics\LightingManager.h" />
@@ -30,7 +30,7 @@
     <ClInclude Include="Game\StepTimer.h" />
     <ClInclude Include="Game\Transform.h" />
     <ClInclude Include="System\AppWindow.h" />
-    <ClInclude Include="System\IException.h" />
+    <ClInclude Include="System\PathMacros.h" />
     <ClInclude Include="System\WinApp.h" />
   </ItemGroup>
   <ItemGroup>
@@ -47,7 +47,6 @@
     <ClCompile Include="Game\Mesh.cpp" />
     <ClCompile Include="Game\Transform.cpp" />
     <ClCompile Include="System\GameWindow.cpp" />
-    <ClCompile Include="System\IException.cpp" />
     <ClCompile Include="System\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -121,8 +120,8 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>26812;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;NOMINMAX;STRICT;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>26812;26495;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -152,7 +151,8 @@ copy "$(SolutionDir)packages\Assimp.redist.3.0.0\build\native\bin\x64\Assimp64.d
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
-      <DisableSpecificWarnings>26812;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>26812;26495;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;NOMINMAX;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

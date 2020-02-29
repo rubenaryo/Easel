@@ -4,7 +4,7 @@ Date : 2020/2
 Description : Entity is an instance of a mesh with a unique transform and material
 ----------------------------------------------*/
 
-#include "Graphics/D3D11App.h"
+#include "Graphics/DXCore.h"
 #include "Mesh.h"
 #include "Graphics/Material.h"
 #include "Graphics/Camera.h"
