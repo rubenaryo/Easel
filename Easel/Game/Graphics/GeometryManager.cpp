@@ -147,20 +147,17 @@ void GeometryManager::CompileShaders(DeviceResources* DR)
 
     ComPtr<ID3D10Blob> pBlob = 0;
     HRESULT hr;
-
-    ID3D11VertexShader* pVS;
-    ID3D11PixelShader* pPS;
     
     // Create Pixel Shader
     hr = D3DReadFileToBlob(L"..\\_Binary\\PixelShader.cso", &pBlob);
     ThrowIfFailed(hr);
-    hr = device->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), 0, &pPS);
+    hr = device->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), 0, m_pPixelShader.GetAddressOf());
     ThrowIfFailed(hr);
 
     // Create Vertex Shader
     hr = D3DReadFileToBlob(L"..\\_Binary\\VertexShader.cso", &pBlob);
     ThrowIfFailed(hr);
-    hr = device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), 0, &pVS);
+    hr = device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), 0, m_pVertexShader.GetAddressOf());
     ThrowIfFailed(hr);
 
     // Describe Input Layout
@@ -188,7 +185,7 @@ void GeometryManager::CompileShaders(DeviceResources* DR)
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     // Create material based on compiled vertex/pixel shaders
-    m_pBasicMaterial = new Material(pVS, pPS);
+    m_pBasicMaterial = new Material(m_pVertexShader.Get(), m_pPixelShader.Get());
 
 }
 

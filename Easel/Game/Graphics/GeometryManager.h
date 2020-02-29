@@ -16,6 +16,7 @@ buffers, input layouts, shader compilation
 #include "Camera.h"
 
 namespace Graphics {
+using Microsoft::WRL::ComPtr;
 class GeometryManager final {
 public:
     GeometryManager();
@@ -37,8 +38,13 @@ private:
     void CompileShaders(DeviceResources* a_DR);
 
 private:
-    Microsoft::WRL::ComPtr<ID3D11InputLayout>  m_pInputLayout;
-    Microsoft::WRL::ComPtr<ID3D11Buffer> m_pVSConstantBuffer;
+    ComPtr<ID3D11InputLayout>   m_pInputLayout;
+    ComPtr<ID3D11Buffer>        m_pVSConstantBuffer;
+
+    // Owning pointers to vertex/pixel shaders
+    ComPtr<ID3D11VertexShader>  m_pVertexShader;
+    ComPtr<ID3D11PixelShader>   m_pPixelShader;
+
 
     std::vector<Game::Mesh*>   m_Meshes;
     std::vector<Game::Entity*> m_Entities;

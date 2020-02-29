@@ -63,7 +63,7 @@ namespace Graphics
         cbDesc.StructureByteStride = 0;
 
         // Store the cbuffer as a member field
-        a_pDevice->CreateBuffer(&cbDesc, 0, &m_cbLights);
+        a_pDevice->CreateBuffer(&cbDesc, 0, m_cbLights.GetAddressOf());
     }
 
     void LightingManager::BindLightBuffer(ID3D11DeviceContext* a_pContext)
@@ -74,20 +74,20 @@ namespace Graphics
 
         // Copy this data to the constant buffer we intend to use
         D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
-        a_pContext->Map(m_cbLights, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
+        a_pContext->Map(m_cbLights.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
 
         // Straight memcpy() into the resource
         memcpy(mappedBuffer.pData, m_pLightBuffer, sizeof(LightBuffer));
 
         // Unmap so the GPU can once again use the buffer
-        a_pContext->Unmap(m_cbLights, 0);
+        a_pContext->Unmap(m_cbLights.Get(), 0);
 
         // Bind the buffer to the pipeline
         a_pContext->PSSetConstantBuffers
         (
             0,
             1,
-            &m_cbLights
+            m_cbLights.GetAddressOf()
         );
 
         // Just bound, no need to rebind until next data change in UpdateLights

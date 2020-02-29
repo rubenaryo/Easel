@@ -11,6 +11,7 @@ Description : Interface for management of lights in the scene
 #include "CBufferStructs.h"
 
 namespace Graphics {
+using Microsoft::WRL::ComPtr;
 
 class LightingManager
 {
@@ -54,13 +55,13 @@ private:
 
 private:
     // Structure
-    LightBuffer*        m_pLightBuffer;
+    LightBuffer*                m_pLightBuffer;
 
     // Indicates whether we need to rebind
-    bool                m_NeedsRebind;
+    bool                        m_NeedsRebind;
 
     // Constant buffer to be sent to the pixel shader
-    ID3D11Buffer*       m_cbLights;
+    ComPtr<ID3D11Buffer>        m_cbLights;
 };
 
 }
