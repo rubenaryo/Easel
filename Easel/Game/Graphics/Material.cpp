@@ -7,20 +7,12 @@ Description : Material class for shader information
 
 namespace Graphics {
 
-Material::Material(ID3D11VertexShader* a_pVS, ID3D11PixelShader* a_pPS)
+Material::Material(ID3D11VertexShader* a_pVS, ID3D11PixelShader* a_pPS, DirectX::XMFLOAT4 a_ColorTint, float a_Specularity)
 {
     m_pVertexShader = a_pVS;
-    m_pPixelShader = a_pPS;
-}
-
-ID3D11VertexShader* Material::GetVertexShader()
-{
-    return m_pVertexShader;
-}
-
-ID3D11PixelShader* Material::GetPixelShader()
-{
-    return m_pPixelShader;
+    m_pPixelShader  = a_pPS;
+    m_ColorTint     = a_ColorTint;
+    m_Specularity   = a_Specularity;
 }
 
 }
