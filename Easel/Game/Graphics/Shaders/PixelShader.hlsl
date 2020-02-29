@@ -7,40 +7,34 @@ struct VertexOut
 
 struct DirectionalLight
 {
-    float3 diffuse;
-    float3 direction;
+    float3 diffuseColor;
+    float3 toLight;
 };
 
 cbuffer LightBuffer : register(b0)
 {
     float3 ambientColor;
-    DirectionalLight lights[8];
-    uint numLights;
+    DirectionalLight directionalLight;
 }
 
-float Diffuse(float3 aNormal, float3 aLightDir)
+float DiffuseAmount(float3 aNormal, float3 aToLight)
 {
-    return saturate(dot(aNormal, -aLightDir));
+    // Phong Diffuse
+    return saturate(dot(aToLight, aNormal));
 }
 
 float4 main(VertexOut input) : SV_TARGET
 {
+    // Normalize normal vector
     input.normal = normalize(input.normal);
-    //return float4(lights[0].direction, 1);
+
     // Holds the total light for this pixel
     float3 totalLight = 0;
 
-    for (unsigned int i = 0; i < 1; ++i)
-    {
-        float lightAmount = Diffuse(input.normal, lights[i].direction);
-
-        // Colorize the light
-        float3 finalLight = lightAmount * lights[i].diffuse;
-
-        // Add to running total
-        totalLight += finalLight;
-    }
-
+    // Diffuse Color
+    totalLight += directionalLight.diffuseColor.rgb * 
+        DiffuseAmount(input.normal, directionalLight.toLight);
+    
     // Finally, add the ambient color
     totalLight += ambientColor;
 

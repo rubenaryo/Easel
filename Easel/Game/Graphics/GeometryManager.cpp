@@ -184,7 +184,10 @@ void GeometryManager::CompileShaders(DeviceResources* DR)
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     // Create material based on compiled vertex/pixel shaders
-    m_pBasicMaterial = new Material(m_pVertexShader.Get(), m_pPixelShader.Get());
+    DirectX::XMFLOAT4 color = DirectX::XMFLOAT4(0.75f, 0.75f, 0.75f, 1.0f);
+    float spec = 64.0f;
+
+    m_pBasicMaterial = new Material(m_pVertexShader.Get(), m_pPixelShader.Get(), color, spec);
 
 }
 

@@ -7,7 +7,7 @@ Description : Implementation of LightingManager.h
 
 namespace Graphics
 {
-    LightingManager::LightingManager(ID3D11Device* a_pDevice) : m_NeedsRebind(true)
+    LightingManager::LightingManager(ID3D11Device* a_pDevice)
     {
         InitLights();
         CreateLightBuffer(a_pDevice);
@@ -26,36 +26,32 @@ namespace Graphics
 
     void LightingManager::InitLights()
     {
-        using DirectX::XMFLOAT3;
+        using DirectX::XMFLOAT3A;
         m_pLightBuffer = new LightBuffer();
 
-        SetAmbient(XMFLOAT3(0.12f, 0.12f, 0.12f));
+        SetAmbient(XMFLOAT3A(0.12f, 0.12f, 0.15f));
 
-        GetLight(0).diffuseColor  = XMFLOAT3(+0.6f, +0.6f, +0.6f);
-        GetLight(0).direction     = XMFLOAT3(+1.0f, +0.0f, +0.0f);
-        GetLight(1).diffuseColor  = XMFLOAT3(+0.0f, +1.0f, +0.0f);
-        GetLight(1).direction     = XMFLOAT3(+0.0f, -1.0f, +0.0f);
+        m_pLightBuffer->directionalLight.diffuseColor   = XMFLOAT3A(+1.0f, +0.772f, +0.56f); // sunlight
+        m_pLightBuffer->directionalLight.toLight        = XMFLOAT3A(-1.0f, +0.7f, +0.3f);
 
-        m_pLightBuffer->numLights = 2;
+        m_NeedsRebind = true;
     }
 
     void LightingManager::UpdateLights(float dt)
     {
         // Logic to update the light's direction or something
-        DirectionalLight& light = GetLight(0);
-        light.direction.x = cosf(dt);
-        light.direction.z = sinf(dt);
-        
-        m_NeedsRebind = true;
+        //DirectionalLight& light = m_pLightBuffer->directionalLight;
+        //light.toLight.x = cosf(dt);
+        //light.toLight.z = sinf(dt);
+        //
+        //m_NeedsRebind = true;
     }
 
     void LightingManager::CreateLightBuffer(ID3D11Device* a_pDevice)
     {
         // Get the size of the constant buffer struct as a multiple of 16
-        unsigned int size = sizeof(LightBuffer);
-        size = (size + 15) / 16 * 16;
-
-        assert(size % 16 == 0);
+        const unsigned int size = sizeof(LightBuffer);
+        static_assert(size % 16 == 0, "Constant Buffer size must be alignable on a 16-byte boundary");
 
         // Describe the constant buffer and create it
         D3D11_BUFFER_DESC cbDesc = {};
@@ -81,8 +77,6 @@ namespace Graphics
         a_pContext->Map(m_cbLights.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
 
         // Straight memcpy() into the resource
-        size_t s = alignof(LightBuffer);
-        size_t t = alignof(DirectionalLight);
         memcpy(mappedBuffer.pData, m_pLightBuffer, sizeof(LightBuffer));
 
         // Unmap so the GPU can once again use the buffer

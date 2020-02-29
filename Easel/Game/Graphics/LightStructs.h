@@ -13,8 +13,8 @@ namespace Graphics {
 // alignas(16) is required, since every element needs to be on a 16 byte boundary for the cbuffer
 struct DirectionalLight
 {
-    alignas(16) DirectX::XMFLOAT3 diffuseColor;
-    alignas(16) DirectX::XMFLOAT3 direction;
+    DirectX::XMFLOAT3A diffuseColor;
+    DirectX::XMFLOAT3A toLight;
 };
 
 }

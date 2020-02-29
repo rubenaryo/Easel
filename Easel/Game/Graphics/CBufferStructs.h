@@ -19,11 +19,10 @@ struct alignas(16) VSBasicData
     DirectX::XMFLOAT4X4 projection;
 };
 
-struct LightBuffer
+struct alignas(16) LightBuffer
 {
-    alignas(16) DirectX::XMFLOAT3   ambientColor;
-    alignas(16) DirectionalLight    lights[8];
-    alignas(16) unsigned int        numLights;
+    DirectX::XMFLOAT3A ambientColor;
+    DirectionalLight   directionalLight;
 };
 
 }

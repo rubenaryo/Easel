@@ -23,7 +23,7 @@ public:
     void Update(ID3D11DeviceContext* a_pContext, float dt);
     
     // Public Setter for the scene to be able to change the ambient color in the light buffer
-    inline void SetAmbient(DirectX::XMFLOAT3 ambientColor)
+    inline void SetAmbient(DirectX::XMFLOAT3A ambientColor)
     {
         m_pLightBuffer->ambientColor = ambientColor;
         m_NeedsRebind = true;
@@ -46,11 +46,6 @@ private:
     inline bool NeedsRebind() const
     { 
         return m_NeedsRebind;
-    }
-
-    inline DirectionalLight& GetLight(unsigned int index)
-    {
-        return m_pLightBuffer->lights[index];
     }
 
 private:
