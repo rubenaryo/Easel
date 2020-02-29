@@ -167,7 +167,8 @@
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)_Binary\"
-copy "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)_Binary</Command>
+copy "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)_Binary
+copy "$(OutDir)Assimp64.dll" "$(SolutionDir)_Binary</Command>
       <Message>Copying binary...</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -186,7 +187,8 @@ copy "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)_Binary</Command>
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)_Binary\"
-copy "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)_Binary</Command>
+copy "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)_Binary
+copy "$(OutDir)Assimp64.dll" "$(SolutionDir)_Binary</Command>
       <Message>Copying binary...</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -208,7 +210,8 @@ copy "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)_Binary</Command>
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)_Binary\"
-copy "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)_Binary</Command>
+copy "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)_Binary
+copy "$(OutDir)Assimp64.dll" "$(SolutionDir)_Binary</Command>
       <Message>Copying binary...</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -230,7 +233,8 @@ copy "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)_Binary</Command>
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)_Binary\"
-copy "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)_Binary</Command>
+copy "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)_Binary
+copy "$(OutDir)Assimp64.dll" "$(SolutionDir)_Binary</Command>
       <Message>Copying binary...</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
