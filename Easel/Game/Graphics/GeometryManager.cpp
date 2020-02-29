@@ -116,6 +116,7 @@ void GeometryManager::BuildMeshes(DeviceResources* a_DR)
     // For teapot
     m_Entities[0]->GetTransform()->SetRotation(-XM_PIDIV2, 0, 0);
     m_Entities[0]->GetTransform()->SetScale(0.1f, 0.1f, 0.1f);
+    m_Entities[0]->GetTransform()->SetPosition(0.0f, -0.6f, 0.0f);
 }
 
 void GeometryManager::BuildConstantBuffer(DeviceResources* a_DR)

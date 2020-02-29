@@ -16,6 +16,8 @@ Game::Game()
     m_pGeometryManager = std::make_unique<Graphics::GeometryManager>();
 
     m_pInput = std::make_unique<Input::GameInput>();
+
+    m_Timer.SetFixedTimeStep(false);
 }
 
 Game::~Game()
@@ -77,7 +79,7 @@ void Game::Update(StepTimer const& timer)
     // Update the pyramid
     m_pGeometryManager->UpdateEntities(elapsedTime);
 
-    m_pLightingManager->Update(m_pDeviceResources->GetD3DDeviceContext());
+    m_pLightingManager->Update(m_pDeviceResources->GetD3DDeviceContext(), timer.GetTotalSeconds());
 }
 
 void Game::Render()

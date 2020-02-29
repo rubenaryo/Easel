@@ -20,7 +20,7 @@ public:
     LightingManager() = delete;
     ~LightingManager();
 
-    void Update(ID3D11DeviceContext* a_pContext);
+    void Update(ID3D11DeviceContext* a_pContext, float dt);
     
     // Public Setter for the scene to be able to change the ambient color in the light buffer
     inline void SetAmbient(DirectX::XMFLOAT3 ambientColor)
@@ -34,7 +34,7 @@ private:
     void InitLights();
 
     // Updates the data in each directional light
-    void UpdateLights();
+    void UpdateLights(float dt);
 
     // Defines the constant buffer which holds light information
     void CreateLightBuffer(ID3D11Device* a_pDevice);
