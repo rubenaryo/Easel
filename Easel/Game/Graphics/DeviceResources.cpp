@@ -39,7 +39,7 @@ void DeviceResources::CreateDeviceResources()
 {
     UINT createFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
-    #if defined(_DEBUG)
+    #if defined(DEBUG) | defined(_DEBUG)
     createFlags |= D3D11_CREATE_DEVICE_DEBUG;
     #endif
 

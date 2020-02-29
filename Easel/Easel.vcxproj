@@ -26,6 +26,8 @@
     <ClInclude Include="Game\Graphics\D3D11App.h" />
     <ClInclude Include="Game\Graphics\DeviceResources.h" />
     <ClInclude Include="Game\Graphics\GeometryManager.h" />
+    <ClInclude Include="Game\Graphics\LightingManager.h" />
+    <ClInclude Include="Game\Graphics\LightStructs.h" />
     <ClInclude Include="Game\Graphics\Material.h" />
     <ClInclude Include="Game\Graphics\Vertex.h" />
     <ClInclude Include="Game\Input\GameInput.h" />
@@ -44,6 +46,7 @@
     <ClCompile Include="Game\Graphics\Camera.cpp" />
     <ClCompile Include="Game\Graphics\DeviceResources.cpp" />
     <ClCompile Include="Game\Graphics\GeometryManager.cpp" />
+    <ClCompile Include="Game\Graphics\LightingManager.cpp" />
     <ClCompile Include="Game\Graphics\Material.cpp" />
     <ClCompile Include="Game\Input\GameInput.cpp" />
     <ClCompile Include="Game\Input\InputBinding.cpp" />

@@ -6,16 +6,22 @@ Description : This file contains the main function (entry point) for the applica
 #include "WinApp.h"
 #include "AppWindow.h"
 
+#if defined(DEBUG) | defined(_DEBUG)
+#define _CRTDBG_MAP_ALLOC  
+#include <stdlib.h>  
+#include <crtdbg.h> 
+#endif
 using namespace System;
 
 // Entry point for the application
-int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_  LPWSTR lpCmdLine, _In_  int nCmdShow)
+int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
     // On Debug Builds: Enable Runtime memory check
     #if defined(DEBUG) | defined(_DEBUG)
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
     #endif 
 
+    // Create the window
     GameWindow window;
     DWORD style = CS_HREDRAW | CS_VREDRAW;
     DWORD ExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
@@ -27,6 +33,11 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
     // Run the game
     window.RunGame();
+
+    // Dump any found memory leaks
+    #if defined(DEBUG) | defined(_DEBUG)
+    _CrtDumpMemoryLeaks();
+    #endif
 
     return 0;
 }

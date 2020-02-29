@@ -14,15 +14,26 @@ Game::Game()
     m_pDeviceResources->RegisterDeviceNotify(this);
     
     m_pGeometryManager = std::make_unique<Graphics::GeometryManager>();
+
     m_pInput = std::make_unique<Input::GameInput>();
+}
+
+Game::~Game()
+{
+    // Delete all unique ptrs
+    m_pLightingManager.reset();
+    m_pCamera.reset();
+    m_pInput.reset();
+    m_pGeometryManager.reset();
+    m_pDeviceResources.reset();
 }
 
 // Initialize device resource holder by creating all necessary resources
 void Game::Init(HWND window, int width, int height)
-{   
+{
     // Initialize game camera
     m_pCamera = std::make_unique<Graphics::Camera>(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 0.8f);
-    
+
     // Create All Device Resources
     m_pDeviceResources->SetWindow(window, width, height);
     m_pDeviceResources->CreateDeviceResources();
@@ -34,8 +45,8 @@ void Game::Init(HWND window, int width, int height)
     // Create Drawable Geometries
     m_pGeometryManager->Init(m_pDeviceResources.get());
 
-    // Bind Vertex Buffer to Pipeline
-
+    // Create Lights and respective cbuffers
+    m_pLightingManager = std::make_unique<Graphics::LightingManager>(m_pDeviceResources->GetD3DDevice());
 }
 
 // On Timer tick, run Update() on the game, then Render()
@@ -52,6 +63,47 @@ void Game::Frame()
     m_pDeviceResources->UpdateTitleBar(m_Timer.GetFramesPerSecond(), m_Timer.GetFrameCount());
     #endif
 }
+
+void Game::Update(StepTimer const& timer)
+{
+    float elapsedTime = float(timer.GetElapsedSeconds());
+
+    // Update the input, passing in the camera so it will update its internal information
+    m_pInput->Frame(elapsedTime, m_pCamera.get());
+
+    // Update the camera's view matrix
+    m_pCamera->UpdateView();
+
+    // Update the pyramid
+    m_pGeometryManager->UpdateEntities(elapsedTime);
+
+    m_pLightingManager->Update(m_pDeviceResources->GetD3DDeviceContext());
+}
+
+void Game::Render()
+{
+    // Don't try to render anything before the first Update.
+    if (m_Timer.GetFrameCount() == 0)
+    {
+        return;
+    }
+
+    // Grab pointer to device resources
+    auto dr = m_pDeviceResources.get();
+
+    // Clear the necessary backbuffer
+    dr->Clear(DirectX::Colors::CornflowerBlue);
+
+    // Grab a reference to the d3d device context
+    auto context = dr->GetD3DDeviceContext();
+
+    // Draw all geometries
+    m_pGeometryManager->DrawEntities(context, m_pCamera.get());
+
+    // Show the new frame
+    dr->Present();
+}
+
 
 void Game::OnDeviceLost()
 {
@@ -99,43 +151,6 @@ void Game::OnMouseMove(short newX, short newY)
     m_pInput->OnMouseMove(newX, newY);
 }
 
-void Game::Update(StepTimer const& timer)
-{
-    float elapsedTime = float(timer.GetElapsedSeconds());
-
-    // Update the input, passing in the camera so it will update its internal information
-    m_pInput->Frame(elapsedTime, m_pCamera.get());
-
-    // Update the camera's view matrix
-    m_pCamera->UpdateView();
-
-    // Update the pyramid
-    m_pGeometryManager->UpdateEntities(elapsedTime);
-}
-
-void Game::Render()
-{
-    // Don't try to render anything before the first Update.
-    if (m_Timer.GetFrameCount() == 0)
-    {
-        return;
-    }
-
-    // Grab pointer to device resources
-    auto dr = m_pDeviceResources.get();
-
-    // Clear the necessary backbuffer
-    dr->Clear(DirectX::Colors::CornflowerBlue);
-
-    // Grab a reference to the d3d device context
-    auto context = dr->GetD3DDeviceContext();
-    
-    // Draw all geometries
-    m_pGeometryManager->DrawEntities(context, m_pCamera.get());
-
-    // Show the new frame
-    dr->Present();
-}
 
 void Game::CreateDeviceDependentResources()
 {

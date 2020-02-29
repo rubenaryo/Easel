@@ -7,8 +7,8 @@ This class encapsulates all app functionality
 #ifndef GAME_H
 #define GAME_H
 
-#include "Graphics/D3D11App.h"
 #include "Graphics/GeometryManager.h"
+#include "Graphics/LightingManager.h"
 #include "Input/GameInput.h"
 #include "Graphics/Camera.h"
 #include "StepTimer.h"
@@ -19,6 +19,7 @@ class Game final : public Graphics::IDeviceNotify
 {
 public:
     Game();
+    ~Game();
     void Init(HWND window, int width, int height);
 
     // Main Game Loop
@@ -52,6 +53,9 @@ private:
 
     // Geometry Manager for the Application
     std::unique_ptr<Graphics::GeometryManager> m_pGeometryManager;
+
+    // Lights Manager
+    std::unique_ptr<Graphics::LightingManager> m_pLightingManager;
 
     // Input Management
     std::unique_ptr<Input::GameInput> m_pInput;

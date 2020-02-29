@@ -112,6 +112,8 @@ void GeometryManager::BuildMeshes(DeviceResources* a_DR)
 
     // Make an entity based on the mesh and the material
     m_Entities.push_back(new Game::Entity(m_Meshes[0], m_pBasicMaterial));
+
+    // For teapot
     m_Entities[0]->GetTransform()->SetRotation(-XM_PIDIV2, 0, 0);
     m_Entities[0]->GetTransform()->SetScale(0.1f, 0.1f, 0.1f);
 }
@@ -135,7 +137,7 @@ void GeometryManager::BuildConstantBuffer(DeviceResources* a_DR)
     a_DR->GetD3DDevice()->CreateBuffer(&cbDesc, 0, m_pVSConstantBuffer.GetAddressOf());
 }
 
-// Programmatically Compiles and then Binds Shaders to the Render pipeline.
+// Compiles Shaders and creates the basic material
 void GeometryManager::CompileShaders(DeviceResources* DR)
 {
     using Microsoft::WRL::ComPtr;
@@ -146,8 +148,8 @@ void GeometryManager::CompileShaders(DeviceResources* DR)
     ComPtr<ID3D10Blob> pBlob = 0;
     HRESULT hr;
 
-    ComPtr<ID3D11VertexShader> pVS;
-    ComPtr<ID3D11PixelShader> pPS;
+    ID3D11VertexShader* pVS;
+    ID3D11PixelShader* pPS;
     
     // Create Pixel Shader
     hr = D3DReadFileToBlob(L"..\\_Binary\\PixelShader.cso", &pBlob);
@@ -187,6 +189,7 @@ void GeometryManager::CompileShaders(DeviceResources* DR)
 
     // Create material based on compiled vertex/pixel shaders
     m_pBasicMaterial = new Material(pVS, pPS);
+
 }
 
 }

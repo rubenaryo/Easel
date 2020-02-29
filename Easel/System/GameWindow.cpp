@@ -119,6 +119,9 @@ void GameWindow::RunGame()
         // Process one gameplay frame
         m_pGame->Frame();
     }
+
+    // Game is finished running forever. Delete unique ptr
+    m_pGame.reset();
 }
 
 }

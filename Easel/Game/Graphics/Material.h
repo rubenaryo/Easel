@@ -9,11 +9,10 @@ Description : Material class for shader information
 #include "D3D11App.h"
 
 namespace Graphics {
-using Microsoft::WRL::ComPtr;
 
 class Material {
 public:
-    Material(ComPtr<ID3D11VertexShader> a_pVS, ComPtr<ID3D11PixelShader> a_pPS);
+    Material(ID3D11VertexShader* a_pVS, ID3D11PixelShader* a_pPS);
     ~Material() = default;
 
     // Field Getters
@@ -21,8 +20,8 @@ public:
     ID3D11PixelShader* GetPixelShader();
 
 private:
-    ComPtr<ID3D11PixelShader>  m_pPixelShader;
-    ComPtr<ID3D11VertexShader> m_pVertexShader;
+    ID3D11PixelShader*  m_pPixelShader;
+    ID3D11VertexShader* m_pVertexShader;
 };
 }
 

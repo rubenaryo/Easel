@@ -32,7 +32,7 @@ Mesh::Mesh(const std::string& a_pFile, ID3D11Device* a_pDevice)
     }
     else
     {
-        char buf[64];
+        char buf[256];
         sprintf_s(buf, "Error parsing '%s': '%s'\n", a_pFile.c_str(), Importer.GetErrorString());
         throw std::exception(buf);
     }

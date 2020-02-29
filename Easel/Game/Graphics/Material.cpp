@@ -7,7 +7,7 @@ Description : Material class for shader information
 
 namespace Graphics {
 
-Material::Material(ComPtr<ID3D11VertexShader> a_pVS, ComPtr<ID3D11PixelShader> a_pPS)
+Material::Material(ID3D11VertexShader* a_pVS, ID3D11PixelShader* a_pPS)
 {
     m_pVertexShader = a_pVS;
     m_pPixelShader = a_pPS;
@@ -15,12 +15,12 @@ Material::Material(ComPtr<ID3D11VertexShader> a_pVS, ComPtr<ID3D11PixelShader> a
 
 ID3D11VertexShader* Material::GetVertexShader()
 {
-    return m_pVertexShader.Get();
+    return m_pVertexShader;
 }
 
 ID3D11PixelShader* Material::GetPixelShader()
 {
-    return m_pPixelShader.Get();
+    return m_pPixelShader;
 }
 
 }
