@@ -56,22 +56,22 @@ public:
     void Clear(const FLOAT*);
 
     // Member field accessors
-    ID3D11Device*            GetD3DDevice()         const { return m_pDevice.Get();           }
-    ID3D11DeviceContext*     GetD3DDeviceContext()  const { return m_pContext.Get();          }
-    IDXGISwapChain*          GetSwapChain()         const { return m_pSwapChain.Get();           }
-    D3D_FEATURE_LEVEL        GetDeviceFeatureLevel()const { return m_FeatureLevel;            }
-    ID3D11Texture2D*         GetRenderTarget()      const { return m_pRenderTarget.Get();        }
-    ID3D11Texture2D*         GetDepthStencil()      const { return m_pDepthStencil.Get();        }
-    ID3D11RenderTargetView*  GetRenderTargetView()  const { return m_pRenderTargetView.Get(); }
-    ID3D11DepthStencilView*  GetDepthStencilView()  const { return m_pDepthStencilView.Get(); }
-    DXGI_FORMAT              GetBackBufferFormat()  const { return m_BackBufferFormat;           }
-    DXGI_FORMAT              GetDepthBufferFormat() const { return m_DepthBufferFormat;          }
-    D3D11_VIEWPORT           GetScreenViewport()    const { return m_ScreenViewport;             }
-    UINT                     GetBackBufferCount()   const { return m_BackBufferCount;            }
-    DXGI_COLOR_SPACE_TYPE    GetColorSpace()        const { return m_ColorSpaceType;             }
-    unsigned int             GetDeviceOptions()     const { return m_Options;                    }
-    RECT                     GetOutputSize()        const { return m_OutputSize;                 }
-    HWND                     GetWindow()            const { return m_Window;                     }
+    ID3D11Device*            GetD3DDevice()         const { return m_pDevice.Get();             }
+    ID3D11DeviceContext*     GetD3DDeviceContext()  const { return m_pContext.Get();            }
+    IDXGISwapChain*          GetSwapChain()         const { return m_pSwapChain.Get();          }
+    D3D_FEATURE_LEVEL        GetDeviceFeatureLevel()const { return m_FeatureLevel;              }
+    ID3D11Texture2D*         GetRenderTarget()      const { return m_pRenderTarget.Get();       }
+    ID3D11Texture2D*         GetDepthStencil()      const { return m_pDepthStencil.Get();       }
+    ID3D11RenderTargetView*  GetRenderTargetView()  const { return m_pRenderTargetView.Get();   }
+    ID3D11DepthStencilView*  GetDepthStencilView()  const { return m_pDepthStencilView.Get();   }
+    DXGI_FORMAT              GetBackBufferFormat()  const { return m_BackBufferFormat;          }
+    DXGI_FORMAT              GetDepthBufferFormat() const { return m_DepthBufferFormat;         }
+    D3D11_VIEWPORT           GetScreenViewport()    const { return m_ScreenViewport;            }
+    UINT                     GetBackBufferCount()   const { return m_BackBufferCount;           }
+    DXGI_COLOR_SPACE_TYPE    GetColorSpace()        const { return m_ColorSpaceType;            }
+    unsigned int             GetDeviceOptions()     const { return m_Options;                   }
+    RECT                     GetOutputSize()        const { return m_OutputSize;                }
+    HWND                     GetWindow()            const { return m_Window;                    }
 
 private:
     void CreateFactory();

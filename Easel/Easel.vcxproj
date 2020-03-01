@@ -15,6 +15,7 @@
     <ClInclude Include="Game\Game.h" />
     <ClInclude Include="Game\Graphics\Camera.h" />
     <ClInclude Include="Game\Graphics\CBufferStructs.h" />
+    <ClInclude Include="Game\Graphics\COMException.h" />
     <ClInclude Include="Game\Graphics\DXCore.h" />
     <ClInclude Include="Game\Graphics\DeviceResources.h" />
     <ClInclude Include="Game\Graphics\GeometryManager.h" />
@@ -22,6 +23,7 @@
     <ClInclude Include="Game\Graphics\LightStructs.h" />
     <ClInclude Include="Game\Graphics\Material.h" />
     <ClInclude Include="Game\Graphics\Renderer.h" />
+    <ClInclude Include="Game\Graphics\ThrowMacros.h" />
     <ClInclude Include="Game\Graphics\Vertex.h" />
     <ClInclude Include="Game\Input\GameInput.h" />
     <ClInclude Include="Game\Input\InputBinding.h" />

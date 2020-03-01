@@ -5,7 +5,7 @@ Description : Implementation of Game.h
 ----------------------------------------------*/
 #include "Game.h"
 
-#include <comdef.h> // _com_error
+#include "Graphics/COMException.h"
 
 namespace Game {
 
@@ -48,9 +48,10 @@ void Game::Init(HWND window, int width, int height)
         m_pDeviceResources->CreateWindowSizeDependentResources();
         CreateWindowSizeDependentResources(width, height);
     }
-    catch (_com_error e)
+    catch (std::exception const& e)
     {
-        MessageBox(m_pDeviceResources->GetWindow(), e.ErrorMessage(), L"COM Exception!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+        MessageBoxA(m_pDeviceResources->GetWindow(), e.what(), "Exception!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+        PostQuitMessage(ERROR_PROCESS_ABORTED);
     }
 
     // Create Drawable Geometries
@@ -157,9 +158,10 @@ void Game::OnResize(int newWidth, int newHeight)
     {
         CreateWindowSizeDependentResources(newWidth, newHeight);
     }
-    catch (_com_error e)
+    catch (std::exception const& e)
     {
-        MessageBox(m_pDeviceResources->GetWindow(), e.ErrorMessage(), L"COM Exception!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+        MessageBoxA(m_pDeviceResources->GetWindow(), e.what(), "Exception!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+        PostQuitMessage(ERROR_PROCESS_ABORTED);
     }
 }
 

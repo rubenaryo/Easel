@@ -7,7 +7,8 @@ Description : Implementation of Geometry Manager
 #include "GeometryManager.h"
 #include "CBufferStructs.h"
 
-#include <comdef.h> // _com_error
+#include "COMException.h"
+#include "ThrowMacros.h"
 #include "../../System/PathMacros.h"
 
 namespace Graphics {
@@ -37,7 +38,16 @@ GeometryManager::~GeometryManager()
 
 void GeometryManager::Init(DeviceResources* DR)
 {
-    CompileShaders(DR);
+    try
+    {
+        CompileShaders(DR);
+    }
+    catch (std::exception const& e)
+    {
+        MessageBoxA(DR->GetWindow(), e.what(), "Exception!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+        PostQuitMessage(ERROR_PROCESS_ABORTED);
+    }
+
     BuildMeshes(DR);
     BuildConstantBuffer(DR);
 }
@@ -152,15 +162,15 @@ void GeometryManager::CompileShaders(DeviceResources* DR)
     
     // Create Pixel Shader
     hr = D3DReadFileToBlob(L"..\\_Binary\\PixelShader.cso", &pBlob);
-    if (FAILED(hr)) throw _com_error(hr);
+    if (FAILED(hr)) throw COM_EXCEPT(hr);
     hr = device->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), 0, m_pPixelShader.GetAddressOf());
-    if (FAILED(hr)) throw _com_error(hr);
+    if (FAILED(hr)) throw COM_EXCEPT(hr);
 
     // Create Vertex Shader
     hr = D3DReadFileToBlob(L"..\\_Binary\\VertexShader.cso", &pBlob);
-    if (FAILED(hr)) throw _com_error(hr);
+    if (FAILED(hr)) throw COM_EXCEPT(hr);
     hr = device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), 0, m_pVertexShader.GetAddressOf());
-    if (FAILED(hr)) throw _com_error(hr);
+    if (FAILED(hr)) throw COM_EXCEPT(hr);
 
     // Describe Input Layout
     const D3D11_INPUT_ELEMENT_DESC IED[] =
@@ -178,7 +188,7 @@ void GeometryManager::CompileShaders(DeviceResources* DR)
         pBlob->GetBufferSize(),
         &m_pInputLayout);
 
-    if (FAILED(hr)) throw _com_error(hr);
+    if (FAILED(hr)) throw COM_EXCEPT(hr);
 
     // Bind input layout to Input Assembler Stage
     context->IASetInputLayout(m_pInputLayout.Get());
