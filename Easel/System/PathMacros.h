@@ -17,5 +17,6 @@ helper macros for reaching certain paths
 // Helper macros for getting correct paths. WILL ONLY WORK IN THIS PROJECT CONFIG
 #define ASSETPATH "..\\Assets\\"
 #define MODELPATH(fileName) (ASSETPATH ## "Models\\" ## fileName)
+#define SHADERPATH(fileName) 
 
 #endif

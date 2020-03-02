@@ -87,6 +87,9 @@
     <ClInclude Include="Game\Graphics\ThrowMacros.h">
       <Filter>Game\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Graphics\ShaderFactory.h">
+      <Filter>Game\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="System\GameWindow.cpp">

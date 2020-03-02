@@ -23,6 +23,7 @@
     <ClInclude Include="Game\Graphics\LightStructs.h" />
     <ClInclude Include="Game\Graphics\Material.h" />
     <ClInclude Include="Game\Graphics\Renderer.h" />
+    <ClInclude Include="Game\Graphics\ShaderFactory.h" />
     <ClInclude Include="Game\Graphics\ThrowMacros.h" />
     <ClInclude Include="Game\Graphics\Vertex.h" />
     <ClInclude Include="Game\Input\GameInput.h" />
@@ -124,6 +125,7 @@
       </AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_UNICODE;UNICODE;NOMINMAX;STRICT;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>26812;26495;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -155,6 +157,7 @@ copy "$(SolutionDir)packages\Assimp.redist.3.0.0\build\native\bin\x64\Assimp64.d
       </AdditionalIncludeDirectories>
       <DisableSpecificWarnings>26812;26495;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <PreprocessorDefinitions>_UNICODE;UNICODE;NOMINMAX;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
