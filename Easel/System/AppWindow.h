@@ -56,7 +56,7 @@ protected:
     // Pure virtual functions that must be derived by any windows
     virtual PCWSTR ClassName() const = 0;
     virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
-    virtual void InitGame(HWND hwnd, int width, int height) = 0;
+    virtual bool InitGame(HWND hwnd, int width, int height) = 0;
 };
 
 // A derived GameWindow class
@@ -69,7 +69,7 @@ public:
     // Overriden pure virtual functions from BaseWindow
     PCWSTR ClassName() const final { return L"Game Window Class"; }
     LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) final;
-    void InitGame(HWND hwnd, int width, int height) override final;
+    bool InitGame(HWND hwnd, int width, int height) override final;
     void RunGame();
         
 private:
@@ -109,8 +109,7 @@ BOOL BaseWindow<WindowType>::Create(PCWSTR lpWindowName, HINSTANCE hInstance, DW
 
     if (m_hwnd)
     {
-        InitGame(m_hwnd, nWidth, nHeight);
-        return TRUE;
+        return InitGame(m_hwnd, nWidth, nHeight);
     }
     else
     {

@@ -38,16 +38,7 @@ GeometryManager::~GeometryManager()
 
 void GeometryManager::Init(DeviceResources* DR)
 {
-    try
-    {
-        CompileShaders(DR);
-    }
-    catch (std::exception const& e)
-    {
-        MessageBoxA(DR->GetWindow(), e.what(), "Exception!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
-        PostQuitMessage(ERROR_PROCESS_ABORTED);
-    }
-
+    CompileShaders(DR);
     BuildMeshes(DR);
     BuildConstantBuffer(DR);
 }

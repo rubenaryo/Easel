@@ -20,7 +20,7 @@ class Game final : public Graphics::IDeviceNotify
 public:
     Game();
     ~Game();
-    void Init(HWND window, int width, int height);
+    bool Init(HWND window, int width, int height);
 
     // Main Game Loop
     void Frame();

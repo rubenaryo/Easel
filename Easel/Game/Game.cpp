@@ -33,32 +33,27 @@ Game::~Game()
 }
 
 // Initialize device resource holder by creating all necessary resources
-void Game::Init(HWND window, int width, int height)
+bool Game::Init(HWND window, int width, int height)
 {
     // Initialize game camera
     m_pCamera = std::make_unique<Graphics::Camera>(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 0.8f);
 
-    // Create All Device Resources
-    try
-    {
-        m_pDeviceResources->SetWindow(window, width, height);
-        m_pDeviceResources->CreateDeviceResources();
-        CreateDeviceDependentResources();
-
-        m_pDeviceResources->CreateWindowSizeDependentResources();
-        CreateWindowSizeDependentResources(width, height);
-    }
-    catch (std::exception const& e)
-    {
-        MessageBoxA(m_pDeviceResources->GetWindow(), e.what(), "Exception!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
-        PostQuitMessage(ERROR_PROCESS_ABORTED);
-    }
-
+    // Grab Window handle, creates device and context
+    m_pDeviceResources->SetWindow(window, width, height);
+    m_pDeviceResources->CreateDeviceResources();
+    CreateDeviceDependentResources();
+    
+    // Create Devices dependent on window size
+    m_pDeviceResources->CreateWindowSizeDependentResources();
+    CreateWindowSizeDependentResources(width, height);
+    
     // Create Drawable Geometries
     m_pGeometryManager->Init(m_pDeviceResources.get());
 
     // Create Lights and respective cbuffers
     m_pLightingManager = std::make_unique<Graphics::LightingManager>(m_pDeviceResources->GetD3DDevice());
+
+    return true;
 }
 
 // On Timer tick, run Update() on the game, then Render()
@@ -160,8 +155,8 @@ void Game::OnResize(int newWidth, int newHeight)
     }
     catch (std::exception const& e)
     {
-        MessageBoxA(m_pDeviceResources->GetWindow(), e.what(), "Exception!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
-        PostQuitMessage(ERROR_PROCESS_ABORTED);
+        MessageBoxA(m_pDeviceResources->GetWindow(), e.what(), "Fatal Exception!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+        DestroyWindow(m_pDeviceResources->GetWindow());
     }
 }
 
