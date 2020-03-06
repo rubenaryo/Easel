@@ -7,6 +7,8 @@ helper macros for reaching certain paths
 #ifndef PATHMACROS_H
 #define PATHMACROS_H
 
+#include <string>
+
 // Helper macro for wide strings
 #define WIDEN2(x) L ## x
 #define WIDEN(x) WIDEN2(x)
@@ -16,7 +18,30 @@ helper macros for reaching certain paths
 
 // Helper macros for getting correct paths. WILL ONLY WORK IN THIS PROJECT CONFIG
 #define ASSETPATH "..\\Assets\\"
-#define MODELPATH(fileName) (ASSETPATH ## "Models\\" ## fileName)
-#define SHADERPATH(fileName) 
+#define MODELPATH ASSETPATH ## "Models\\"
+#define MODELPATHW WIDEN(MODELPATH)
+#define SHADERPATH "..\\_Binary\\"
+#define SHADERPATHW WIDEN(SHADERPATH)
 
+namespace System
+{
+inline std::wstring GetShaderPathFromFile_W(std::wstring fileName)
+{
+    std::wstring path = SHADERPATHW;
+    return path + fileName;
+}
+
+inline std::wstring GetModelPathFromFile_W(std::wstring fileName)
+{
+    std::wstring path = MODELPATHW;
+    return path + fileName;
+}
+
+inline std::string GetModelPathFromFile(std::string fileName)
+{
+    std::string path = MODELPATH;
+    return path + fileName;
+}
+
+}
 #endif

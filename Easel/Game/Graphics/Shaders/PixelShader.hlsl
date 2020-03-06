@@ -3,6 +3,8 @@ struct VertexOut
     float4 position : SV_POSITION;
     float4 color    : COLOR;
     float3 normal   : NORMAL;
+    float2 uv       : TEXCOORD;
+    float3 worldPos : POSITION;
 };
 
 struct DirectionalLight

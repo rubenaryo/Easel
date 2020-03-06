@@ -49,13 +49,31 @@ void GeometryManager::DrawEntities(ID3D11DeviceContext* a_pContext, Camera* a_pC
     a_pContext->VSSetConstantBuffers(
         0,  // slot 0
         1,  // 1 buffer
-        m_pVSConstantBuffer.GetAddressOf()
+        m_pVSPerFrame.GetAddressOf()
+    );
+
+    // Bind Camera Matrices to perframe buffer
+    cbPerFrame perFrame;
+    perFrame.view = a_pCamera->GetView();
+    perFrame.projection = a_pCamera->GetProjection();
+
+    // memcpy into the resource
+    D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
+    a_pContext->Map(m_pVSPerFrame.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
+    memcpy(mappedBuffer.pData, &perFrame, sizeof(perFrame));
+    a_pContext->Unmap(m_pVSPerFrame.Get(), 0);
+
+    // Bind Constant Buffer
+    a_pContext->VSSetConstantBuffers(
+        1,  // slot 0
+        1,  // 1 buffer
+        m_pVSPerEntity.GetAddressOf()
     );
 
     // draw all entities in the scene
     for (Game::Entity* e : m_Entities)
     {
-        e->Draw(a_pContext, m_pVSConstantBuffer.Get(), a_pCamera);
+        e->Draw(a_pContext, m_pVSPerEntity.Get());
     }
 }
 
@@ -67,52 +85,9 @@ void GeometryManager::UpdateEntities(float dt)
 void GeometryManager::BuildMeshes(DeviceResources* a_DR)
 {
     using namespace DirectX;
-    // sample colors
-    XMFLOAT4 white = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-    XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-    XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-    XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-
-    // Construct pyramid programatically
-    Vertex verts[5];
-    const float width = 1.0f;
-    const float yPos = -0.5f;
-    const float height = 1.0f;
-
-    for (int i = 0; i < 4; i++)
-    {
-        float angle = (i * XM_PIDIV2) + XM_PIDIV4;
-        float xPos = width / 2.0f * cosf(angle);
-        float zPos = width / 2.0f * sinf(angle);
-
-        verts[i].position = XMFLOAT3(xPos, yPos, zPos);
-    }
-
-    verts[4].position = XMFLOAT3(0.0f, height + yPos, 0.0f);
-
-    //verts[0].color = blue;
-    //verts[1].color = green;
-    //verts[2].color = blue;
-    //verts[3].color = green;
-    //verts[4].color = red;
-
-
-    int numVerts = ARRAYSIZE(verts);
-
-    // Make index list
-    UINT indices[] = {
-        2, 4, 3,    // front
-        3, 4, 0,    // right
-        0, 4, 1,    // back
-        1, 4, 2,    // left
-        1, 2, 3,    // bottom1
-        3, 0, 1     // bottom2
-    };
-
-    int numIndices = ARRAYSIZE(indices);
 
     // Make a mesh based on this geometry information
-    m_Meshes.push_back(new Game::Mesh(MODELPATH("teapot.obj"), a_DR->GetD3DDevice()));
+    m_Meshes.push_back(new Game::Mesh(System::GetModelPathFromFile("teapot.obj"), a_DR->GetD3DDevice()));
 
     // Make an entity based on the mesh and the material
     m_Entities.push_back(new Game::Entity(m_Meshes[0], m_pBasicMaterial));
@@ -125,21 +100,34 @@ void GeometryManager::BuildMeshes(DeviceResources* a_DR)
 
 void GeometryManager::BuildConstantBuffer(DeviceResources* a_DR)
 {
-    // Get the size of the constant buffer struct as a multiple of 16
-    unsigned int size = sizeof(VSBasicData);
-    size = (size + 15) / 16 * 16;
+    // Get the size of the per frame constant buffer struct as a multiple of 16
+    const unsigned int size = sizeof(cbPerFrame);
+    static_assert(size % 16u == 0, "Constant Buffer size must be alignable on a 16-byte boundary");
 
-    // Describe the constant buffer and create it
-    D3D11_BUFFER_DESC cbDesc = {};
-    cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    cbDesc.ByteWidth = size;
-    cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-    cbDesc.MiscFlags = 0;
-    cbDesc.StructureByteStride = 0;
+    // Describe the per frame constant buffer and create it
+    D3D11_BUFFER_DESC perFrameDesc = {};
+    perFrameDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    perFrameDesc.ByteWidth = size;
+    perFrameDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    perFrameDesc.Usage = D3D11_USAGE_DYNAMIC;
+    perFrameDesc.MiscFlags = 0;
+    perFrameDesc.StructureByteStride = 0;
 
     // Store the cbuffer as a member field
-    a_DR->GetD3DDevice()->CreateBuffer(&cbDesc, 0, m_pVSConstantBuffer.GetAddressOf());
+    HRESULT hr = a_DR->GetD3DDevice()->CreateBuffer(&perFrameDesc, 0, m_pVSPerFrame.GetAddressOf());
+    if (FAILED(hr)) throw COM_EXCEPT(hr);
+
+    // Do the same for the per entity cbuffer
+    D3D11_BUFFER_DESC perEntityDesc = {};
+    perEntityDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    perEntityDesc.ByteWidth = sizeof(cbPerEntity);
+    perEntityDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    perEntityDesc.Usage = D3D11_USAGE_DYNAMIC;
+    perEntityDesc.MiscFlags = 0;
+    perEntityDesc.StructureByteStride = 0;
+
+    hr = a_DR->GetD3DDevice()->CreateBuffer(&perEntityDesc, 0, m_pVSPerEntity.GetAddressOf());
+    if (FAILED(hr)) throw COM_EXCEPT(hr);
 }
 
 // Compiles Shaders and creates the basic material

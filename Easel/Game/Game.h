@@ -9,10 +9,12 @@ This class encapsulates all app functionality
 
 #include "Graphics/GeometryManager.h"
 #include "Graphics/LightingManager.h"
+#include "Graphics/Renderer.h"
 #include "Input/GameInput.h"
 #include "Graphics/Camera.h"
 #include "StepTimer.h"
 #include "Graphics/DeviceResources.h"
+#include <memory>
 
 namespace Game {
 class Game final : public Graphics::IDeviceNotify
@@ -53,6 +55,9 @@ private:
 
     // Geometry Manager for the Application
     std::unique_ptr<Graphics::GeometryManager> m_pGeometryManager;
+
+    // Renderer for handling smart binding of objects
+    std::unique_ptr<Graphics::Renderer> m_pRenderer;
 
     // Lights Manager
     std::unique_ptr<Graphics::LightingManager> m_pLightingManager;

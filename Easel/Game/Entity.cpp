@@ -13,13 +13,11 @@ Entity::Entity(Mesh* a_pMesh, Graphics::Material* a_pMaterial) :
     m_pMaterial(a_pMaterial)
 {}
 
-void Entity::Draw(ID3D11DeviceContext* a_pContext, ID3D11Buffer* a_pVSCBuffer, Graphics::Camera* a_pCamera)
+void Entity::Draw(ID3D11DeviceContext* a_pContext, ID3D11Buffer* a_pVSCBuffer)
 {
     // Fill out data to be passed to the shader
-    Graphics::VSBasicData vsData;
+    Graphics::cbPerEntity vsData;
     vsData.world = this->GetTransform()->GetWorldMatrix();
-    vsData.view = a_pCamera->GetView();
-    vsData.projection = a_pCamera->GetProjection();
 
     // Copy this data to the constant buffer we intend to use
     D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};

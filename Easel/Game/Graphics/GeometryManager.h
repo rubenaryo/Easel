@@ -39,7 +39,8 @@ private:
 
 private:
     ComPtr<ID3D11InputLayout>   m_pInputLayout;
-    ComPtr<ID3D11Buffer>        m_pVSConstantBuffer;
+    ComPtr<ID3D11Buffer>        m_pVSPerFrame;
+    ComPtr<ID3D11Buffer>        m_pVSPerEntity;
 
     // Owning pointers to vertex/pixel shaders
     ComPtr<ID3D11VertexShader>  m_pVertexShader;

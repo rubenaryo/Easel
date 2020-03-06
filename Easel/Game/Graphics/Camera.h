@@ -26,10 +26,10 @@ public:
     void UpdateProjection(float a_AspectRatio);
 
     // Accessors:
-    Game::Transform* GetTransform()           { return &m_Transform;  }
-    XMFLOAT4X4 GetView()                { return m_View;        }
-    XMFLOAT4X4 GetProjection()          { return m_Projection;  }
-    float      GetSensitivity()         { return m_Sensitivity; }
+    Game::Transform*    GetTransform()      { return &m_Transform;  }
+    XMFLOAT4X4          GetView()           { return m_View;        }
+    XMFLOAT4X4          GetProjection()     { return m_Projection;  }
+    float               GetSensitivity()    { return m_Sensitivity; }
 
 private:
     // Information about camera position and rotation

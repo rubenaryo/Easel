@@ -16,20 +16,11 @@ Game::Game()
     m_pDeviceResources->RegisterDeviceNotify(this);
     
     m_pGeometryManager = std::make_unique<Graphics::GeometryManager>();
+    m_pRenderer = std::make_unique<Graphics::Renderer>();
 
     m_pInput = std::make_unique<Input::GameInput>();
 
     m_Timer.SetFixedTimeStep(false);
-}
-
-Game::~Game()
-{
-    // Delete all unique ptrs
-    m_pLightingManager.reset();
-    m_pCamera.reset();
-    m_pInput.reset();
-    m_pGeometryManager.reset();
-    m_pDeviceResources.reset();
 }
 
 // Initialize device resource holder by creating all necessary resources
@@ -46,6 +37,12 @@ bool Game::Init(HWND window, int width, int height)
     // Create Devices dependent on window size
     m_pDeviceResources->CreateWindowSizeDependentResources();
     CreateWindowSizeDependentResources(width, height);
+
+    auto device = m_pDeviceResources->GetD3DDevice();
+    auto context = m_pDeviceResources->GetD3DDeviceContext();
+
+    // Create Materials, Meshes, Entities
+    m_pRenderer->Init(device);
     
     // Create Drawable Geometries
     m_pGeometryManager->Init(m_pDeviceResources.get());
@@ -174,6 +171,17 @@ void Game::CreateWindowSizeDependentResources(int newWidth, int newHeight)
 {
     float aspectRatio = (float)newWidth / (float)newHeight;
     m_pCamera->UpdateProjection(aspectRatio);
+}
+
+Game::~Game()
+{
+    // Delete all unique ptrs
+    m_pLightingManager.reset();
+    m_pCamera.reset();
+    m_pInput.reset();
+    m_pGeometryManager.reset();
+    m_pRenderer.reset();
+    m_pDeviceResources.reset();
 }
 
 }

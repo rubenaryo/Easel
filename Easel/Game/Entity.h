@@ -3,16 +3,16 @@ Ruben Young (rubenaryo@gmail.com)
 Date : 2020/2
 Description : Entity is an instance of a mesh with a unique transform and material
 ----------------------------------------------*/
+#ifndef ENTITY_H
+#define ENTITY_H
 
 #include "Graphics/DXCore.h"
 #include "Mesh.h"
 #include "Graphics/Material.h"
-#include "Graphics/Camera.h"
 #include "Transform.h"
 
 namespace Game
 {
-
 class Entity
 {
 public:
@@ -21,7 +21,7 @@ public:
     ~Entity() = default;
 
     // Set constant buffer information and draw the underlying mesh
-    void Draw(ID3D11DeviceContext* a_pContext, ID3D11Buffer* a_pVSCBuffer, Graphics::Camera* a_pCamera);
+    void Draw(ID3D11DeviceContext* a_pContext, ID3D11Buffer* a_pVSCBuffer);
 
     // Accessors
     inline Mesh*      GetMesh() const;
@@ -34,3 +34,4 @@ private:
 };
 
 }
+#endif

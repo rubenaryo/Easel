@@ -12,17 +12,27 @@ Description : Declation of structs used as constant buffers by various shaders
 namespace Graphics
 {
 
-struct alignas(16) VSBasicData
+struct alignas(16) cbPerFrame
 {
-    DirectX::XMFLOAT4X4 world;
     DirectX::XMFLOAT4X4 view;
     DirectX::XMFLOAT4X4 projection;
+};
+
+struct alignas(16) cbPerEntity
+{
+    DirectX::XMFLOAT4X4 world;
 };
 
 struct alignas(16) LightBuffer
 {
     DirectX::XMFLOAT3A ambientColor;
     DirectionalLight   directionalLight;
+};
+
+struct alignas(16) cbMaterialParams
+{
+    DirectX::XMFLOAT4  m_ColorTint;
+    float               m_Specularity;
 };
 
 }

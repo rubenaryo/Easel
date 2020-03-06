@@ -16,13 +16,16 @@
     <ClInclude Include="Game\Graphics\Camera.h" />
     <ClInclude Include="Game\Graphics\CBufferStructs.h" />
     <ClInclude Include="Game\Graphics\COMException.h" />
+    <ClInclude Include="Game\Graphics\ConstantBuffer.h" />
     <ClInclude Include="Game\Graphics\DXCore.h" />
     <ClInclude Include="Game\Graphics\DeviceResources.h" />
     <ClInclude Include="Game\Graphics\GeometryManager.h" />
+    <ClInclude Include="Game\Graphics\IBindable.h" />
     <ClInclude Include="Game\Graphics\LightingManager.h" />
     <ClInclude Include="Game\Graphics\LightStructs.h" />
     <ClInclude Include="Game\Graphics\Material.h" />
     <ClInclude Include="Game\Graphics\Renderer.h" />
+    <ClInclude Include="Game\Graphics\Shader.h" />
     <ClInclude Include="Game\Graphics\ShaderFactory.h" />
     <ClInclude Include="Game\Graphics\ThrowMacros.h" />
     <ClInclude Include="Game\Graphics\Vertex.h" />
@@ -44,6 +47,9 @@
     <ClCompile Include="Game\Graphics\GeometryManager.cpp" />
     <ClCompile Include="Game\Graphics\LightingManager.cpp" />
     <ClCompile Include="Game\Graphics\Material.cpp" />
+    <ClCompile Include="Game\Graphics\Renderer.cpp" />
+    <ClCompile Include="Game\Graphics\Shader.cpp" />
+    <ClCompile Include="Game\Graphics\ShaderFactory.cpp" />
     <ClCompile Include="Game\Input\GameInput.cpp" />
     <ClCompile Include="Game\Input\InputBinding.cpp" />
     <ClCompile Include="Game\Input\InputSystem.cpp" />
@@ -124,8 +130,9 @@
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_UNICODE;UNICODE;NOMINMAX;STRICT;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>26812;26495;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>26451;26812;26495;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <CompileAs>Default</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -144,6 +151,9 @@ copy "$(SolutionDir)packages\Assimp.redist.3.0.0\build\native\bin\x64\Assimp64.d
       <Message>
       </Message>
     </CustomBuildStep>
+    <Manifest>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -155,9 +165,10 @@ copy "$(SolutionDir)packages\Assimp.redist.3.0.0\build\native\bin\x64\Assimp64.d
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
-      <DisableSpecificWarnings>26812;26495;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>26451;26812;26495;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <PreprocessorDefinitions>_UNICODE;UNICODE;NOMINMAX;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <CompileAs>Default</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -178,6 +189,9 @@ copy "$(SolutionDir)packages\Assimp.redist.3.0.0\build\native\bin\x64\Assimp64.d
       <Message>
       </Message>
     </CustomBuildStep>
+    <Manifest>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -2,7 +2,7 @@ struct VertexIn
 {
     float3 position : POSITION;
     float3 normal   : NORMAL;
-    float3 uv       : TEXCOORD;
+    float2 uv       : TEXCOORD;
 };
 
 struct VertexOut
@@ -10,14 +10,21 @@ struct VertexOut
     float4 position : SV_POSITION;
     float4 color    : COLOR;
     float3 normal   : NORMAL;
+    float2 uv       : TEXCOORD;
+    float3 worldPos : POSITION;
 };
 
 // Basic camera matrix
-cbuffer BasicData : register(b0)
+cbuffer cbPerFrame : register(b0)
 {
-    matrix world;
     matrix view;
     matrix projection;
+}
+
+// Values changed for every entity
+cbuffer cbPerEntity : register(b1)
+{
+    matrix world;
 }
 
 VertexOut main( VertexIn vi)
@@ -32,6 +39,12 @@ VertexOut main( VertexIn vi)
 
     // Transform normal too
     vo.normal = mul((float3x3)world, vi.normal);
+
+    // Pass along UVs
+    vo.uv = vi.uv;
+
+    // Pass along world position
+    vo.worldPos = mul((float3x3)world, vi.position);
 
     vo.color = float4(1, 1, 1, 1);
     
