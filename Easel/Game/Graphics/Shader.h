@@ -11,7 +11,6 @@ Description : Wrapper for Vertex/Pixel/other shader code
 #include "ConstantBuffer.h"
 #include "CBufferStructs.h"
 #include <string>
-#include <vector>
 
 #include <wrl/client.h> // ComPtr
 
@@ -35,12 +34,13 @@ public:
     bool SetBufferData(ID3D11DeviceContext* context, UINT slot, UINT size, void* pData);
 
     // Getter for internal shader
-     ID3D11VertexShader* GetShader();
+    ID3D11VertexShader* GetShader();
 
 private:
     std::wstring m_Path;
     Microsoft::WRL::ComPtr<ID3D11VertexShader>  m_pVertexShader;
     VSConstantBuffer*                           m_pCBuffers[14];
+    Microsoft::WRL::ComPtr<ID3D11InputLayout>   m_pInputLayout;
 
 public:
     VertexShader()                                  = delete;

@@ -16,7 +16,8 @@ namespace Game
 class Entity
 {
 public:
-    Entity(Mesh* a_pMesh, Graphics::Material* a_pMaterial);
+    Entity(Mesh* a_pMesh);
+    Entity(Mesh* a_pMesh, Transform a_Transform);
     Entity() = delete;
     ~Entity() = default;
 
@@ -25,11 +26,10 @@ public:
 
     // Accessors
     inline Mesh*      GetMesh() const;
-    inline Transform* GetTransform();
+    Transform* GetTransform();
 private:
     // Entity information
     Mesh*     m_pMesh;
-    Graphics::Material* m_pMaterial;
     Transform m_Transform;
 };
 

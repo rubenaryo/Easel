@@ -7,7 +7,6 @@ This class encapsulates all app functionality
 #ifndef GAME_H
 #define GAME_H
 
-#include "Graphics/GeometryManager.h"
 #include "Graphics/LightingManager.h"
 #include "Graphics/Renderer.h"
 #include "Input/GameInput.h"
@@ -52,9 +51,6 @@ private:
 
     // Application's Device Resources, such as the necessary buffers/views in video memory
     std::unique_ptr<Graphics::DeviceResources> m_pDeviceResources;
-
-    // Geometry Manager for the Application
-    std::unique_ptr<Graphics::GeometryManager> m_pGeometryManager;
 
     // Renderer for handling smart binding of objects
     std::unique_ptr<Graphics::Renderer> m_pRenderer;

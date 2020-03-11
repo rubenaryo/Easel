@@ -27,6 +27,9 @@ void Renderer::Init(DeviceResources* a_DR)
     // Initialize meshes and materials
     InitMeshes(a_DR);
     InitMaterials();
+
+    // For now, assume we're only using trianglelist
+    a_DR->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 void Renderer::InitMeshes(DeviceResources* a_DR)
@@ -43,6 +46,7 @@ void Renderer::InitMeshes(DeviceResources* a_DR)
 void Renderer::InitMaterials()
 {
     using Game::Entity;
+    using Game::Transform;
 
     // Use the shader factory to build some materials
     // This step would likely be streamlined to read shaders, meshes, materials directly from the 
@@ -58,8 +62,16 @@ void Renderer::InitMaterials()
     Material* mat1 = new Material(vs1, ps1, &highSpec);
 
     // Teapot and sphere using material1
-    Entity* entity1 = new Entity(m_Meshes["teapot"], mat1);
-    Entity* entity2 = new Entity(m_Meshes["sphere"], mat1);
+    Transform teapotTransform;
+    teapotTransform.SetRotation(-DirectX::XM_PIDIV2, 0, 0);
+    teapotTransform.SetScale(0.1f, 0.1f, 0.1f);
+    teapotTransform.SetPosition(0.0f, +0.2f, 0.0f);
+
+    Entity* entity1 = new Entity(m_Meshes["teapot"], teapotTransform);
+    Entity* entity2 = new Entity(m_Meshes["sphere"]);
+
+    // Move the sphere downwards
+    entity2->GetTransform()->SetPosition(0.0f, -1.0f, 0.0f);
 
     // Add them all to the hash table
     m_EntityMap[mat1].push_back(entity1);
@@ -68,8 +80,6 @@ void Renderer::InitMaterials()
 
 void Renderer::Update(ID3D11DeviceContext* context, float dt, Camera* camera)
 {
-    VertexShader* vs = m_pShaderFactory->GetVertexShader(L"VertexShader.cso");
-    
     // Give camera buffer updated matrices
     cbCamera perFrame = {};
     perFrame.view       = camera->GetView();
@@ -78,8 +88,6 @@ void Renderer::Update(ID3D11DeviceContext* context, float dt, Camera* camera)
 
     // Bind camera buffer to the pipeline
     m_pCameraBuffer->Bind(context);
-
-    Draw(context);
 }
 
 void Renderer::Draw(ID3D11DeviceContext* context)
@@ -95,15 +103,15 @@ void Renderer::Draw(ID3D11DeviceContext* context)
 
         for (Entity* entity : element.second)
         {
-            // set entity world matrix in cbuffer b0
+            // set entity world matrix data in the reserved buffer
             DirectX::XMFLOAT4X4 world = entity->GetTransform()->GetWorldMatrix();
             cbPerEntity perEntityCB = {};
             perEntityCB.world = world;
 
-            
+            material->GetVertexShader()->SetBufferData(context, 0u, sizeof(cbPerEntity), &perEntityCB);
 
             // draw entity
-            // entity->Draw(context);
+            entity->Draw(context, nullptr);
         }
     }
 }

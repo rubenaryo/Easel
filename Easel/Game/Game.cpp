@@ -15,11 +15,8 @@ Game::Game()
     m_pDeviceResources = std::make_unique<Graphics::DeviceResources>();
     m_pDeviceResources->RegisterDeviceNotify(this);
     
-    m_pGeometryManager = std::make_unique<Graphics::GeometryManager>();
     m_pRenderer = std::make_unique<Graphics::Renderer>();
-
     m_pInput = std::make_unique<Input::GameInput>();
-
     m_Timer.SetFixedTimeStep(false);
 }
 
@@ -43,9 +40,6 @@ bool Game::Init(HWND window, int width, int height)
 
     // Create Materials, Meshes, Entities
     m_pRenderer->Init(m_pDeviceResources.get());
-    
-    // Create Drawable Geometries
-    m_pGeometryManager->Init(m_pDeviceResources.get());
 
     // Create Lights and respective cbuffers
     m_pLightingManager = std::make_unique<Graphics::LightingManager>(m_pDeviceResources->GetDevice());
@@ -78,12 +72,10 @@ void Game::Update(StepTimer const& timer)
     // Update the camera's view matrix
     m_pCamera->UpdateView();
 
-    // Update the pyramid
-    m_pGeometryManager->UpdateEntities(elapsedTime);
-
     // Update the renderer's view matrices:
     m_pRenderer->Update(m_pDeviceResources->GetContext(), elapsedTime, m_pCamera.get());
 
+    // Update the lights (if needed)
     m_pLightingManager->Update(m_pDeviceResources->GetContext(), timer.GetTotalSeconds());
 }
 
@@ -105,7 +97,7 @@ void Game::Render()
     auto context = dr->GetContext();
 
     // Draw all geometries
-    m_pGeometryManager->DrawEntities(context, m_pCamera.get());
+    m_pRenderer->Draw(context);
 
     // Show the new frame
     dr->Present();
@@ -182,7 +174,6 @@ Game::~Game()
     m_pLightingManager.reset();
     m_pCamera.reset();
     m_pInput.reset();
-    m_pGeometryManager.reset();
     m_pRenderer.reset();
     m_pDeviceResources.reset();
 }

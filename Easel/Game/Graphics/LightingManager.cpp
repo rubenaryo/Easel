@@ -42,11 +42,11 @@ namespace Graphics
     void LightingManager::UpdateLights(float dt)
     {
         // Logic to update the light's direction or something
-        //DirectionalLight& light = m_pLightBuffer->directionalLight;
-        //light.toLight.x = cosf(dt);
-        //light.toLight.z = sinf(dt);
-        //
-        //m_NeedsRebind = true;
+        DirectionalLight& light = m_LightData.directionalLight;
+        light.toLight.x = cosf(dt);
+        light.toLight.z = sinf(dt);
+        
+        m_NeedsRebind = true;
     }
 
     void LightingManager::CreateLightBuffer(ID3D11Device* a_pDevice)

@@ -4,6 +4,7 @@ Date : 2020/3
 Description : Implementation of Shader wrapper
 ----------------------------------------------*/
 #include "Shader.h"
+#include <vector>
 #include "COMException.h"
 #include "../../System/PathMacros.h"
 
@@ -21,13 +22,70 @@ VertexShader::VertexShader(const wchar_t* path, ID3D11Device* device):
     // Create space for the shader
     Microsoft::WRL::ComPtr<ID3D10Blob> pBlob;
     HRESULT hr = D3DReadFileToBlob(path, pBlob.GetAddressOf());
-    if(FAILED(hr)) throw COM_EXCEPT(hr);
+    if (FAILED(hr)) throw COM_EXCEPT(hr);
 
     // Use the device to create the shader
     device->CreateVertexShader(pBlob->GetBufferPointer(), 
         pBlob->GetBufferSize(), 
         nullptr, 
         m_pVertexShader.GetAddressOf());
+
+    // Use the compiled blob to programmatically build an input layout using shader reflection
+    ID3D11ShaderReflection* pReflection = nullptr;
+    hr = D3DReflect(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), IID_ID3D11ShaderReflection, (void**) &pReflection);
+    if (FAILED(hr)) throw COM_EXCEPT(hr);
+
+    // Get a shader description
+    D3D11_SHADER_DESC shaderDesc;
+    pReflection->GetDesc(&shaderDesc);
+
+    // Read each input parameter into a std::vector
+    std::vector<D3D11_INPUT_ELEMENT_DESC> inputElements;
+    for (unsigned int i = 0; i < shaderDesc.InputParameters; ++i)
+    {
+        // Grab a description of the parameter at this index
+        D3D11_SIGNATURE_PARAMETER_DESC paramDesc;
+        pReflection->GetInputParameterDesc(i, &paramDesc);
+
+        // Fill out input element
+        D3D11_INPUT_ELEMENT_DESC inputParam = {};
+        inputParam.SemanticName  = paramDesc.SemanticName;
+        inputParam.SemanticIndex = paramDesc.SemanticIndex;
+        inputParam.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+        inputParam.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+
+        // determine DXGI format ... Thanks MSDN!
+        if ( paramDesc.Mask == 1 )
+        {
+            if      ( paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32 )    inputParam.Format = DXGI_FORMAT_R32_UINT;
+            else if ( paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32 )    inputParam.Format = DXGI_FORMAT_R32_SINT;
+            else if ( paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32 )   inputParam.Format = DXGI_FORMAT_R32_FLOAT;
+        }
+        else if ( paramDesc.Mask <= 3 )
+        {
+            if      ( paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32 )    inputParam.Format = DXGI_FORMAT_R32G32_UINT;
+            else if ( paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32 )    inputParam.Format = DXGI_FORMAT_R32G32_SINT;
+            else if ( paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32 )   inputParam.Format = DXGI_FORMAT_R32G32_FLOAT;
+        }
+        else if ( paramDesc.Mask <= 7 )
+        {
+            if      ( paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32 )    inputParam.Format = DXGI_FORMAT_R32G32B32_UINT;
+            else if ( paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32 )    inputParam.Format = DXGI_FORMAT_R32G32B32_SINT;
+            else if ( paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32 )   inputParam.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+        }
+        else if ( paramDesc.Mask <= 15 )
+        {
+            if      ( paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32 )    inputParam.Format = DXGI_FORMAT_R32G32B32A32_UINT;
+            else if ( paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32 )    inputParam.Format = DXGI_FORMAT_R32G32B32A32_SINT;
+            else if ( paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32 )   inputParam.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        }
+
+        inputElements.push_back(inputParam);
+    }
+
+    // Finally, try to create the input layout, storing it as a member if successful
+    hr = device->CreateInputLayout(&inputElements[0], inputElements.size(), pBlob->GetBufferPointer(), pBlob->GetBufferSize(), m_pInputLayout.GetAddressOf());
+    if (FAILED(hr)) throw COM_EXCEPT(hr);
 }
 
 VertexShader::~VertexShader()
@@ -41,7 +99,9 @@ VertexShader::~VertexShader()
 
 void VertexShader::Bind(ID3D11DeviceContext* context) noexcept
 {
-    // Temporary, in the future should hold numCBuffers to avoid having to check all of them.
+    // Make sure the right input layout is being used:
+    context->IASetInputLayout(m_pInputLayout.Get());
+
     // We can assume unused cbuffer slots are null due to the call to ZeroMemory in the constructor.
     for (unsigned int i = 0; i < 14u; i++)
     {

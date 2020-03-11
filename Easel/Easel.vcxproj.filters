@@ -45,9 +45,6 @@
     <ClInclude Include="Game\Graphics\DeviceResources.h">
       <Filter>Game\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Game\Graphics\GeometryManager.h">
-      <Filter>Game\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Game\Transform.h">
       <Filter>Game</Filter>
     </ClInclude>
@@ -123,9 +120,6 @@
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="Game\Graphics\DeviceResources.cpp">
-      <Filter>Game\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Game\Graphics\GeometryManager.cpp">
       <Filter>Game\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Game\Transform.cpp">

@@ -15,14 +15,14 @@ struct VertexOut
 };
 
 // Basic camera matrix
-cbuffer cbPerFrame : register(b0)
+cbuffer cbPerFrame : register(b13)
 {
     matrix view;
     matrix projection;
 }
 
 // Values changed for every entity
-cbuffer cbPerEntity : register(b1)
+cbuffer cbPerEntity : register(b0)
 {
     matrix world;
 }
