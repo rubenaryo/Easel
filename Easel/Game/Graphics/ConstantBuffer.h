@@ -33,11 +33,16 @@ public:
         cbDesc.MiscFlags = 0;
         cbDesc.StructureByteStride = 0;
 
+        // Create Subresource data and a pointer to point to it.
         D3D11_SUBRESOURCE_DATA subData = {};
         subData.pSysMem = pData;
+        D3D11_SUBRESOURCE_DATA* pSubData = &subData;
+
+        // Make sure null is passed in if there is no initial data
+        if(pData == nullptr) pSubData = nullptr;
 
         // call on device to create the buffer
-        HRESULT hr = device->CreateBuffer(&cbDesc, &subData, m_pBuffer.GetAddressOf());
+        HRESULT hr = device->CreateBuffer(&cbDesc, pSubData, m_pBuffer.GetAddressOf());
     }
 
     virtual ~ConstantBuffer() = default;
@@ -52,6 +57,9 @@ public:
 
     // Must be overloaded by VSConstantBuffer, PSConstantBuffer, etc
     virtual inline void Bind(ID3D11DeviceContext* context) = 0;
+
+    // Accessor for slot number
+    inline UINT GetSlot() { return m_Slot; }
 
 protected:
     // Owning pointer holds the actual d3d resource

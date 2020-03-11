@@ -4,6 +4,7 @@ Date : 2020/2
 Description : Mesh functionality
 ----------------------------------------------*/
 #include "Mesh.h"
+#include "../System/PathMacros.h"
 
 namespace Game {
 
@@ -12,13 +13,13 @@ Mesh::Mesh(Graphics::Vertex* a_VertexArray, unsigned int a_NumVertices, unsigned
     CreateBuffers(a_VertexArray, a_NumVertices, a_IndexArray, a_NumIndices, a_pDevice);
 }
 
-Mesh::Mesh(const std::string& a_pFile, ID3D11Device* a_pDevice)
+Mesh::Mesh(const std::string& a_pFileName, ID3D11Device* a_pDevice)
 {
     Assimp::Importer Importer;
 
     // Load assimpScene with proper flags
     const aiScene* pScene = Importer.ReadFile(
-        a_pFile,
+        System::GetModelPathFromFile(a_pFileName),
         aiProcess_Triangulate           |
         aiProcess_JoinIdenticalVertices |   // Remove unnecessary duplicate information
         aiProcess_GenNormals            |   // Ensure normals are generated
@@ -32,7 +33,7 @@ Mesh::Mesh(const std::string& a_pFile, ID3D11Device* a_pDevice)
     else
     {
         char buf[256];
-        sprintf_s(buf, "Error parsing '%s': '%s'\n", a_pFile.c_str(), Importer.GetErrorString());
+        sprintf_s(buf, "Error parsing '%s': '%s'\n", a_pFileName.c_str(), Importer.GetErrorString());
         throw std::exception(buf);
     }
 }

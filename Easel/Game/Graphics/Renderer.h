@@ -7,6 +7,7 @@ Description : Manager-level class for intelligently binding and drawing objects
 #define RENDERER_H
 
 #include "DXCore.h"
+#include "DeviceResources.h"
 #include "Material.h"
 #include "../Mesh.h"
 #include "../Entity.h"
@@ -21,11 +22,13 @@ namespace Graphics {
 
 class Renderer final
 {
+const unsigned int c_ReservedBufferSlot = 13u;
+
 public:
     Renderer();
     ~Renderer();
 
-    void Init(ID3D11Device* device);
+    void Init(DeviceResources* a_DR);
 
     // For now, the renderer will handle updating the entities, 
     // In the future, perhaps a Physics Manager or AI Manager would be a good solution?
@@ -36,7 +39,7 @@ public:
 
 private:
     // Loads the necessary models into a collection
-    void InitMeshes();
+    void InitMeshes(DeviceResources* a_DR);
 
     // Creates the necessary material keys within m_Map, 
     void InitMaterials();
@@ -51,6 +54,12 @@ private:
 
     // Owning pointer to a shaderfactory, which assigns and distributes shaders.
     std::unique_ptr<ShaderFactory> m_pShaderFactory;
+
+    // Two reserved buffers are bound to slot index 13:
+    // - CameraBuffer holds the view/projection matrix
+    // - MaterialBuffer holds the states of the material parameters, such as specularity, color tint. 
+    VSConstantBuffer* m_pCameraBuffer;
+    PSConstantBuffer* m_pMaterialBuffer;
 
 public: // Enforce the use of the default constructor
     Renderer(Renderer const&)               = delete;

@@ -12,38 +12,72 @@ Renderer::Renderer()
     m_pShaderFactory = std::make_unique<ShaderFactory>();
 }
 
-void Renderer::Init(ID3D11Device* device)
+void Renderer::Init(DeviceResources* a_DR)
 {
+    // Grab reference to ID3D11Device
+    auto device = a_DR->GetDevice();
+
     // Create necessary shaders
     m_pShaderFactory->Init(device);
 
+    // Create reserved buffers
+    m_pCameraBuffer     = new VSConstantBuffer(device, sizeof(cbCamera), c_ReservedBufferSlot, nullptr);
+    m_pMaterialBuffer   = new PSConstantBuffer(device, sizeof(cbMaterialParams), c_ReservedBufferSlot, nullptr);
+
     // Initialize meshes and materials
-    InitMeshes();
+    InitMeshes(a_DR);
     InitMaterials();
 }
 
-void Renderer::InitMeshes()
+void Renderer::InitMeshes(DeviceResources* a_DR)
 {
+    using Game::Mesh;
+    auto device = a_DR->GetDevice();
+
     // Load some models from memory
+    m_Meshes["teapot"] = new Mesh("teapot.obj", device);
+    m_Meshes["sphere"] = new Mesh("sphere.obj", device);
+    m_Meshes["torus"]  = new Mesh("torus.obj" , device);
 }
 
 void Renderer::InitMaterials()
 {
+    using Game::Entity;
+
     // Use the shader factory to build some materials
-    VertexShader* vs1 = m_pShaderFactory->GetVertexShader(L"VertexShader.hlsl");
-    PixelShader* ps1 = m_pShaderFactory->GetPixelShader(L"PixelShader.hlsl");
-    //Material* material1 = new Material()
+    // This step would likely be streamlined to read shaders, meshes, materials directly from the 
+    // development pipeline if this were a AAA game, but for now I just use the ShaderFactory to load some 
+    // shaders, then make some sample materials out of them and store it in the entity hash table
+    VertexShader* vs1 = m_pShaderFactory->GetVertexShader(L"VertexShader.cso");
+    PixelShader* ps1 = m_pShaderFactory->GetPixelShader(L"PixelShader.cso");
+
+    // Material with high specularity
+    cbMaterialParams highSpec;
+    highSpec.m_ColorTint = DirectX::XMFLOAT4(1,1,1,1);
+    highSpec.m_Specularity = 64.0f;
+    Material* mat1 = new Material(vs1, ps1, &highSpec);
+
+    // Teapot and sphere using material1
+    Entity* entity1 = new Entity(m_Meshes["teapot"], mat1);
+    Entity* entity2 = new Entity(m_Meshes["sphere"], mat1);
+
+    // Add them all to the hash table
+    m_EntityMap[mat1].push_back(entity1);
+    m_EntityMap[mat1].push_back(entity2);
 }
 
 void Renderer::Update(ID3D11DeviceContext* context, float dt, Camera* camera)
 {
-    VertexShader* vs = m_pShaderFactory->GetVertexShader(L"VertexShader.hlsl");
+    VertexShader* vs = m_pShaderFactory->GetVertexShader(L"VertexShader.cso");
     
-    // Give b0 buffer updated camera matrices every frame
-    cbPerFrame perFrame = {};
+    // Give camera buffer updated matrices
+    cbCamera perFrame = {};
     perFrame.view       = camera->GetView();
     perFrame.projection = camera->GetProjection();
-    bool b = vs->SetBufferData(context, 0u, sizeof(cbPerFrame), (void*) &perFrame);
+    m_pCameraBuffer->SetData(context, sizeof(cbCamera), (void*)&perFrame);
+
+    // Bind camera buffer to the pipeline
+    m_pCameraBuffer->Bind(context);
 
     Draw(context);
 }
@@ -53,18 +87,20 @@ void Renderer::Draw(ID3D11DeviceContext* context)
     using Game::Entity;
     for (std::pair<Material* const, std::vector<Entity*>> element : m_EntityMap)
     {
-        // Bind material
+        // Set material data, then bind 
+        // "Binding" a material means binding its internal VS/PS
         Material* material = element.first;
+        m_pMaterialBuffer->SetData(context, sizeof(cbMaterialParams), (void*) &(material->GetMaterialInfo()));
         material->Bind(context);
 
         for (Entity* entity : element.second)
         {
-            // set entity world matrix in cbuffer b1
+            // set entity world matrix in cbuffer b0
             DirectX::XMFLOAT4X4 world = entity->GetTransform()->GetWorldMatrix();
             cbPerEntity perEntityCB = {};
             perEntityCB.world = world;
 
-            //material->GetVertexShader()->SetBufferData(context, 1u, sizeof(cbPerEntity), &perEntityCB);
+            
 
             // draw entity
             // entity->Draw(context);
@@ -94,6 +130,10 @@ Renderer::~Renderer()
     {
         delete element.second;
     }
+
+    // Cleanup Camera/Material buffers
+    delete m_pCameraBuffer;
+    delete m_pMaterialBuffer;
 
     // Cleanup shader factory
     m_pShaderFactory.reset();

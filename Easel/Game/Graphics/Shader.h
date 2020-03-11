@@ -17,17 +17,18 @@ Description : Wrapper for Vertex/Pixel/other shader code
 
 namespace Graphics {
 
+// TODO: Make a generalized "Shader" class cause there's WAY too much repeat code in these two
+// Not good for when I get into domain, hull, or other shaders
 class VertexShader : public IBindable
 {
 public:
     VertexShader(const wchar_t* path, ID3D11Device* device);
-    ~VertexShader() = default;
+    ~VertexShader();
 
     void Bind(ID3D11DeviceContext* context) noexcept override;
 
-    // Returns the index (slot) within internal vector to which the buffer was added
-    // Note: the order in which this function is called must match the order of the constant buffers HLSL-side
-    UINT AddConstantBuffer(VSConstantBuffer* pCBuffer);
+    // Add the constant buffer to one of the 14 possible registers
+    void AddConstantBuffer(VSConstantBuffer* pCBuffer);
 
     // Sets the data for the constant buffer in a designated slot
     // return false if slot is out of bounds
@@ -39,7 +40,7 @@ public:
 private:
     std::wstring m_Path;
     Microsoft::WRL::ComPtr<ID3D11VertexShader>  m_pVertexShader;
-    std::vector<VSConstantBuffer*>              m_pCBuffers;
+    VSConstantBuffer*                           m_pCBuffers[14];
 
 public:
     VertexShader()                                  = delete;
@@ -51,13 +52,12 @@ class PixelShader : public IBindable
 {
 public:
     PixelShader(const wchar_t* path, ID3D11Device* device);
-    ~PixelShader() = default;
+    ~PixelShader();
 
     void Bind(ID3D11DeviceContext* context) noexcept override;
 
-    // Returns the index (slot) within internal vector to which the buffer was added
-    // Note: the order in which this function is called must match the order of the constant buffers HLSL-side
-     UINT AddConstantBuffer(PSConstantBuffer* pCBuffer);
+     // Add the constant buffer to one of 14 possible registers
+    void AddConstantBuffer(PSConstantBuffer* pCBuffer);
 
     // Sets the data for the constant buffer in a designated slot
     // return false if slot is out of bounds
@@ -68,7 +68,7 @@ public:
 private:
     std::wstring m_Path;
     Microsoft::WRL::ComPtr<ID3D11PixelShader>   m_pPixelShader;
-    std::vector<PSConstantBuffer*>              m_pCBuffers;
+    PSConstantBuffer*                           m_pCBuffers[14];
 
 public:
     PixelShader()                                 = delete;

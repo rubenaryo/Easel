@@ -12,7 +12,7 @@ Description : Declation of structs used as constant buffers by various shaders
 namespace Graphics
 {
 
-struct alignas(16) cbPerFrame
+struct alignas(16) cbCamera
 {
     DirectX::XMFLOAT4X4 view;
     DirectX::XMFLOAT4X4 projection;
@@ -23,7 +23,7 @@ struct alignas(16) cbPerEntity
     DirectX::XMFLOAT4X4 world;
 };
 
-struct alignas(16) LightBuffer
+struct alignas(16) cbLighting
 {
     DirectX::XMFLOAT3A ambientColor;
     DirectionalLight   directionalLight;

@@ -56,8 +56,8 @@ public:
     void Clear(const FLOAT*);
 
     // Member field accessors
-    ID3D11Device*            GetD3DDevice()         const { return m_pDevice.Get();             }
-    ID3D11DeviceContext*     GetD3DDeviceContext()  const { return m_pContext.Get();            }
+    ID3D11Device*            GetDevice()            const { return m_pDevice.Get();             }
+    ID3D11DeviceContext*     GetContext()           const { return m_pContext.Get();            }
     IDXGISwapChain*          GetSwapChain()         const { return m_pSwapChain.Get();          }
     D3D_FEATURE_LEVEL        GetDeviceFeatureLevel()const { return m_FeatureLevel;              }
     ID3D11Texture2D*         GetRenderTarget()      const { return m_pRenderTarget.Get();       }

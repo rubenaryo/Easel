@@ -11,9 +11,19 @@ namespace Graphics {
 
 void ShaderFactory::Init(ID3D11Device* device)
 {
-    // Add a couple shaders
-    AddShader(L"VertexShader.cso", ShaderType::VERTEX, device);
-    AddShader(L"PixelShader.cso", ShaderType::PIXEL, device);
+    // AAA Scenario: Would parse the contents of these shaders using reflections/some other system, 
+    //  automatically adding the necessary cbuffers, fields, etc
+    // Me: Hardcode it! One day I might want to make a system to auto read in shader data, but lets stay focused for now
+    
+    // Vertex Shader
+    std::wstring vs_uid = L"VertexShader.cso";
+    AddShader(vs_uid, ShaderType::VERTEX, device);
+    VSConstantBuffer* worldBuf = new VSConstantBuffer(device, sizeof(cbPerEntity), 0u);
+    m_pVertexShaders[vs_uid]->AddConstantBuffer(worldBuf);
+
+    // Pixel Shader
+    std::wstring ps_uid = L"PixelShader.cso";
+    AddShader(ps_uid, ShaderType::PIXEL, device);
 }
 
 VertexShader* ShaderFactory::GetVertexShader(std::wstring UniqueID)
@@ -52,8 +62,8 @@ inline void ShaderFactory::AddVertexShader(std::wstring UniqueID, ID3D11Device* 
 {
     if (m_pVertexShaders.find(UniqueID) == m_pVertexShaders.end()) // Safe to add
     {
-        std::wstring p = System::GetShaderPathFromFile_W(UniqueID);
-        m_pVertexShaders[UniqueID] = new VertexShader(p.c_str(), device);
+        // Create a vertex shader on the heap.
+        m_pVertexShaders[UniqueID] = new VertexShader(System::GetShaderPathFromFile_W(UniqueID).c_str(), device);
     }      
     else // Unique ID already exists
         throw std::exception("Tried to add Vertex Shader, but Unique ID already exists!");
@@ -63,10 +73,9 @@ inline void ShaderFactory::AddPixelShader(std::wstring UniqueID, ID3D11Device* d
 {
     if (m_pPixelShaders.find(UniqueID) == m_pPixelShaders.end()) // Safe to add
     {
-        std::wstring p = System::GetShaderPathFromFile_W(UniqueID);
-        m_pPixelShaders[UniqueID] = new PixelShader(p.c_str(), device);
+        // Create pixel shader on the heap. 
+        m_pPixelShaders[UniqueID] = new PixelShader(System::GetShaderPathFromFile_W(UniqueID).c_str(), device);
     }
-        
     else // Unique ID already exists
         throw std::exception("Tried to add Pixel Shader, but Unique ID already exists!");
 }

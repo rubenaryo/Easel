@@ -9,6 +9,7 @@ Description : Interface for management of lights in the scene
 #include "DXCore.h"
 #include "LightStructs.h"
 #include "CBufferStructs.h"
+#include "ConstantBuffer.h"
 
 #include <wrl/client.h>
 
@@ -16,6 +17,8 @@ namespace Graphics {
 
 class LightingManager
 {
+const unsigned int c_PSLighingSlot = 12u;
+
 public:
     LightingManager(ID3D11Device* a_pDevice);
     LightingManager() = delete;
@@ -26,7 +29,7 @@ public:
     // Public Setter for the scene to be able to change the ambient color in the light buffer
     inline void SetAmbient(DirectX::XMFLOAT3A ambientColor)
     {
-        m_pLightBuffer->ambientColor = ambientColor;
+        m_LightData.ambientColor = ambientColor;
         m_NeedsRebind = true;
     }
 
@@ -51,13 +54,15 @@ private:
 
 private:
     // Structure
-    LightBuffer* m_pLightBuffer;
+    cbLighting m_LightData;
+
+    // Constant Buffer
+    PSConstantBuffer* m_pLightingBuffer;
 
     // Indicates whether we need to rebind
     bool m_NeedsRebind;
 
-    // Constant buffer to be sent to the pixel shader
-    Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbLights;
+    
 };
 
 }

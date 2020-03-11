@@ -13,7 +13,7 @@ struct DirectionalLight
     float3 toLight;
 };
 
-cbuffer LightBuffer : register(b0)
+cbuffer LightBuffer : register(b12)
 {
     float3 ambientColor;
     DirectionalLight directionalLight;

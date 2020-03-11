@@ -38,17 +38,17 @@ bool Game::Init(HWND window, int width, int height)
     m_pDeviceResources->CreateWindowSizeDependentResources();
     CreateWindowSizeDependentResources(width, height);
 
-    auto device = m_pDeviceResources->GetD3DDevice();
-    auto context = m_pDeviceResources->GetD3DDeviceContext();
+    auto device = m_pDeviceResources->GetDevice();
+    auto context = m_pDeviceResources->GetContext();
 
     // Create Materials, Meshes, Entities
-    m_pRenderer->Init(device);
+    m_pRenderer->Init(m_pDeviceResources.get());
     
     // Create Drawable Geometries
     m_pGeometryManager->Init(m_pDeviceResources.get());
 
     // Create Lights and respective cbuffers
-    m_pLightingManager = std::make_unique<Graphics::LightingManager>(m_pDeviceResources->GetD3DDevice());
+    m_pLightingManager = std::make_unique<Graphics::LightingManager>(m_pDeviceResources->GetDevice());
 
     return true;
 }
@@ -81,7 +81,10 @@ void Game::Update(StepTimer const& timer)
     // Update the pyramid
     m_pGeometryManager->UpdateEntities(elapsedTime);
 
-    m_pLightingManager->Update(m_pDeviceResources->GetD3DDeviceContext(), timer.GetTotalSeconds());
+    // Update the renderer's view matrices:
+    m_pRenderer->Update(m_pDeviceResources->GetContext(), elapsedTime, m_pCamera.get());
+
+    m_pLightingManager->Update(m_pDeviceResources->GetContext(), timer.GetTotalSeconds());
 }
 
 void Game::Render()
@@ -99,7 +102,7 @@ void Game::Render()
     dr->Clear(DirectX::Colors::CornflowerBlue);
 
     // Grab a reference to the d3d device context
-    auto context = dr->GetD3DDeviceContext();
+    auto context = dr->GetContext();
 
     // Draw all geometries
     m_pGeometryManager->DrawEntities(context, m_pCamera.get());

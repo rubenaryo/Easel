@@ -53,7 +53,7 @@ void GeometryManager::DrawEntities(ID3D11DeviceContext* a_pContext, Camera* a_pC
     );
 
     // Bind Camera Matrices to perframe buffer
-    cbPerFrame perFrame;
+    cbCamera perFrame;
     perFrame.view = a_pCamera->GetView();
     perFrame.projection = a_pCamera->GetProjection();
 
@@ -79,7 +79,7 @@ void GeometryManager::DrawEntities(ID3D11DeviceContext* a_pContext, Camera* a_pC
 
 void GeometryManager::UpdateEntities(float dt)
 {
-    m_Entities[0]->GetTransform()->Rotate(0, dt, 0);
+     m_Entities[0]->GetTransform()->Rotate(0, dt, 0);
 }
 
 void GeometryManager::BuildMeshes(DeviceResources* a_DR)
@@ -87,7 +87,7 @@ void GeometryManager::BuildMeshes(DeviceResources* a_DR)
     using namespace DirectX;
 
     // Make a mesh based on this geometry information
-    m_Meshes.push_back(new Game::Mesh(System::GetModelPathFromFile("teapot.obj"), a_DR->GetD3DDevice()));
+    m_Meshes.push_back(new Game::Mesh("teapot.obj", a_DR->GetDevice()));
 
     // Make an entity based on the mesh and the material
     m_Entities.push_back(new Game::Entity(m_Meshes[0], m_pBasicMaterial));
@@ -101,7 +101,7 @@ void GeometryManager::BuildMeshes(DeviceResources* a_DR)
 void GeometryManager::BuildConstantBuffer(DeviceResources* a_DR)
 {
     // Get the size of the per frame constant buffer struct as a multiple of 16
-    const unsigned int size = sizeof(cbPerFrame);
+    const unsigned int size = sizeof(cbCamera);
     static_assert(size % 16u == 0, "Constant Buffer size must be alignable on a 16-byte boundary");
 
     // Describe the per frame constant buffer and create it
@@ -114,7 +114,7 @@ void GeometryManager::BuildConstantBuffer(DeviceResources* a_DR)
     perFrameDesc.StructureByteStride = 0;
 
     // Store the cbuffer as a member field
-    HRESULT hr = a_DR->GetD3DDevice()->CreateBuffer(&perFrameDesc, 0, m_pVSPerFrame.GetAddressOf());
+    HRESULT hr = a_DR->GetDevice()->CreateBuffer(&perFrameDesc, 0, m_pVSPerFrame.GetAddressOf());
     if (FAILED(hr)) throw COM_EXCEPT(hr);
 
     // Do the same for the per entity cbuffer
@@ -126,15 +126,15 @@ void GeometryManager::BuildConstantBuffer(DeviceResources* a_DR)
     perEntityDesc.MiscFlags = 0;
     perEntityDesc.StructureByteStride = 0;
 
-    hr = a_DR->GetD3DDevice()->CreateBuffer(&perEntityDesc, 0, m_pVSPerEntity.GetAddressOf());
+    hr = a_DR->GetDevice()->CreateBuffer(&perEntityDesc, 0, m_pVSPerEntity.GetAddressOf());
     if (FAILED(hr)) throw COM_EXCEPT(hr);
 }
 
 // Compiles Shaders and creates the basic material
 void GeometryManager::CompileShaders(DeviceResources* DR)
 {
-    ID3D11Device* device = DR->GetD3DDevice();
-    ID3D11DeviceContext* context = DR->GetD3DDeviceContext();
+    ID3D11Device* device = DR->GetDevice();
+    ID3D11DeviceContext* context = DR->GetContext();
 
     Microsoft::WRL::ComPtr<ID3D10Blob> pBlob = 0;
     HRESULT hr;
@@ -180,7 +180,6 @@ void GeometryManager::CompileShaders(DeviceResources* DR)
     float spec = 64.0f;
 
     m_pBasicMaterial = new Material(m_pVertexShader.Get(), m_pPixelShader.Get(), color, spec);
-
 }
 
 }
