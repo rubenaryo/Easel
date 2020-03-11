@@ -111,7 +111,7 @@ void Renderer::Draw(ID3D11DeviceContext* context)
             material->GetVertexShader()->SetBufferData(context, 0u, sizeof(cbPerEntity), &perEntityCB);
 
             // draw entity
-            entity->Draw(context, nullptr);
+            entity->Draw(context);
         }
     }
 }

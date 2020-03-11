@@ -19,7 +19,7 @@ Entity::Entity(Mesh* a_pMesh, Transform a_Transform) :
 {}
 
 
-void Entity::Draw(ID3D11DeviceContext* a_pContext, ID3D11Buffer* a_pVSCBuffer)
+void Entity::Draw(ID3D11DeviceContext* a_pContext)
 {
     // Draw the mesh
     // Note: This method used to be far more convoluted, now it is in a good place to eventually implement instanced rendering

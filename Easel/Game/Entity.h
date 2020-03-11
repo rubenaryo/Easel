@@ -21,8 +21,8 @@ public:
     Entity() = delete;
     ~Entity() = default;
 
-    // Set constant buffer information and draw the underlying mesh
-    void Draw(ID3D11DeviceContext* a_pContext, ID3D11Buffer* a_pVSCBuffer);
+    // Call Mesh's draw, passing in the world matrix is done by the Renderer class
+    void Draw(ID3D11DeviceContext* a_pContext);
 
     // Accessors
     inline Mesh*      GetMesh() const;
