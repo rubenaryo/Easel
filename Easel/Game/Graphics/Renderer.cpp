@@ -4,6 +4,7 @@ Date : 2020/3
 Description : Implementation of Renderer class
 ----------------------------------------------*/
 #include "Renderer.h"
+#include "COMException.h"
 
 namespace Graphics {
 
@@ -19,6 +20,18 @@ void Renderer::Init(DeviceResources* a_DR)
 
     // Create necessary shaders
     m_pShaderFactory->Init(device);
+
+    // Create a general sampler state
+    D3D11_SAMPLER_DESC samplerDesc;
+    SecureZeroMemory(&samplerDesc, sizeof(D3D11_SAMPLER_DESC));
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.Filter   = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDesc.MaxLOD   = D3D11_FLOAT32_MAX;
+
+    HRESULT hr = device->CreateSamplerState(&samplerDesc, m_pSamplerState.GetAddressOf());
+    if (FAILED(hr)) throw COM_EXCEPT(hr);
 
     // Create reserved buffers
     m_pCameraBuffer     = new VSConstantBuffer(device, sizeof(cbCamera), c_ReservedBufferSlot, nullptr);

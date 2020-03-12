@@ -52,6 +52,15 @@ private:
     // Key is a hardcoded :( identifying id
     std::unordered_map<std::string, Game::Mesh*> m_Meshes;
 
+    // Sample all textures the same way,
+    // TODO: DON'T Sample all textures the same way
+    // A possible solution to this is to set sampler options as material params, then
+    // generate a sampler state on the fly whenever is needed 
+    // This begs the question: Perhaps drawing should be organized in separate piles, a table for
+    // textured objects, and another for non-textured. Do real games even use non-textured objects?
+    // This requires more thought.
+    Microsoft::WRL::ComPtr<ID3D11SamplerState> m_pSamplerState;
+
     // Owning pointer to a shaderfactory, which assigns and distributes shaders.
     std::unique_ptr<ShaderFactory> m_pShaderFactory;
 
@@ -65,7 +74,5 @@ public: // Enforce the use of the default constructor
     Renderer(Renderer const&)               = delete;
     Renderer& operator=(Renderer const&)    = delete;
 };
-
 }
-
 #endif
