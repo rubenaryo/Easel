@@ -42,7 +42,7 @@ bool Game::Init(HWND window, int width, int height)
     m_pRenderer->Init(m_pDeviceResources.get());
 
     // Create Lights and respective cbuffers
-    m_pLightingManager = std::make_unique<Graphics::LightingManager>(m_pDeviceResources->GetDevice());
+    m_pLightingManager = std::make_unique<Graphics::LightingManager>(m_pDeviceResources->GetDevice(), m_pCamera->GetTransform()->GetPosition());
 
     return true;
 }
@@ -76,7 +76,7 @@ void Game::Update(StepTimer const& timer)
     m_pRenderer->Update(m_pDeviceResources->GetContext(), elapsedTime, m_pCamera.get());
 
     // Update the lights (if needed)
-    m_pLightingManager->Update(m_pDeviceResources->GetContext(), timer.GetTotalSeconds());
+    m_pLightingManager->Update(m_pDeviceResources->GetContext(), timer.GetTotalSeconds(), m_pCamera->GetTransform()->GetPosition());
 }
 
 void Game::Render()

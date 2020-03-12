@@ -20,11 +20,11 @@ class LightingManager
 const unsigned int c_PSLighingSlot = 12u;
 
 public:
-    LightingManager(ID3D11Device* a_pDevice);
+    LightingManager(ID3D11Device* a_pDevice, DirectX::XMFLOAT3 a_CameraPos);
     LightingManager() = delete;
     ~LightingManager();
 
-    void Update(ID3D11DeviceContext* a_pContext, float dt);
+    void Update(ID3D11DeviceContext* a_pContext, float dt, DirectX::XMFLOAT3 a_CameraPos);
     
     // Public Setter for the scene to be able to change the ambient color in the light buffer
     inline void SetAmbient(DirectX::XMFLOAT3A ambientColor)
@@ -35,10 +35,10 @@ public:
 
 private:
     // Initializes the data for each directional light
-    void InitLights();
+    void InitLights(DirectX::XMFLOAT3 a_CameraPos);
 
     // Updates the data in each directional light
-    void UpdateLights(float dt);
+    void UpdateLights(float dt, DirectX::XMFLOAT3 a_CameraPos);
 
     // Defines the constant buffer which holds light information
     void CreateLightBuffer(ID3D11Device* a_pDevice);

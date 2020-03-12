@@ -100,6 +100,7 @@ void Renderer::Draw(ID3D11DeviceContext* context)
         Material* material = element.first;
         m_pMaterialBuffer->SetData(context, sizeof(cbMaterialParams), (void*) &(material->GetMaterialInfo()));
         material->Bind(context);
+        m_pMaterialBuffer->Bind(context);
 
         for (Entity* entity : element.second)
         {

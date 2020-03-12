@@ -27,12 +27,13 @@ struct alignas(16) cbLighting
 {
     DirectX::XMFLOAT3A ambientColor;
     DirectionalLight   directionalLight;
+    DirectX::XMFLOAT3A cameraWorldPos;
 };
 
 struct alignas(16) cbMaterialParams
 {
     DirectX::XMFLOAT4  m_ColorTint;
-    float               m_Specularity;
+    float              m_Specularity;
 };
 
 }
