@@ -148,10 +148,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Game\Graphics\Shaders\VertexShader.hlsl">
+    <FxCompile Include="Game\Graphics\Shaders\PhongVS.hlsl">
       <Filter>Game\Graphics\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Game\Graphics\Shaders\PixelShader.hlsl">
+    <FxCompile Include="Game\Graphics\Shaders\PhongPS.hlsl">
       <Filter>Game\Graphics\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

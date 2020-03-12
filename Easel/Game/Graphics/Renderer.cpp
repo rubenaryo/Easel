@@ -65,8 +65,8 @@ void Renderer::InitMaterials()
     // This step would likely be streamlined to read shaders, meshes, materials directly from the 
     // development pipeline if this were a AAA game, but for now I just use the ShaderFactory to load some 
     // shaders, then make some sample materials out of them and store it in the entity hash table
-    VertexShader* vs1 = m_pShaderFactory->GetVertexShader(L"VertexShader.cso");
-    PixelShader* ps1 = m_pShaderFactory->GetPixelShader(L"PixelShader.cso");
+    VertexShader* vs1 = m_pShaderFactory->GetVertexShader(L"PhongVS.cso");
+    PixelShader* ps1 = m_pShaderFactory->GetPixelShader(L"PhongPS.cso");
 
     // Material with high specularity
     cbMaterialParams highSpec;
