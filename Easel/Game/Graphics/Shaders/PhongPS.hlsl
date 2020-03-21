@@ -38,11 +38,13 @@ float SpecularPhong(float3 aNormal, float3 aLightDir, float3 aToCamera, float aS
     return pow(saturate(dot(R, aToCamera)), aSpec);
 }
 
-//Texture2D diffuseTexture    : register(t0)
-//Texture2D normalMap         : register(t1)
-//SamplerState samplerOptions : register(s0)
+Texture2D diffuseTexture    : register(t0);
+Texture2D normalMap         : register(t1);
+SamplerState samplerOptions : register(s0);
 float4 main(VertexOut input) : SV_TARGET
 {
+    float3 surfaceColor = diffuseTexture.Sample(samplerOptions, input.uv).rgb;
+
     // Normalize normal vector
     input.normal = normalize(input.normal);
 
@@ -51,11 +53,11 @@ float4 main(VertexOut input) : SV_TARGET
     float3 toCamera = normalize(cameraWorldPos - input.worldPos);
 
     // Diffuse Color
-    totalLight += directionalLight.diffuseColor.rgb * 
+    totalLight += directionalLight.diffuseColor.rgb * surfaceColor.rgb *
         DiffuseAmount(input.normal, directionalLight.toLight);
 
     // Specular Color
-    totalLight += directionalLight.diffuseColor.rgb *
+    totalLight += directionalLight.diffuseColor.rgb * surfaceColor.rgb *
         SpecularPhong(input.normal, -directionalLight.toLight, toCamera, specularity);
 
     // Finally, add the ambient color

@@ -99,6 +99,9 @@
     <ClInclude Include="Game\Graphics\MaterialFactory.h">
       <Filter>Game\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Graphics\Texture.h">
+      <Filter>Game\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="System\GameWindow.cpp">

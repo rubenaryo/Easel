@@ -34,7 +34,7 @@ namespace Graphics
         SetAmbient(XMFLOAT3A(0.12f, 0.12f, 0.15f));
 
         m_LightData.directionalLight.diffuseColor   = XMFLOAT3A(+1.0f, +0.772f, +0.56f); // sunlight
-        m_LightData.directionalLight.toLight        = XMFLOAT3A(-1.0f, +0.7f, +0.3f);
+        m_LightData.directionalLight.toLight        = XMFLOAT3A(-1.0f, +0.5f, -1.3f);
 
         // hold camera position in light data
         m_LightData.cameraWorldPos.x = a_CameraPos.x;
@@ -47,11 +47,11 @@ namespace Graphics
     void LightingManager::UpdateLights(float dt, DirectX::XMFLOAT3 a_CameraPos)
     {
         // Logic to update the light's direction or something
-        DirectionalLight& light = m_LightData.directionalLight;
-        light.toLight.x = cosf(dt);
-        light.toLight.z = sinf(dt);
-
-        // Overwrite held camera position
+        //DirectionalLight& light = m_LightData.directionalLight;
+        //light.toLight.x = cosf(dt);
+        //light.toLight.z = sinf(dt);
+        //
+        //// Overwrite held camera position
         m_LightData.cameraWorldPos.x = a_CameraPos.x;
         m_LightData.cameraWorldPos.y = a_CameraPos.y;
         m_LightData.cameraWorldPos.z = a_CameraPos.z;

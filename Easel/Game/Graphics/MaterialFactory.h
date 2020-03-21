@@ -9,9 +9,11 @@ to be used with game objects
 
 #include "DXCore.h"
 #include "Material.h"
+#include "Texture.h"
 #include "ShaderFactory.h"
 #include <string>
 #include <unordered_map>
+#include <vector>
 #include <memory>
 
 namespace Graphics {
@@ -36,6 +38,7 @@ private:
     // Data structures to hold textures
     std::unordered_map<std::wstring, ID3D11ShaderResourceView*> m_DiffuseTextures;
     std::unordered_map<std::wstring, ID3D11ShaderResourceView*> m_NormalMaps;
+    std::unordered_map<std::wstring, std::vector<Texture*>>     m_Textures;
     //TODO: spec,roughness, light, etc maps
 
     // Hold created materials

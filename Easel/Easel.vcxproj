@@ -27,6 +27,7 @@
     <ClInclude Include="Game\Graphics\Renderer.h" />
     <ClInclude Include="Game\Graphics\Shader.h" />
     <ClInclude Include="Game\Graphics\ShaderFactory.h" />
+    <ClInclude Include="Game\Graphics\Texture.h" />
     <ClInclude Include="Game\Graphics\ThrowMacros.h" />
     <ClInclude Include="Game\Graphics\Vertex.h" />
     <ClInclude Include="Game\Input\GameInput.h" />

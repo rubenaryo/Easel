@@ -14,23 +14,25 @@ Material::Material(VertexShader* a_pVS, PixelShader* a_pPS, cbMaterialParams* a_
 
     // Set Shader fields
     m_pVertexShader = a_pVS;
-    m_pPixelShader = a_pPS;
+    m_pPixelShader  = a_pPS;
 
-    // not textured
-    m_DiffuseTexture = nullptr;
+    // Not textured
+    m_Resources = nullptr;
 }
 
-Material::Material(VertexShader* a_pVS, PixelShader* a_pPS, cbMaterialParams* a_pParams, ID3D11ShaderResourceView* a_pSRV)
+Material::Material(VertexShader* a_pVS, PixelShader* a_pPS, cbMaterialParams* a_pParams, Texture*const* a_Resources, size_t numResources)
 {
     // Set material parameters
     m_Params = *a_pParams;
 
     // Set Shader fields
     m_pVertexShader = a_pVS;
-    m_pPixelShader = a_pPS;
+    m_pPixelShader  = a_pPS;
 
-    // textured
-    m_DiffuseTexture = a_pSRV;
+    // Copy over resource pointers
+    m_Resources     = new Texture*[numResources];
+    memcpy(m_Resources, a_Resources, sizeof(Texture*) * numResources);
+    m_ResourceCount = numResources;
 }
 
 inline void Material::Bind(ID3D11DeviceContext* context) noexcept
@@ -39,8 +41,17 @@ inline void Material::Bind(ID3D11DeviceContext* context) noexcept
     m_pVertexShader->Bind(context);
     m_pPixelShader->Bind(context);
 
-    if(m_DiffuseTexture) // If this is a textured material, bind that texture
-        context->PSSetShaderResources(0, 1, &m_DiffuseTexture);
+    // Bind all the associated textures
+    for (int i = 0; i < m_ResourceCount; ++i)
+    {
+        m_Resources[i]->Bind(context);
+    }
+}
+
+Material::~Material()
+{
+    // Delete the array of pointers, but not the textures themselves
+    delete[] m_Resources;
 }
 }
 

@@ -30,6 +30,9 @@ void Renderer::Init(DeviceResources* a_DR)
     HRESULT hr = device->CreateSamplerState(&samplerDesc, m_pSamplerState.GetAddressOf());
     if (FAILED(hr)) throw COM_EXCEPT(hr);
 
+    // TODO: In the future, sample textures differently! See Renderer.h
+    a_DR->GetContext()->PSSetSamplers(0, 1, m_pSamplerState.GetAddressOf());
+
     // Create reserved buffers
     m_pCameraBuffer     = new VSConstantBuffer(device, sizeof(cbCamera), c_ReservedBufferSlot, nullptr);
     m_pMaterialBuffer   = new PSConstantBuffer(device, sizeof(cbMaterialParams), c_ReservedBufferSlot, nullptr);
@@ -69,14 +72,14 @@ void Renderer::InitEntities()
     teapotTransform.SetScale(0.1f, 0.1f, 0.1f);
     teapotTransform.SetPosition(0.0f, +0.2f, 0.0f);
 
-    Entity* entity1 = new Entity(m_Meshes["teapot"], teapotTransform);
+    //Entity* entity1 = new Entity(m_Meshes["teapot"], teapotTransform);
     Entity* entity2 = new Entity(m_Meshes["sphere"]);
 
     // Move the sphere downwards
-    entity2->GetTransform()->SetPosition(0.0f, -1.0f, 0.0f);
+    //entity2->GetTransform()->SetPosition(0.0f, -1.0f, 0.0f);
 
     // Add them all to the hash table
-    m_EntityMap[mat1].push_back(entity1);
+    //m_EntityMap[mat1].push_back(entity1);
     m_EntityMap[mat1].push_back(entity2);
 }
 

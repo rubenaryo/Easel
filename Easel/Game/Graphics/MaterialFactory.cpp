@@ -39,12 +39,10 @@ void MaterialFactory::BuildMaterials()
     highSpec.m_ColorTint = DirectX::XMFLOAT4(1,1,1,1);
     highSpec.m_Specularity = 128.0f;
 
-    for (const auto& entry : m_DiffuseTextures)
+    // For every 'entry.first', create a material that holds all associated resources
+    for (const auto& entry : m_Textures)
     {
-        m_Materials[entry.first] = new Material(phongVS, phongPS, &highSpec, entry.second);
-
-        // Does this material have any associated maps? load them
-        
+        m_Materials[entry.first] = new Material(phongVS, phongPS, &highSpec, &entry.second[0], entry.second.size());
     }
 }
 
@@ -78,36 +76,44 @@ void MaterialFactory::LoadTextures(ID3D11Device* device, ID3D11DeviceContext* co
         const std::wstring TexType = name.substr(pos+1, 1);
 
         // Classify based on Letter following '_'
+        Texture::Type type;
         switch (TexType[0])
         {
             case 'N': // This is a normal map
-                m_NormalMaps[TexName] = pSRV;
+                type = Texture::Type::NORMAL;
+                m_Textures[TexName].push_back(new Texture(pSRV, type));
                 break;
             case 'T': // This is a texture
-                m_DiffuseTextures[TexName] = pSRV;
+                type = Texture::Type::DIFFUSE;
+                m_Textures[TexName].push_back(new Texture(pSRV, type));
+                break;
+            case 'R': // Roughness map
+                type = Texture::Type::ROUGHNESS;
+                m_Textures[TexName].push_back(new Texture(pSRV, type));
                 break;
             default:
                 OutputDebugStringW(L"INFO: Attempted to load a texture with an unrecognized type");
                 pSRV->Release(); // The SRV is still created, so it must be released
+                break;
         }
     }
 }
 
 MaterialFactory::~MaterialFactory()
 {
+    // Release all allocated materials
     for (const auto mat : m_Materials)
     {
         delete mat.second;
     }
 
-    // Release ShaderResourceViews
-    for (const auto srv : m_DiffuseTextures)
+    // Release all allocated textures
+    for (auto const& entry : m_Textures)
     {
-        srv.second->Release();
-    }
-    for (const auto srv : m_NormalMaps)
-    {
-        srv.second->Release();
+        for (Texture* tex : entry.second)
+        {
+            delete tex;
+        }
     }
 
     // Cleanup shader factory
