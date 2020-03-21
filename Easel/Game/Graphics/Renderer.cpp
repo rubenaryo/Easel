@@ -53,6 +53,7 @@ void Renderer::InitMeshes(DeviceResources* a_DR)
 
     // Load some models from memory
     m_Meshes["teapot"] = new Mesh("teapot.obj", device);
+    m_Meshes["cube"]   = new Mesh("cube.obj", device);
     m_Meshes["sphere"] = new Mesh("sphere.obj", device);
     m_Meshes["torus"]  = new Mesh("torus.obj" , device);
 }
@@ -63,7 +64,7 @@ void Renderer::InitEntities()
     using Game::Transform;
 
     // Grab material pointer from factory instance
-    Material* mat1 = m_pMaterialFactory->GetMaterial(L"Bark");
+    Material* mat1 = m_pMaterialFactory->GetMaterial(L"Lunar");
     assert(mat1);
 
     // Teapot and sphere using material1
@@ -74,6 +75,7 @@ void Renderer::InitEntities()
 
     //Entity* entity1 = new Entity(m_Meshes["teapot"], teapotTransform);
     Entity* entity2 = new Entity(m_Meshes["sphere"]);
+    entity2->GetTransform()->Scale(2,2,2);
 
     // Move the sphere downwards
     //entity2->GetTransform()->SetPosition(0.0f, -1.0f, 0.0f);
