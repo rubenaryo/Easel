@@ -43,6 +43,7 @@ Texture2D normalMap         : register(t1);
 SamplerState samplerOptions : register(s0);
 float4 main(VertexOut input) : SV_TARGET
 {
+    // Sample diffuse texture
     float3 surfaceColor = diffuseTexture.Sample(samplerOptions, input.uv).rgb;
 
     // Normalize normal vector
@@ -53,15 +54,17 @@ float4 main(VertexOut input) : SV_TARGET
     float3 toCamera = normalize(cameraWorldPos - input.worldPos);
 
     // Diffuse Color
-    totalLight += directionalLight.diffuseColor.rgb * surfaceColor.rgb *
+    totalLight += directionalLight.diffuseColor.rgb *
         DiffuseAmount(input.normal, directionalLight.toLight);
 
     // Specular Color
-    totalLight += directionalLight.diffuseColor.rgb * surfaceColor.rgb *
+    totalLight += directionalLight.diffuseColor.rgb *
         SpecularPhong(input.normal, -directionalLight.toLight, toCamera, specularity);
 
     // Finally, add the ambient color
     totalLight += ambientColor;
+    
+    totalLight *= surfaceColor;
 
     return float4(totalLight, 1);
 }

@@ -37,7 +37,7 @@ void MaterialFactory::BuildMaterials()
     // Material with high specular exponent
     cbMaterialParams highSpec;
     highSpec.m_ColorTint = DirectX::XMFLOAT4(1,1,1,1);
-    highSpec.m_Specularity = 128.0f;
+    highSpec.m_Specularity = 16.0f;
 
     // For every 'entry.first', create a material that holds all associated resources
     for (const auto& entry : m_Textures)
