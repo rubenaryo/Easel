@@ -1,6 +1,6 @@
 /*----------------------------------------------
 Ruben Young (rubenaryo@gmail.com)
-Date : 2020/2
+Date : 2020/3
 Description : Manager-level class for intelligently binding and drawing objects
 ----------------------------------------------*/
 #ifndef RENDERER_H
@@ -12,6 +12,7 @@ Description : Manager-level class for intelligently binding and drawing objects
 #include "../Mesh.h"
 #include "../Entity.h"
 #include "ShaderFactory.h"
+#include "MaterialFactory.h"
 #include "ConstantBuffer.h"
 #include "Camera.h"
 #include <unordered_map>
@@ -42,7 +43,7 @@ private:
     void InitMeshes(DeviceResources* a_DR);
 
     // Creates the necessary material keys within m_Map, 
-    void InitMaterials();
+    void InitEntities();
 
 private:
     // Maps a material to a list of entities that utilize it
@@ -61,8 +62,8 @@ private:
     // This requires more thought.
     Microsoft::WRL::ComPtr<ID3D11SamplerState> m_pSamplerState;
 
-    // Owning pointer to a shaderfactory, which assigns and distributes shaders.
-    std::unique_ptr<ShaderFactory> m_pShaderFactory;
+    // Owning pointer to a material factory instance, which creates and distributes materials and textures
+    std::unique_ptr<MaterialFactory> m_pMaterialFactory;
 
     // Two reserved buffers are bound to slot index 13:
     // - CameraBuffer holds the view/projection matrix

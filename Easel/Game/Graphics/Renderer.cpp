@@ -10,16 +10,13 @@ namespace Graphics {
 
 Renderer::Renderer()
 {
-    m_pShaderFactory = std::make_unique<ShaderFactory>();
+    m_pMaterialFactory = std::make_unique<MaterialFactory>();
 }
 
 void Renderer::Init(DeviceResources* a_DR)
 {
     // Grab reference to ID3D11Device
     auto device = a_DR->GetDevice();
-
-    // Create necessary shaders
-    m_pShaderFactory->Init(device);
 
     // Create a general sampler state
     D3D11_SAMPLER_DESC samplerDesc;
@@ -37,10 +34,11 @@ void Renderer::Init(DeviceResources* a_DR)
     m_pCameraBuffer     = new VSConstantBuffer(device, sizeof(cbCamera), c_ReservedBufferSlot, nullptr);
     m_pMaterialBuffer   = new PSConstantBuffer(device, sizeof(cbMaterialParams), c_ReservedBufferSlot, nullptr);
 
-    // Initialize meshes and materials
+    // Initialize meshes, materials, entities
     InitMeshes(a_DR);
-    InitMaterials();
-
+    m_pMaterialFactory->Init(device, a_DR->GetContext());
+    InitEntities();
+    
     // For now, assume we're only using trianglelist
     a_DR->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
@@ -56,23 +54,14 @@ void Renderer::InitMeshes(DeviceResources* a_DR)
     m_Meshes["torus"]  = new Mesh("torus.obj" , device);
 }
 
-void Renderer::InitMaterials()
+void Renderer::InitEntities()
 {
     using Game::Entity;
     using Game::Transform;
 
-    // Use the shader factory to build some materials
-    // This step would likely be streamlined to read shaders, meshes, materials directly from the 
-    // development pipeline if this were a AAA game, but for now I just use the ShaderFactory to load some 
-    // shaders, then make some sample materials out of them and store it in the entity hash table
-    VertexShader* vs1 = m_pShaderFactory->GetVertexShader(L"PhongVS.cso");
-    PixelShader* ps1 = m_pShaderFactory->GetPixelShader(L"PhongPS.cso");
-
-    // Material with high specularity
-    cbMaterialParams highSpec;
-    highSpec.m_ColorTint = DirectX::XMFLOAT4(1,1,1,1);
-    highSpec.m_Specularity = 64.0f;
-    Material* mat1 = new Material(vs1, ps1, &highSpec);
+    // Grab material pointer from factory instance
+    Material* mat1 = m_pMaterialFactory->GetMaterial(L"Bark");
+    assert(mat1);
 
     // Teapot and sphere using material1
     Transform teapotTransform;
@@ -134,7 +123,7 @@ Renderer::~Renderer()
 {
     using Game::Entity;
 
-    // Cleanup entities/materials
+    // Cleanup entities
     for (std::pair<Material* const, std::vector<Entity*>> element : m_EntityMap)
     {
         // Free every entity
@@ -143,8 +132,6 @@ Renderer::~Renderer()
             delete entity;
         }
 
-        // Free the associated material
-        delete element.first;
     }
 
     // Cleanup meshes
@@ -157,7 +144,7 @@ Renderer::~Renderer()
     delete m_pCameraBuffer;
     delete m_pMaterialBuffer;
 
-    // Cleanup shader factory
-    m_pShaderFactory.reset();
+    // Cleanup material factory
+    m_pMaterialFactory.reset();
 }
 }

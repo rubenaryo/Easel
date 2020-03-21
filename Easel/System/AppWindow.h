@@ -107,6 +107,10 @@ BOOL BaseWindow<WindowType>::Create(PCWSTR lpWindowName, HINSTANCE hInstance, DW
 
     m_hwnd = CreateWindowExW(dwExStyle, ClassName(), lpWindowName, dwStyle, x, y, rc.right - rc.left, rc.bottom - rc.top, hWndParent, hMenu, hInstance, this);
 
+    // Initialize Windows Imaging Component (WIC)
+    HRESULT hr = CoInitializeEx(nullptr, COINITBASE_MULTITHREADED);
+    if (FAILED(hr)) return FALSE;
+
     if (m_hwnd)
     {
         return InitGame(m_hwnd, nWidth, nHeight);

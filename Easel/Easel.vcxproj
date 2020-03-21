@@ -23,6 +23,7 @@
     <ClInclude Include="Game\Graphics\LightingManager.h" />
     <ClInclude Include="Game\Graphics\LightStructs.h" />
     <ClInclude Include="Game\Graphics\Material.h" />
+    <ClInclude Include="Game\Graphics\MaterialFactory.h" />
     <ClInclude Include="Game\Graphics\Renderer.h" />
     <ClInclude Include="Game\Graphics\Shader.h" />
     <ClInclude Include="Game\Graphics\ShaderFactory.h" />
@@ -45,6 +46,7 @@
     <ClCompile Include="Game\Graphics\DeviceResources.cpp" />
     <ClCompile Include="Game\Graphics\LightingManager.cpp" />
     <ClCompile Include="Game\Graphics\Material.cpp" />
+    <ClCompile Include="Game\Graphics\MaterialFactory.cpp" />
     <ClCompile Include="Game\Graphics\Renderer.cpp" />
     <ClCompile Include="Game\Graphics\Shader.cpp" />
     <ClCompile Include="Game\Graphics\ShaderFactory.cpp" />
@@ -129,8 +131,9 @@
       </AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_UNICODE;UNICODE;NOMINMAX;STRICT;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>26451;26812;26495;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <CompileAs>Default</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -167,6 +170,7 @@ copy "$(SolutionDir)packages\Assimp.redist.3.0.0\build\native\bin\x64\Assimp64.d
       <PreprocessorDefinitions>_UNICODE;UNICODE;NOMINMAX;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CompileAs>Default</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
