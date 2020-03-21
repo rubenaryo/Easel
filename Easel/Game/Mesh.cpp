@@ -64,12 +64,19 @@ void Mesh::LoadSceneInfo(const aiScene* a_pScene, ID3D11Device* a_pDevice)
             
             // Assume every vertex holds only one set of uv coords
             const aiVector3D texCoord = pMesh->HasTextureCoords(0) ? pMesh->mTextureCoords[0][j] : cZero;
-        
+
+            // Check for tangents and bitangents
+            bool tangentsGenerated = pMesh->HasTangentsAndBitangents();
+            const aiVector3D tangent   = tangentsGenerated ? pMesh->mTangents[j]   : cZero;
+            const aiVector3D bitangent = tangentsGenerated ? pMesh->mBitangents[j] : cZero;
+
             // Create one of our vertices with this information
             Graphics::Vertex v;
-            v.position = DirectX::XMFLOAT3(position.x, position.y, position.z);
-            v.normal = DirectX::XMFLOAT3(normal.x, normal.y, normal.z);
-            v.uv = DirectX::XMFLOAT2(texCoord.x, texCoord.y);
+            v.position  = DirectX::XMFLOAT3(position.x, position.y, position.z);
+            v.normal    = DirectX::XMFLOAT3(normal.x, normal.y, normal.z);
+            v.uv        = DirectX::XMFLOAT2(texCoord.x, texCoord.y);
+            v.tangent   = DirectX::XMFLOAT3(tangent.x, tangent.y, tangent.z);
+            v.binormal = DirectX::XMFLOAT3(bitangent.x, bitangent.y, bitangent.z);
 
             vertices.push_back(v);
         }

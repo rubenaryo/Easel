@@ -91,7 +91,7 @@ void Game::Render()
     auto dr = m_pDeviceResources.get();
 
     // Clear the necessary backbuffer
-    dr->Clear(DirectX::Colors::CornflowerBlue);
+    dr->Clear(DirectX::Colors::Black);
 
     // Grab a reference to the d3d device context
     auto context = dr->GetContext();

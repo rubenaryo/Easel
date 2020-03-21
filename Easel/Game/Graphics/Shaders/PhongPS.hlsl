@@ -5,6 +5,8 @@ struct VertexOut
     float3 normal   : NORMAL;
     float2 uv       : TEXCOORD;
     float3 worldPos : POSITION;
+    float3 tangent  : TANGENT;
+    float3 binormal : BINORMAL;
 };
 
 struct DirectionalLight
@@ -43,23 +45,33 @@ Texture2D normalMap         : register(t1);
 SamplerState samplerOptions : register(s0);
 float4 main(VertexOut input) : SV_TARGET
 {
-    // Sample diffuse texture
+    // Sample diffuse texture, normal map(unpacked)
     float3 surfaceColor = diffuseTexture.Sample(samplerOptions, input.uv).rgb;
+    float3 sampledNormal = normalMap.Sample(samplerOptions, input.uv).rgb * 2 - 1;
 
     // Normalize normal vector
     input.normal = normalize(input.normal);
+    input.tangent = normalize(input.tangent - dot(input.tangent, input.normal) * input.normal);
+    input.binormal = normalize(input.binormal);
+
+    // create transformation matrix TBN
+    float3x3 TBN = float3x3(input.tangent, input.binormal, input.normal);
+    input.normal = mul(sampledNormal, TBN);
 
     // Holds the total light for this pixel
     float3 totalLight = 0;
     float3 toCamera = normalize(cameraWorldPos - input.worldPos);
 
     // Diffuse Color
-    totalLight += directionalLight.diffuseColor.rgb *
+    float3 diffuseLighting = directionalLight.diffuseColor.rgb *
         DiffuseAmount(input.normal, directionalLight.toLight);
 
     // Specular Color
-    totalLight += directionalLight.diffuseColor.rgb *
-        SpecularPhong(input.normal, -directionalLight.toLight, toCamera, specularity);
+    float3 specularLighting = directionalLight.diffuseColor.rgb *
+        SpecularPhong(input.normal, -directionalLight.toLight, toCamera, specularity) * any(diffuseLighting);
+
+    // Add to totallight
+    totalLight += diffuseLighting + specularLighting;
 
     // Finally, add the ambient color
     totalLight += ambientColor;

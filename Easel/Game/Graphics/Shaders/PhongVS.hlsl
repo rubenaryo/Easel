@@ -3,6 +3,8 @@ struct VertexIn
     float3 position : POSITION;
     float3 normal   : NORMAL;
     float2 uv       : TEXCOORD;
+    float3 tangent  : TANGENT;
+    float3 binormal : BINORMAL;
 };
 
 struct VertexOut
@@ -12,6 +14,8 @@ struct VertexOut
     float3 normal   : NORMAL;
     float2 uv       : TEXCOORD;
     float3 worldPos : POSITION;
+    float3 tangent  : TANGENT;
+    float3 binormal : BINORMAL;
 };
 
 // Basic camera matrix
@@ -45,6 +49,10 @@ VertexOut main( VertexIn vi)
 
     // Pass along world position
     vo.worldPos = mul((float3x3)world, vi.position);
+
+    // Transform tangent, binormal
+    vo.tangent = mul((float3x3)world, vi.tangent);
+    vo.binormal = mul((float3x3)world, vi.binormal);
 
     vo.color = float4(1, 1, 1, 1);
     
