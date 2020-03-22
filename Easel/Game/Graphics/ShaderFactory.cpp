@@ -15,7 +15,6 @@ void ShaderFactory::Init(ID3D11Device* device)
     //  automatically adding the necessary cbuffers, fields, etc
     // Me: Hardcode it! One day I might want to make a system to auto read in shader data, but lets stay focused for now
     
-
     // Vertex Shader
     std::wstring vs_uid = L"PhongVS.cso";
     AddShader(vs_uid, ShaderType::VERTEX, device);
@@ -25,6 +24,10 @@ void ShaderFactory::Init(ID3D11Device* device)
     // Pixel Shader
     std::wstring ps_uid = L"PhongPS.cso";
     AddShader(ps_uid, ShaderType::PIXEL, device);
+
+    // Normal Mapped Pixel Shader
+    std::wstring psNM_uid = L"PhongPS_NormalMap.cso";
+    AddShader(psNM_uid, ShaderType::PIXEL, device);
 }
 
 VertexShader* ShaderFactory::GetVertexShader(std::wstring UniqueID)

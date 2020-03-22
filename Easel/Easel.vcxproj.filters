@@ -163,8 +163,14 @@
     <FxCompile Include="Game\Graphics\Shaders\PhongPS.hlsl">
       <Filter>Game\Graphics\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Game\Graphics\Shaders\PhongPS_NormalMap.hlsl">
+      <Filter>Game\Graphics\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Game\Graphics\Shaders\PhongCommon.hlsli">
+      <Filter>Game\Graphics\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

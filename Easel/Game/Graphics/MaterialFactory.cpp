@@ -32,7 +32,7 @@ void MaterialFactory::BuildMaterials()
     // development pipeline if this were a AAA game, but for now I just use the ShaderFactory to load some 
     // shaders, then make some sample materials out of them
     VertexShader* phongVS = m_pShaderFactory->GetVertexShader(L"PhongVS.cso");
-    PixelShader* phongPS = m_pShaderFactory->GetPixelShader(L"PhongPS.cso");
+    PixelShader* phongPS = m_pShaderFactory->GetPixelShader(L"PhongPS_NormalMap.cso");
 
     // Material with high specular exponent
     cbMaterialParams highSpec;
@@ -92,7 +92,7 @@ void MaterialFactory::LoadTextures(ID3D11Device* device, ID3D11DeviceContext* co
                 m_Textures[TexName].push_back(new Texture(pSRV, type));
                 break;
             default:
-                OutputDebugStringW(L"INFO: Attempted to load a texture with an unrecognized type");
+                OutputDebugStringW(L"INFO: Attempted to load a texture with an unrecognized type\n");
                 pSRV->Release(); // The SRV is still created, so it must be released
                 break;
         }

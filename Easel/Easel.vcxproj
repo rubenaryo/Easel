@@ -66,6 +66,10 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
+    <FxCompile Include="Game\Graphics\Shaders\PhongPS_NormalMap.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
     <FxCompile Include="Game\Graphics\Shaders\PhongVS.hlsl">
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)_Binary\%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)_Binary\%(Filename).cso</ObjectFileOutput>
@@ -74,6 +78,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Game\Graphics\Shaders\PhongCommon.hlsli" />
     <None Include="packages.config" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -158,6 +163,7 @@ copy "$(SolutionDir)packages\Assimp.redist.3.0.0\build\native\bin\x64\Assimp64.d
     </Manifest>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
+      <ObjectFileOutput>$(SolutionDir)_Binary\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -172,7 +178,7 @@ copy "$(SolutionDir)packages\Assimp.redist.3.0.0\build\native\bin\x64\Assimp64.d
       </AdditionalIncludeDirectories>
       <DisableSpecificWarnings>26451;26812;26495;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <PreprocessorDefinitions>_UNICODE;UNICODE;NOMINMAX;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CompileAs>Default</CompileAs>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -198,6 +204,9 @@ copy "$(SolutionDir)packages\Assimp.redist.3.0.0\build\native\bin\x64\Assimp64.d
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
     </Manifest>
+    <FxCompile>
+      <ObjectFileOutput>$(SolutionDir)_Binary\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
