@@ -5,6 +5,7 @@ Description : Implementation of ShaderFactory.h
 ----------------------------------------------*/
 #include "ShaderFactory.h"
 #include <stdexcept>
+#include <filesystem>
 #include "../../System/PathMacros.h"
 
 namespace Graphics {
@@ -14,20 +15,42 @@ void ShaderFactory::Init(ID3D11Device* device)
     // AAA Scenario: Would parse the contents of these shaders using reflections/some other system, 
     //  automatically adding the necessary cbuffers, fields, etc
     // Me: Hardcode it! One day I might want to make a system to auto read in shader data, but lets stay focused for now
+
+    // Load in every shader binary automatically
+    namespace fs = std::filesystem;
+    std::string shaderPath = SHADERPATH;
+    if(!fs::exists(shaderPath))
+        throw std::exception("Shaders folder doesn't exist!");
     
-    // Vertex Shader
-    std::wstring vs_uid = L"PhongVS.cso";
-    AddShader(vs_uid, ShaderType::VERTEX, device);
-    VSConstantBuffer* worldBuf = new VSConstantBuffer(device, sizeof(cbPerEntity), 0u);
-    m_pVertexShaders[vs_uid]->AddConstantBuffer(worldBuf);
-
-    // Pixel Shader
-    std::wstring ps_uid = L"PhongPS.cso";
-    AddShader(ps_uid, ShaderType::PIXEL, device);
-
-    // Normal Mapped Pixel Shader
-    std::wstring psNM_uid = L"PhongPS_NormalMap.cso";
-    AddShader(psNM_uid, ShaderType::PIXEL, device);
+    // Iterate through shader folder
+    for (const auto& entry : fs::directory_iterator(shaderPath))
+    {
+        std::wstring name = entry.path().filename().c_str();
+        
+        // Check for valid shader type first
+        if (name.find(L".cso") != std::wstring::npos)
+        {
+            if(name.find(L"VS") != std::wstring::npos) // Vertex Shader file
+            {
+                AddShader(name, ShaderType::VERTEX, device);
+                VSConstantBuffer* worldBuf = new VSConstantBuffer(device, sizeof(cbPerEntity), 0u);
+                m_pVertexShaders[name]->AddConstantBuffer(worldBuf);
+            }
+            else if (name.find(L"PS") != std::wstring::npos) // Pixel Shader file
+            {
+                AddShader(name, ShaderType::PIXEL, device);
+            }
+            else // Neither, throw warning
+            {
+                OutputDebugStringW(L"INFO: Attempted to load non-supported .cso file, doing nothing.\n");
+            }
+        }
+        else // Not a .cso file, throw warning
+        {
+            std::wstring errorMsg = L"WARNING: Invalid File Format found in " + entry.path().generic_wstring() + L"\n";
+            OutputDebugStringW(errorMsg.c_str());
+        }
+    }
 }
 
 VertexShader* ShaderFactory::GetVertexShader(std::wstring UniqueID)

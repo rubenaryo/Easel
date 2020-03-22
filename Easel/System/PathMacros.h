@@ -21,7 +21,7 @@ helper macros for reaching certain paths
 #define MODELPATH ASSETPATH ## "Models\\"
 #define MODELPATHW WIDEN(MODELPATH)
 #define TEXTUREPATH ASSETPATH ## "Textures\\"
-#define SHADERPATH "..\\_Binary\\"
+#define SHADERPATH "..\\_Binary\\Shaders\\"
 #define SHADERPATHW WIDEN(SHADERPATH)
 
 namespace System
