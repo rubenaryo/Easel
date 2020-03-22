@@ -1,11 +1,8 @@
 # Easel
 This is a framework I've created to aid with the initial setup of a graphics application
 
-## Screenshots
-![Normal Mapping Demo](https://github.com/rubenaryo/Easel/blob/master/images/screen1.PNG?raw=true)
-
 ## Details
-This project relies on C++17
+This project relies on C++17, and is dynamically linking to the CRT.
 
 ## Dependencies
 Part of the point of making this project was to attempt to create a basic rendering system while using as few libraries as possible. While I'm still committed to this goal, certain features I would like to implement are too impractical to try to learn and create myself while still focusing my own growth in graphics programming specifically, such as Audio or Online Play. The following is a list of the external libraries I'll be making use of and why.
@@ -14,6 +11,9 @@ Part of the point of making this project was to attempt to create a basic render
   * Audio (future)
 * [Assimp 3.0.0](http://www.assimp.org/) (NuGet)
   * Loading 3D Models
+  
+## Screenshots
+![Normal Mapping Demo](https://github.com/rubenaryo/Easel/blob/master/images/screen1.PNG?raw=true)
 
 ## Visual Studio Configuration
 The development environment used is Visual Studio 2019, configured such that
