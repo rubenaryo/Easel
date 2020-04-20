@@ -103,7 +103,27 @@ void Game::Render()
     dr->Present();
 }
 
+void Game::CreateDeviceDependentResources()
+{
+}
 
+void Game::CreateWindowSizeDependentResources(int newWidth, int newHeight)
+{
+    float aspectRatio = (float)newWidth / (float)newHeight;
+    m_pCamera->UpdateProjection(aspectRatio);
+}
+
+Game::~Game()
+{
+    // Delete all unique ptrs
+    m_pLightingManager.reset();
+    m_pCamera.reset();
+    m_pInput.reset();
+    m_pRenderer.reset();
+    m_pDeviceResources.reset();
+}
+
+#pragma region Game State Callbacks
 void Game::OnDeviceLost()
 {
 }
@@ -156,27 +176,6 @@ void Game::OnMouseMove(short newX, short newY)
 {
     m_pInput->OnMouseMove(newX, newY);
 }
-
-
-void Game::CreateDeviceDependentResources()
-{
-}
-
-void Game::CreateWindowSizeDependentResources(int newWidth, int newHeight)
-{
-    float aspectRatio = (float)newWidth / (float)newHeight;
-    m_pCamera->UpdateProjection(aspectRatio);
-}
-
-Game::~Game()
-{
-    // Delete all unique ptrs
-    m_pLightingManager.reset();
-    m_pCamera.reset();
-    m_pInput.reset();
-    m_pRenderer.reset();
-    m_pDeviceResources.reset();
-}
-
+#pragma endregion
 }
 
