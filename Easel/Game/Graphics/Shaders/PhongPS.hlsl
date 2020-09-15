@@ -11,14 +11,14 @@ struct VertexOut
     float3 binormal : BINORMAL;
 };
 
-cbuffer LightBuffer : register(b12)
+cbuffer PSPerFrame : register(b10)
 {
     float3 ambientColor;
     DirectionalLight directionalLight;
     float3 cameraWorldPos;
 }
 
-cbuffer MaterialParams : register(b13)
+cbuffer PSPerMaterial : register(b11)
 {
     float4 colorTint;
     float  specularity;

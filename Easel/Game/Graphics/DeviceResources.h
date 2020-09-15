@@ -13,7 +13,9 @@ DeviceResources - Member of Game, encapsulates the creation and setup of device 
 #include <wrl/client.h>
 
 namespace Graphics {
-using Microsoft::WRL::ComPtr;
+
+using Microsoft::WRL::ComPtr; // TODO: Namespace pollution?
+
 // Interface for any device that uses device resources.
 // This is because it needs to be able to handle loss of device so it can recreate the necessary device resources
 interface IDeviceNotify
@@ -28,7 +30,7 @@ protected:
 class DeviceResources
 {
 public:
-    // Default Values for Initializer List
+
     DeviceResources(
         DXGI_FORMAT       backBufferFormat  = DXGI_FORMAT_B8G8R8A8_UNORM,
         DXGI_FORMAT       depthBufferFormat = DXGI_FORMAT_D32_FLOAT,
@@ -79,7 +81,7 @@ private:
     void UpdateColorSpace();
 
     // Direct3D Objects
-    // I use ComPtr here to utilize the underlying refcount functionality
+    // ComPtr for simplicity
     ComPtr<IDXGIFactory2>               m_pDXGIFactory;
     ComPtr<ID3D11Device>                m_pDevice;
     ComPtr<ID3D11DeviceContext>         m_pContext;

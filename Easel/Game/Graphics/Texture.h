@@ -18,27 +18,39 @@ public:
     // The value of its 'Type' is also the slot to which the resource will be bound
     enum class Type
     {
-        DIFFUSE   = 0u,
-        NORMAL    = 1u,
-        SPECULAR  = 2u,
-        ROUGHNESS = 3u
+        DIFFUSE   = 0U,
+        NORMAL    = 1U,
+        SPECULAR  = 2U,
+        ROUGHNESS = 3U,
+        CUBE      = 4U
     };
 
     Texture(ID3D11ShaderResourceView* srv, Type type) :
-        m_pSRV(srv), m_Type(type)
+        mpSRV(srv), mType(type)
     {}
 
-    ~Texture() { m_pSRV->Release(); }
+    ~Texture() { mpSRV->Release(); }
 
-    // Binds SRV to 'm_Type' slot
-    void Bind(ID3D11DeviceContext* context) noexcept override
+    // Binds SRV to 'mType' slot
+    void Bind(ID3D11DeviceContext* context) const override
     {
-        context->PSSetShaderResources(static_cast<UINT>(m_Type), 1u, &m_pSRV);
+        context->PSSetShaderResources(static_cast<UINT>(mType), 1u, &mpSRV);
+    }
+
+    const Type& GetType() const noexcept
+    {
+        return mType;
+    }
+
+    ID3D11ShaderResourceView* GetSRV() const noexcept
+    {
+        return mpSRV;
     }
 
 private:
-    ID3D11ShaderResourceView* m_pSRV;
-    Type m_Type;
+    ID3D11ShaderResourceView* mpSRV;
+    UINT mSlot;
+    Type mType;
 
 public: // Disable other constructors
     Texture() = delete;

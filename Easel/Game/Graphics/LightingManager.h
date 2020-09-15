@@ -7,9 +7,7 @@ Description : Interface for management of lights in the scene
 #define LIGHTINGMANAGER_H
 
 #include "DXCore.h"
-#include "LightStructs.h"
 #include "CBufferStructs.h"
-#include "ConstantBuffer.h"
 
 #include <wrl/client.h>
 
@@ -17,20 +15,22 @@ namespace Graphics {
 
 class LightingManager
 {
-const unsigned int c_PSLighingSlot = 12u;
-
 public:
     LightingManager(ID3D11Device* a_pDevice, DirectX::XMFLOAT3 a_CameraPos);
-    LightingManager() = delete;
-    ~LightingManager();
+    LightingManager()  = delete;
+    ~LightingManager() = default;
 
     void Update(ID3D11DeviceContext* a_pContext, float dt, DirectX::XMFLOAT3 a_CameraPos);
     
     // Public Setter for the scene to be able to change the ambient color in the light buffer
     inline void SetAmbient(DirectX::XMFLOAT3A ambientColor)
     {
-        m_LightData.ambientColor = ambientColor;
-        m_NeedsRebind = true;
+        mLightData.ambientColor = ambientColor;
+    }
+
+    inline cbLighting const& GetLightData() const
+    {
+        return mLightData;
     }
 
 private:
@@ -40,29 +40,9 @@ private:
     // Updates the data in each directional light
     void UpdateLights(float dt, DirectX::XMFLOAT3 a_CameraPos);
 
-    // Defines the constant buffer which holds light information
-    void CreateLightBuffer(ID3D11Device* a_pDevice);
-
-    // Binds the light buffer to the pipeline
-    void BindLightBuffer(ID3D11DeviceContext* a_pContext);
-
-    // Helper Getters/Setters
-    inline bool NeedsRebind() const
-    { 
-        return m_NeedsRebind;
-    }
-
 private:
-    // Structure
-    cbLighting m_LightData;
-
-    // Constant Buffer
-    PSConstantBuffer* m_pLightingBuffer;
-
-    // Indicates whether we need to rebind
-    bool m_NeedsRebind;
-
-    
+    // Constant buffer struct
+    cbLighting mLightData;
 };
 
 }

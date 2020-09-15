@@ -26,15 +26,13 @@ void ShaderFactory::Init(ID3D11Device* device)
     for (const auto& entry : fs::directory_iterator(shaderPath))
     {
         std::wstring name = entry.path().filename().c_str();
-        
+
         // Check for valid shader type first
         if (name.find(L".cso") != std::wstring::npos)
         {
             if(name.find(L"VS") != std::wstring::npos) // Vertex Shader file
             {
                 AddShader(name, ShaderType::VERTEX, device);
-                VSConstantBuffer* worldBuf = new VSConstantBuffer(device, sizeof(cbPerEntity), 0u);
-                m_pVertexShaders[name]->AddConstantBuffer(worldBuf);
             }
             else if (name.find(L"PS") != std::wstring::npos) // Pixel Shader file
             {
@@ -56,19 +54,19 @@ void ShaderFactory::Init(ID3D11Device* device)
 VertexShader* ShaderFactory::GetVertexShader(std::wstring UniqueID)
 {
     // Check if not found, else grab from collection
-    if(m_pVertexShaders.find(UniqueID) == m_pVertexShaders.end()) // Not found in collection
+    if(mpVertexShaders.find(UniqueID) == mpVertexShaders.end()) // Not found in collection
         return nullptr;
     else
-        return m_pVertexShaders[UniqueID];
+        return mpVertexShaders[UniqueID];
 }
 
 PixelShader* ShaderFactory::GetPixelShader(std::wstring UniqueID)
 {
     // Check if not found, else grab from collection
-    if(m_pPixelShaders.find(UniqueID) == m_pPixelShaders.end()) // Not found in collection
+    if(mpPixelShaders.find(UniqueID) == mpPixelShaders.end()) // Not found in collection
         return nullptr;
     else
-        return m_pPixelShaders[UniqueID];
+        return mpPixelShaders[UniqueID];
 }
 
 inline void ShaderFactory::AddShader(std::wstring a_pFileName, ShaderType st, ID3D11Device* pDevice)
@@ -87,10 +85,10 @@ inline void ShaderFactory::AddShader(std::wstring a_pFileName, ShaderType st, ID
 
 inline void ShaderFactory::AddVertexShader(std::wstring UniqueID, ID3D11Device* device)
 {
-    if (m_pVertexShaders.find(UniqueID) == m_pVertexShaders.end()) // Safe to add
+    if (mpVertexShaders.find(UniqueID) == mpVertexShaders.end()) // Safe to add
     {
         // Create a vertex shader on the heap.
-        m_pVertexShaders[UniqueID] = new VertexShader(System::GetShaderPathFromFile_W(UniqueID).c_str(), device);
+        mpVertexShaders[UniqueID] = new VertexShader(System::GetShaderPathFromFile_W(UniqueID).c_str(), device);
     }      
     else // Unique ID already exists
         throw std::exception("Tried to add Vertex Shader, but Unique ID already exists!");
@@ -98,10 +96,10 @@ inline void ShaderFactory::AddVertexShader(std::wstring UniqueID, ID3D11Device* 
 
 inline void ShaderFactory::AddPixelShader(std::wstring UniqueID, ID3D11Device* device)
 {
-    if (m_pPixelShaders.find(UniqueID) == m_pPixelShaders.end()) // Safe to add
+    if (mpPixelShaders.find(UniqueID) == mpPixelShaders.end()) // Safe to add
     {
         // Create pixel shader on the heap. 
-        m_pPixelShaders[UniqueID] = new PixelShader(System::GetShaderPathFromFile_W(UniqueID).c_str(), device);
+        mpPixelShaders[UniqueID] = new PixelShader(System::GetShaderPathFromFile_W(UniqueID).c_str(), device);
     }
     else // Unique ID already exists
         throw std::exception("Tried to add Pixel Shader, but Unique ID already exists!");
@@ -111,14 +109,14 @@ inline void ShaderFactory::AddPixelShader(std::wstring UniqueID, ID3D11Device* d
 ShaderFactory::~ShaderFactory()
 {
     // Delete every vertex shader
-    for (std::pair<std::wstring, VertexShader*> e : m_pVertexShaders)
+    for (std::pair<std::wstring, VertexShader*> e : mpVertexShaders)
     {
         delete e.second;
         e.second = nullptr;
     }
 
     // Delete every pixel shader
-    for (std::pair<std::wstring, PixelShader*> e : m_pPixelShaders)
+    for (std::pair<std::wstring, PixelShader*> e : mpPixelShaders)
     {
         delete e.second;
         e.second = nullptr;

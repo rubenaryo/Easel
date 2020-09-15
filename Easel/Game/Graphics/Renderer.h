@@ -6,25 +6,32 @@ Description : Manager-level class for intelligently binding and drawing objects
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#include "CBufferStructs.h"
 #include "DXCore.h"
-#include "DeviceResources.h"
-#include "Material.h"
-#include "../Mesh.h"
-#include "../Entity.h"
-#include "ShaderFactory.h"
-#include "MaterialFactory.h"
-#include "ConstantBuffer.h"
-#include "Camera.h"
-#include <unordered_map>
-#include <vector>
 #include <memory>
+#include <string>
+#include <unordered_map>
+
+#include <wrl/client.h>
+
+namespace Graphics
+{
+    class DeviceResources;
+    class Camera;
+    class Material;
+    class MaterialFactory;
+}
+
+namespace Game
+{
+    class Entity;
+    class Mesh;
+}
 
 namespace Graphics {
 
 class Renderer final
 {
-const unsigned int c_ReservedBufferSlot = 13u;
-
 public:
     Renderer();
     ~Renderer();
@@ -33,7 +40,7 @@ public:
 
     // For now, the renderer will handle updating the entities, 
     // In the future, perhaps a Physics Manager or AI Manager would be a good solution?
-    void Update(ID3D11DeviceContext* context, float dt, Camera* camera);
+    void Update(ID3D11DeviceContext* context, float dt, const Camera* camera, const cbLighting* lightData);
 
     // Binds the fields necessary in the material, then draws every entity in m_EntityMap
     void Draw(ID3D11DeviceContext* context);
@@ -47,11 +54,11 @@ private:
 
 private:
     // Maps a material to a list of entities that utilize it
-    std::unordered_map<Material*, std::vector<Game::Entity*>> m_EntityMap;
+    std::unordered_map<Material*, std::vector<Game::Entity*>> mEntityMap;
 
     // Dictionary of all loaded meshes (Eventually this may be handled by a mesh manager, who takes them in/out of memory
     // Key is a hardcoded :( identifying id
-    std::unordered_map<std::string, Game::Mesh*> m_Meshes;
+    std::unordered_map<std::string, Game::Mesh*> mMeshes;
 
     // Sample all textures the same way,
     // TODO: DON'T Sample all textures the same way
@@ -60,18 +67,16 @@ private:
     // This begs the question: Perhaps drawing should be organized in separate piles, a table for
     // textured objects, and another for non-textured. Do real games even use non-textured objects?
     // This requires more thought.
-    Microsoft::WRL::ComPtr<ID3D11SamplerState> m_pSamplerState;
+    Microsoft::WRL::ComPtr<ID3D11SamplerState> mpSamplerState;
 
     // Owning pointer to a material factory instance, which creates and distributes materials and textures
-    std::unique_ptr<MaterialFactory> m_pMaterialFactory;
+    std::unique_ptr<MaterialFactory> mpMaterialFactory;
 
-    // Two reserved buffers are bound to slot index 13:
-    // - CameraBuffer holds the view/projection matrix
-    // - MaterialBuffer holds the states of the material parameters, such as specularity, color tint. 
-    VSConstantBuffer* m_pCameraBuffer;
-    PSConstantBuffer* m_pMaterialBuffer;
+    // Cached constant buffer structs for camera and lighting
+    cbCamera    mCameraBuffer;
+    cbLighting  mLightingBuffer;
 
-public: // Enforce the use of the default constructor
+public: // Enforce use of the default constructor
     Renderer(Renderer const&)               = delete;
     Renderer& operator=(Renderer const&)    = delete;
 };

@@ -10,48 +10,55 @@ namespace Graphics {
 Material::Material(VertexShader* a_pVS, PixelShader* a_pPS, cbMaterialParams* a_pParams)
 {
     // Set material parameters
-    m_Params = *a_pParams;
+    mParams = *a_pParams;
 
     // Set Shader fields
-    m_pVertexShader = a_pVS;
-    m_pPixelShader  = a_pPS;
+    mpVertexShader = a_pVS;
+    mpPixelShader  = a_pPS;
 
     // Not textured
-    m_Resources = nullptr;
+    mResources = nullptr;
 }
 
-Material::Material(VertexShader* a_pVS, PixelShader* a_pPS, cbMaterialParams* a_pParams, Texture*const* a_Resources, size_t numResources)
+Material::Material(VertexShader* a_pVS, PixelShader* a_pPS, cbMaterialParams* a_pParams, Texture*const* a_Resources, uint32_t numResources)
 {
     // Set material parameters
-    m_Params = *a_pParams;
+    mParams = *a_pParams;
 
     // Set Shader fields
-    m_pVertexShader = a_pVS;
-    m_pPixelShader  = a_pPS;
+    mpVertexShader = a_pVS;
+    mpPixelShader  = a_pPS;
 
     // Copy over resource pointers
-    m_Resources     = new Texture*[numResources];
-    memcpy(m_Resources, a_Resources, sizeof(Texture*) * numResources);
-    m_ResourceCount = numResources;
+    mResources     = new Texture*[numResources];
+    memcpy(mResources, a_Resources, sizeof(Texture*) * numResources);
+    mResourceCount = numResources;
 }
 
-inline void Material::Bind(ID3D11DeviceContext* context) noexcept
+inline void Material::Bind(ID3D11DeviceContext* context) const
 {
-    // Bind this materials VS,PS to the pipeline
-    m_pVertexShader->Bind(context);
-    m_pPixelShader->Bind(context);
+    // Set material parameters
+    mpPixelShader->SetBufferData(
+        context, 
+        (UINT)ReservedRegisters::RR_PS_MATERIAL, 
+        sizeof(mParams),
+        reinterpret_cast<const void*>(&mParams));
 
     // Bind all the associated textures
-    for (int i = 0; i < m_ResourceCount; ++i)
+    for (uint32_t t = 0; t < mResourceCount; ++t)
     {
-        m_Resources[i]->Bind(context);
+        mpPixelShader->SetTexture(context, mResources[t]);
     }
+
+    // Bind this material's VS,PS to the pipeline
+    mpVertexShader->Bind(context);
+    mpPixelShader->Bind(context);
 }
 
 Material::~Material()
 {
     // Delete the array of pointers, but not the textures themselves
-    delete[] m_Resources;
+    delete[] mResources;
 }
 }
 

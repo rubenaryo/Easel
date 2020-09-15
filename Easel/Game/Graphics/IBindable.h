@@ -16,10 +16,7 @@ class IBindable
 public:
     // Bind is the main function of IBindable.
     // Bind takes a context* and uses it to bind this resource to the pipeline.
-    // This is handled by the "Renderer" class
-    virtual inline void Bind(ID3D11DeviceContext* context) = 0;
-    
-    virtual ~IBindable()                    = default;
+    virtual void Bind(ID3D11DeviceContext* context) const = 0;
 
 protected:
     IBindable()                             = default;

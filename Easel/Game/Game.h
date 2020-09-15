@@ -50,22 +50,22 @@ private:
     void CreateWindowSizeDependentResources(int newWidth, int newHeight);
 
     // Application's Device Resources, such as the necessary buffers/views in video memory
-    std::unique_ptr<Graphics::DeviceResources> m_pDeviceResources;
+    std::unique_ptr<Graphics::DeviceResources> mpDeviceResources;
 
     // Renderer for handling smart binding of objects
-    std::unique_ptr<Graphics::Renderer> m_pRenderer;
+    std::unique_ptr<Graphics::Renderer> mpRenderer;
 
     // Lights Manager
-    std::unique_ptr<Graphics::LightingManager> m_pLightingManager;
+    std::unique_ptr<Graphics::LightingManager> mpLightingManager;
 
     // Input Management
-    std::unique_ptr<Input::GameInput> m_pInput;
+    std::unique_ptr<Input::GameInput> mpInput;
 
     // Main Camera
-    std::unique_ptr<Graphics::Camera> m_pCamera;
+    std::unique_ptr<Graphics::Camera> mpCamera;
     
     // Timer for the main game loop
-    StepTimer m_Timer;
+    StepTimer mTimer;
 };
 }
 #endif

@@ -4,43 +4,49 @@ Date : 2020/3
 Description : Implementation of Shader wrapper
 ----------------------------------------------*/
 #include "Shader.h"
-#include <vector>
-#include "COMException.h"
+#include "Texture.h"
 #include "../../System/PathMacros.h"
 
+#include <vector>
 #pragma warning(disable: 6385)
 
 namespace Graphics {
 
 #pragma region Vertex Shader
-VertexShader::VertexShader(const wchar_t* path, ID3D11Device* device):
-    m_Path(path)
+VertexShader::VertexShader(const wchar_t* path, ID3D11Device* device) :
+    Shader(path, device)
+{}
+
+VertexShader::~VertexShader()
 {
-    // Zero the memory to be used for constant buffers. 
-    SecureZeroMemory((void*)m_pCBuffers, sizeof(VSConstantBuffer*)*14u);
+    mpInputLayout->Release();
+    mpVertexShader->Release();
+}
 
-    // Create space for the shader
-    Microsoft::WRL::ComPtr<ID3D10Blob> pBlob;
-    HRESULT hr = D3DReadFileToBlob(path, pBlob.GetAddressOf());
-    if (FAILED(hr)) throw COM_EXCEPT(hr);
-
-    // Use the device to create the shader
+// Use the device to create the ID3D11VertexShader
+void VertexShader::CreateDXShader(ID3D10Blob* pBlob, ID3D11Device* device)
+{
     device->CreateVertexShader(pBlob->GetBufferPointer(), 
         pBlob->GetBufferSize(), 
         nullptr, 
-        m_pVertexShader.GetAddressOf());
+        &mpVertexShader);
+}
 
-    // Use the compiled blob to programmatically build an input layout using shader reflection
-    ID3D11ShaderReflection* pReflection = nullptr;
-    hr = D3DReflect(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), IID_ID3D11ShaderReflection, (void**) &pReflection);
-    if (FAILED(hr)) throw COM_EXCEPT(hr);
+void VertexShader::BuildReflectionFields(ID3D11ShaderReflection* pReflection, ID3D10Blob* pBlob, ID3D11Device* device)
+{
+    BuildInputLayout(pReflection, pBlob, device);
+}
 
+// Read the reflection to create an input layout dynamically
+void VertexShader::BuildInputLayout(ID3D11ShaderReflection* pReflection, ID3D10Blob* pBlob, ID3D11Device* device)
+{
     // Get a shader description
     D3D11_SHADER_DESC shaderDesc;
     pReflection->GetDesc(&shaderDesc);
 
     // Read each input parameter into a std::vector
     std::vector<D3D11_INPUT_ELEMENT_DESC> inputElements;
+
     for (unsigned int i = 0; i < shaderDesc.InputParameters; ++i)
     {
         // Grab a description of the parameter at this index
@@ -84,126 +90,69 @@ VertexShader::VertexShader(const wchar_t* path, ID3D11Device* device):
     }
 
     // Finally, try to create the input layout, storing it as a member if successful
-    hr = device->CreateInputLayout(&inputElements[0], inputElements.size(), pBlob->GetBufferPointer(), pBlob->GetBufferSize(), m_pInputLayout.GetAddressOf());
+    HRESULT hr = device->CreateInputLayout(&inputElements[0], inputElements.size(), pBlob->GetBufferPointer(), pBlob->GetBufferSize(), &mpInputLayout);
     if (FAILED(hr)) throw COM_EXCEPT(hr);
 }
 
-VertexShader::~VertexShader()
+// Bind all the underlying constant buffers
+void VertexShader::BindConstantBuffers(ID3D11DeviceContext* context) const
 {
-    for (auto cbuffer : m_pCBuffers)
-    {
-        if(cbuffer)
-            delete cbuffer;
-    }
+    context->VSSetConstantBuffers(0, 13, mConstantBuffers);
 }
 
-void VertexShader::Bind(ID3D11DeviceContext* context) noexcept
+void VertexShader::BindShader(ID3D11DeviceContext* context) const
 {
-    // Make sure the right input layout is being used:
-    context->IASetInputLayout(m_pInputLayout.Get());
-
-    // We can assume unused cbuffer slots are null due to the call to ZeroMemory in the constructor.
-    for (unsigned int i = 0; i < 14u; i++)
-    {
-        if(m_pCBuffers[i])
-            m_pCBuffers[i]->Bind(context);
-    }
-
-    context->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
+    // Set Input Layout, then bind the shader
+    context->IASetInputLayout(mpInputLayout);
+    context->VSSetShader(mpVertexShader, nullptr, 0);
 }
 
-void VertexShader::AddConstantBuffer(VSConstantBuffer* pCBuffer)
-{
-    UINT slot = pCBuffer->GetSlot();
-
-    // if overriding a constant buffer, must make sure to free that memory
-    if (m_pCBuffers[slot] != nullptr)
-        delete m_pCBuffers[slot];
-
-    // else, just add the passed cbuffer to that slot
-    m_pCBuffers[slot] = pCBuffer;
-}
-
-bool VertexShader::SetBufferData(ID3D11DeviceContext* context, UINT slot, UINT size, void* pData)
-{
-    if (slot > 14u)
-        return false;
-
-    m_pCBuffers[slot]->SetData(context, size, pData);
-    return true;
-}
-
-ID3D11VertexShader* VertexShader::GetShader()
-{
-    return m_pVertexShader.Get();
-}
 #pragma endregion
 
 #pragma region Pixel Shader
-PixelShader::PixelShader(const wchar_t* path, ID3D11Device* device):
-    m_Path(path)
-{
-    // Zero the memory to be used for constant buffers. 
-    SecureZeroMemory((void*)m_pCBuffers, sizeof(PSConstantBuffer*)*14u);
-
-    // Create space for the shader
-    Microsoft::WRL::ComPtr<ID3D10Blob> pBlob;
-    HRESULT hr = D3DReadFileToBlob(path, pBlob.GetAddressOf());
-    if(FAILED(hr)) throw COM_EXCEPT(hr);
-
-    // Use the device to create the shader
-    device->CreatePixelShader(pBlob->GetBufferPointer(), 
-        pBlob->GetBufferSize(), 
-        nullptr, 
-        m_pPixelShader.GetAddressOf());
-}
+PixelShader::PixelShader(const wchar_t* path, ID3D11Device* device) :
+    Shader(path, device)
+{}
 
 PixelShader::~PixelShader()
 {
-    for (auto cbuffer : m_pCBuffers)
-    {
-        if(cbuffer)
-            delete cbuffer;
-    }
+    mpPixelShader->Release();
 }
 
-void PixelShader::Bind(ID3D11DeviceContext* context) noexcept
+void PixelShader::CreateDXShader(ID3D10Blob* pBlob, ID3D11Device* device)
 {
-    // Temporary, in the future should hold numCBuffers to avoid having to check all of them.
-    for (unsigned int i = 0; i < 14u; i++)
-    {
-        if(m_pCBuffers[i])
-            m_pCBuffers[i]->Bind(context);
-    }
-
-    context->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
+    device->CreatePixelShader(pBlob->GetBufferPointer(), 
+        pBlob->GetBufferSize(), 
+        nullptr, 
+        &mpPixelShader);
 }
 
-void PixelShader::AddConstantBuffer(PSConstantBuffer* pCBuffer)
+void PixelShader::BuildReflectionFields(ID3D11ShaderReflection* pReflection, ID3D10Blob* pBlob, ID3D11Device* device)
 {
-    UINT slot = pCBuffer->GetSlot();
-
-    // if overriding a constant buffer, must make sure to free that memory
-    if (m_pCBuffers[slot] != nullptr)
-        delete m_pCBuffers[slot];
-
-    // else, just add the passed cbuffer to that slot
-    m_pCBuffers[slot] = pCBuffer;
+    // In the future, building samplers and SRVs may be needed
 }
 
-bool PixelShader::SetBufferData(ID3D11DeviceContext* context, UINT slot, UINT size, void* pData)
-{
-    if (slot > 14u)
-        return false;
 
-    m_pCBuffers[slot]->SetData(context, size, pData);
-    return true;
+// PS Specific bind function
+void PixelShader::BindConstantBuffers(ID3D11DeviceContext* context) const
+{
+    context->PSSetConstantBuffers(0, 13, mConstantBuffers);
 }
 
-ID3D11PixelShader* PixelShader::GetShader()
+void PixelShader::BindShader(ID3D11DeviceContext* context) const
 {
-    return m_pPixelShader.Get();
+    context->PSSetShader(mpPixelShader, nullptr, 0);
+}
+
+void PixelShader::SetTexture(ID3D11DeviceContext* context, Texture* texture)
+{
+    UINT slot = static_cast<UINT>(texture->GetType());
+    ID3D11ShaderResourceView* pSRV = texture->GetSRV();
+    context->PSSetShaderResources(slot, 1, &pSRV );
 }
 
 #pragma endregion
+
+
+
 }

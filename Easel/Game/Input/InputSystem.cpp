@@ -10,24 +10,24 @@ namespace Input {
     // Init all keyboard states to 0
     InputSystem::InputSystem()
     {
-        m_KeyboardCurrent.fill(0);
-        m_KeyboardPrevious.fill(0);
-        m_MousePrevious.x = 0;
-        m_MousePrevious.y = 0;
-        m_MouseCurrent.x = 0;
-        m_MouseCurrent.y = 0;
+        mKeyboardCurrent.fill(0);
+        mKeyboardPrevious.fill(0);
+        mMousePrevious.x = 0;
+        mMousePrevious.y = 0;
+        mMouseCurrent.x = 0;
+        mMouseCurrent.y = 0;
     }
 
     // Release all dynamic memory
     InputSystem::~InputSystem()
     {
         // Release keyMap and clear
-        for (auto pair : m_keyMap)
+        for (auto pair : mKeyMap)
             delete pair.second;
-        m_keyMap.clear();
+        mKeyMap.clear();
 
         // No need to delete dynamic memory from activeKeyMap, it's already deleted in keymap*
-        m_activeKeyMap.clear();
+        mActiveKeyMap.clear();
     }
 
     // Stores previous/current keymappings (from windows)
@@ -42,20 +42,20 @@ namespace Input {
         update();
 
         // Update mouse state
-        m_MousePrevious = m_MouseCurrent;
+        mMousePrevious = mMouseCurrent;
     }
 
     void InputSystem::OnMouseMove(short newX, short newY)
     {
-        m_MouseCurrent = { newX, newY };
+        mMouseCurrent = { newX, newY };
     }
 
     std::pair<float,float> InputSystem::GetMouseDelta() const
     {
         std::pair<float, float> pt;
         
-        pt.first  = static_cast<float>(m_MouseCurrent.x - m_MousePrevious.x);
-        pt.second = static_cast<float>(m_MouseCurrent.y - m_MousePrevious.y);
+        pt.first  = static_cast<float>(mMouseCurrent.x - mMousePrevious.x);
+        pt.second = static_cast<float>(mMouseCurrent.y - mMousePrevious.y);
         return pt;
     }
 
@@ -63,17 +63,17 @@ namespace Input {
     void InputSystem::update()
     {
         // Reset active key map
-        m_activeKeyMap.clear();
+        mActiveKeyMap.clear();
 
         // Map which keys are active into the active key map
-        for (auto key : m_keyMap)
+        for (auto key : mKeyMap)
         {
             bool activeKey = true;
 
             // Test Chord
             for (Binding binding : key.second->GetChord())
             {
-                if (GetKeyboardKeyState(binding.m_KeyCode) != binding.m_KeyState)
+                if (GetKeyboardKeyState(binding.mKeyCode) != binding.mKeyState)
                 {
                     activeKey = false;
                     break;
@@ -82,7 +82,7 @@ namespace Input {
 
             // Passed Chord Check : move key to active key map
             if (activeKey)
-                m_activeKeyMap.insert(std::pair<GameCommands, Chord*>(key.first, key.second));
+                mActiveKeyMap.insert(std::pair<GameCommands, Chord*>(key.first, key.second));
         }
     }
 
@@ -90,22 +90,22 @@ namespace Input {
     // then reads in new 'current values from windows
     void InputSystem::GetKeyboardState()
     {
-        m_KeyboardPrevious = m_KeyboardCurrent;
+        mKeyboardPrevious = mKeyboardCurrent;
 
         for (int i = 0; i < 256; i++)
-            m_KeyboardCurrent[i] = isPressed(i);
+            mKeyboardCurrent[i] = isPressed(i);
     }
 
     // Use logic to deduce Keystate from current and previous keyboard states
     const KeyState InputSystem::GetKeyboardKeyState(const unsigned int a_keyCode) const
     {
-        if (m_KeyboardPrevious[a_keyCode] == 1)
-            if (m_KeyboardCurrent[a_keyCode] == 1)
+        if (mKeyboardPrevious[a_keyCode] == 1)
+            if (mKeyboardCurrent[a_keyCode] == 1)
                 return KeyState::StillPressed;  // true, true
             else
                 return KeyState::JustReleased;  // true, false
         else
-            if (m_KeyboardCurrent[a_keyCode] == 1)
+            if (mKeyboardCurrent[a_keyCode] == 1)
                 return KeyState::JustPressed;   // false, true
             else
                 return KeyState::StillReleased; // false, false

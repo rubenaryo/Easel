@@ -41,8 +41,8 @@ namespace Input {
     struct Binding
     {
     private:
-        unsigned int m_KeyCode;         // Windows Keycode
-        KeyState m_KeyState;            // Associated keystate
+        unsigned int mKeyCode;         // Windows Keycode
+        KeyState mKeyState;            // Associated keystate
 
     public:
         Binding();
@@ -56,19 +56,19 @@ namespace Input {
     struct Chord
     {
     private:
-        std::wstring m_Name;            // Human readable command name
-        std::vector<Binding> m_Chord;   // Sequence of keys mapped to "m_Name" command
+        std::wstring mName;            // Human readable command name
+        std::vector<Binding> mChord;   // Sequence of keys mapped to "m_Name" command
 
     public:
         Chord();
-        Chord(const std::wstring& a_Name, const unsigned int a_KeyCode, const KeyState a_KeyState);
-        Chord(const std::wstring& a_Name, const Binding& a_Chord);
-        Chord(const std::wstring& a_Name, const std::vector<Binding>& a_lChord);
+        Chord(const std::wstring& name, const unsigned int keyCode, const KeyState keyState);
+        Chord(const std::wstring& name, const Binding& chord);
+        Chord(const std::wstring& name, const std::vector<Binding>& chords);
         ~Chord() {};
 
         // Accessors for member variables
-        std::vector<Binding>& GetChord() { return m_Chord; }
-        std::wstring&         GetName()  { return m_Name;  }
+        std::vector<Binding>& GetChord() { return mChord; }
+        std::wstring&         GetName()  { return mName;  }
     };
 }
 

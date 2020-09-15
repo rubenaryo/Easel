@@ -1,26 +1,39 @@
+/*----------------------------------------------
+Ruben Young (rubenaryo@gmail.com)
+Date : 2020/3
+Description : Creates and holds materials/textures 
+to be used with game objects 
+----------------------------------------------*/
 #include "MaterialFactory.h"
-#include <filesystem>
-#include <WICTextureLoader.h>
-#include <exception>
-#include <unordered_set>
-#include "ThrowMacros.h"
+
+#include "Material.h"
+#include "ShaderFactory.h"
+#include "Texture.h"
+
 #include "COMException.h"
+#include "ThrowMacros.h"
 #include "../../System/PathMacros.h"
+
+#include <exception>
+#include <filesystem>
+#include <DDSTextureLoader.h>
+#include <WICTextureLoader.h>
+#include <unordered_set>
 
 namespace Graphics {
 
 void MaterialFactory::Init(ID3D11Device* device, ID3D11DeviceContext* context)
 {
-    m_pShaderFactory = std::make_unique<ShaderFactory>();
-    m_pShaderFactory->Init(device);
+    mpShaderFactory = std::make_unique<ShaderFactory>();
+    mpShaderFactory->Init(device);
     LoadTextures(device, context);
     BuildMaterials();
 }
 
 Material* MaterialFactory::GetMaterial(std::wstring a_UID) const
 {
-    if(m_Materials.find(a_UID) != m_Materials.end())
-        return m_Materials.at(a_UID);
+    if(mMaterials.find(a_UID) != mMaterials.end())
+        return mMaterials.at(a_UID);
 
     return nullptr;
 }
@@ -31,18 +44,19 @@ void MaterialFactory::BuildMaterials()
     // This step would likely be streamlined to read shaders, meshes, materials directly from the 
     // development pipeline if this were a AAA game, but for now I just use the ShaderFactory to load some 
     // shaders, then make some sample materials out of them
-    VertexShader* phongVS = m_pShaderFactory->GetVertexShader(L"PhongVS.cso");
-    PixelShader* phongPS = m_pShaderFactory->GetPixelShader(L"PhongPS_NormalMap.cso");
+    VertexShader* phongVS = mpShaderFactory->GetVertexShader(L"PhongVS.cso");
+    PixelShader* phongPS = mpShaderFactory->GetPixelShader(L"PhongPS_NormalMap.cso");
+    PixelShader* phongPS_noNormal = mpShaderFactory->GetPixelShader(L"PhongPS.cso");
 
     // Material with high specular exponent
     cbMaterialParams highSpec;
-    highSpec.m_ColorTint = DirectX::XMFLOAT4(1,1,1,1);
-    highSpec.m_Specularity = 128.0f;
+    highSpec.colorTint = DirectX::XMFLOAT4(1,1,1,1);
+    highSpec.specularExp = 128.0f;
 
-    // For every 'entry.first', create a material that holds all associated resources
-    for (const auto& entry : m_Textures)
+    // For every material name, create a new material that holds all associated resources
+    for (const auto& entry : mTextures)
     {
-        m_Materials[entry.first] = new Material(phongVS, phongPS, &highSpec, &entry.second[0], entry.second.size());
+        mMaterials[entry.first] = new Material(phongVS, phongPS, &highSpec, &entry.second[0], static_cast<uint32_t>(entry.second.size()));
     }
 }
 
@@ -61,35 +75,56 @@ void MaterialFactory::LoadTextures(ID3D11Device* device, ID3D11DeviceContext* co
 
         ID3D11ShaderResourceView* pSRV;
 
-        // Note: These have to be released in the destructor.
-        HRESULT hr = DirectX::CreateWICTextureFromFile(
-            device, context,
-            path.c_str(),
-            nullptr,
-            &pSRV
-        );
+        // Parse file name to decide how to create this resource
+        size_t pos = name.find(L'_');
+        const std::wstring TexName = name.substr(0, pos++);
+        const std::wstring TexType = name.substr(pos, 1);
+        
+        // Parse file extension
+        pos = name.find(L'.') + 1;
+        const std::wstring TexExt  = name.substr(pos);
+        
+        HRESULT hr = E_FAIL;
+
+        // Special Case: DDS Files (Cube maps with no mipmaps)
+        if (TexExt == L"dds")
+        {
+            hr = DirectX::CreateDDSTextureFromFile(
+                device,
+                path.c_str(),
+                nullptr,
+                &pSRV);
+        } 
+        else // For most textures, use WIC with mipmaps
+        {
+            hr = DirectX::CreateWICTextureFromFile(
+                device, context,    // Passing in the context auto generates mipmaps
+                path.c_str(),
+                nullptr,
+                &pSRV);
+        }
 
         assert(!FAILED(hr));
 
-        size_t pos = name.find(L'_');
-        const std::wstring TexName = name.substr(0, pos);
-        const std::wstring TexType = name.substr(pos+1, 1);
-
         // Classify based on Letter following '_'
         Texture::Type type;
-        switch (TexType[0])
+        switch (TexType[0]) // This is the character that precedes the underscore in the naming convention
         {
             case 'N': // This is a normal map
                 type = Texture::Type::NORMAL;
-                m_Textures[TexName].push_back(new Texture(pSRV, type));
+                mTextures[TexName].push_back(new Texture(pSRV, type));
                 break;
             case 'T': // This is a texture
                 type = Texture::Type::DIFFUSE;
-                m_Textures[TexName].push_back(new Texture(pSRV, type));
+                mTextures[TexName].push_back(new Texture(pSRV, type));
                 break;
             case 'R': // Roughness map
                 type = Texture::Type::ROUGHNESS;
-                m_Textures[TexName].push_back(new Texture(pSRV, type));
+                mTextures[TexName].push_back(new Texture(pSRV, type));
+                break;
+            case 'C': // Cube map
+                type = Texture::Type::CUBE;
+                mTextures[TexName].push_back(new Texture(pSRV, type));
                 break;
             default:
                 OutputDebugStringW(L"INFO: Attempted to load a texture with an unrecognized type\n");
@@ -102,13 +137,13 @@ void MaterialFactory::LoadTextures(ID3D11Device* device, ID3D11DeviceContext* co
 MaterialFactory::~MaterialFactory()
 {
     // Release all allocated materials
-    for (const auto mat : m_Materials)
+    for (const auto mat : mMaterials)
     {
         delete mat.second;
     }
 
     // Release all allocated textures
-    for (auto const& entry : m_Textures)
+    for (auto const& entry : mTextures)
     {
         for (Texture* tex : entry.second)
         {
@@ -117,7 +152,7 @@ MaterialFactory::~MaterialFactory()
     }
 
     // Cleanup shader factory
-    m_pShaderFactory.reset();
+    mpShaderFactory.reset();
 }
 
 }

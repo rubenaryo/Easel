@@ -32,13 +32,13 @@ public:
 
 private:
 
-    bool m_MatrixDirty = true;
+    bool mMatrixDirty = true;
 
     // Information about world position
-    DirectX::XMFLOAT4X4  m_World;
-    DirectX::XMFLOAT3    m_Position;
-    DirectX::XMFLOAT3    m_Scale;
-    DirectX::XMFLOAT3    m_PitchYawRoll;
+    DirectX::XMFLOAT4X4  mWorld;
+    DirectX::XMFLOAT3    mPosition;
+    DirectX::XMFLOAT3    mScale;
+    DirectX::XMFLOAT3    mPitchYawRoll;
 };
 }
 #endif

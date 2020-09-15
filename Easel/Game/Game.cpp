@@ -12,37 +12,37 @@ namespace Game {
 // Initialize unique pointer to device resources, and link up this game to be notified of device updates
 Game::Game()
 {
-    m_pDeviceResources = std::make_unique<Graphics::DeviceResources>();
-    m_pDeviceResources->RegisterDeviceNotify(this);
+    mpDeviceResources = std::make_unique<Graphics::DeviceResources>();
+    mpDeviceResources->RegisterDeviceNotify(this);
     
-    m_pRenderer = std::make_unique<Graphics::Renderer>();
-    m_pInput = std::make_unique<Input::GameInput>();
-    m_Timer.SetFixedTimeStep(false);
+    mpRenderer = std::make_unique<Graphics::Renderer>();
+    mpInput = std::make_unique<Input::GameInput>();
+    mTimer.SetFixedTimeStep(false);
 }
 
 // Initialize device resource holder by creating all necessary resources
 bool Game::Init(HWND window, int width, int height)
 {
     // Initialize game camera
-    m_pCamera = std::make_unique<Graphics::Camera>(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 0.8f);
+    mpCamera = std::make_unique<Graphics::Camera>(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 0.8f);
 
     // Grab Window handle, creates device and context
-    m_pDeviceResources->SetWindow(window, width, height);
-    m_pDeviceResources->CreateDeviceResources();
+    mpDeviceResources->SetWindow(window, width, height);
+    mpDeviceResources->CreateDeviceResources();
     CreateDeviceDependentResources();
     
     // Create Devices dependent on window size
-    m_pDeviceResources->CreateWindowSizeDependentResources();
+    mpDeviceResources->CreateWindowSizeDependentResources();
     CreateWindowSizeDependentResources(width, height);
 
-    auto device = m_pDeviceResources->GetDevice();
-    auto context = m_pDeviceResources->GetContext();
+    auto device = mpDeviceResources->GetDevice();
+    auto context = mpDeviceResources->GetContext();
 
     // Create Materials, Meshes, Entities
-    m_pRenderer->Init(m_pDeviceResources.get());
+    mpRenderer->Init(mpDeviceResources.get());
 
     // Create Lights and respective cbuffers
-    m_pLightingManager = std::make_unique<Graphics::LightingManager>(m_pDeviceResources->GetDevice(), m_pCamera->GetTransform()->GetPosition());
+    mpLightingManager = std::make_unique<Graphics::LightingManager>(mpDeviceResources->GetDevice(), mpCamera->GetTransform()->GetPosition());
 
     return true;
 }
@@ -50,15 +50,15 @@ bool Game::Init(HWND window, int width, int height)
 // On Timer tick, run Update() on the game, then Render()
 void Game::Frame()
 {
-    m_Timer.Tick([&]()
+    mTimer.Tick([&]()
     {
-        Update(m_Timer);
+        Update(mTimer);
     });
 
     Render();
 
-    #ifdef DEBUG 
-    m_pDeviceResources->UpdateTitleBar(m_Timer.GetFramesPerSecond(), m_Timer.GetFrameCount());
+    #ifdef DEBUG
+    mpDeviceResources->UpdateTitleBar(mTimer.GetFramesPerSecond(), mTimer.GetFrameCount());
     #endif
 }
 
@@ -67,28 +67,28 @@ void Game::Update(StepTimer const& timer)
     float elapsedTime = float(timer.GetElapsedSeconds());
 
     // Update the input, passing in the camera so it will update its internal information
-    m_pInput->Frame(elapsedTime, m_pCamera.get());
+    mpInput->Frame(elapsedTime, mpCamera.get());
 
     // Update the camera's view matrix
-    m_pCamera->UpdateView();
-
-    // Update the renderer's view matrices:
-    m_pRenderer->Update(m_pDeviceResources->GetContext(), elapsedTime, m_pCamera.get());
+    mpCamera->UpdateView();
 
     // Update the lights (if needed)
-    m_pLightingManager->Update(m_pDeviceResources->GetContext(), timer.GetTotalSeconds(), m_pCamera->GetTransform()->GetPosition());
+    mpLightingManager->Update(mpDeviceResources->GetContext(), timer.GetTotalSeconds(), mpCamera->GetTransform()->GetPosition());
+    
+    // Update the renderer's view matrices, lighting information.
+    mpRenderer->Update(mpDeviceResources->GetContext(), elapsedTime, mpCamera.get(), &mpLightingManager->GetLightData());
 }
 
 void Game::Render()
 {
     // Don't try to render anything before the first Update.
-    if (m_Timer.GetFrameCount() == 0)
+    if (mTimer.GetFrameCount() == 0)
     {
         return;
     }
 
     // Grab pointer to device resources
-    auto dr = m_pDeviceResources.get();
+    auto dr = mpDeviceResources.get();
 
     // Clear the necessary backbuffer
     dr->Clear(DirectX::Colors::Black);
@@ -97,7 +97,7 @@ void Game::Render()
     auto context = dr->GetContext();
 
     // Draw all geometries
-    m_pRenderer->Draw(context);
+    mpRenderer->Draw(context);
 
     // Show the new frame
     dr->Present();
@@ -110,17 +110,17 @@ void Game::CreateDeviceDependentResources()
 void Game::CreateWindowSizeDependentResources(int newWidth, int newHeight)
 {
     float aspectRatio = (float)newWidth / (float)newHeight;
-    m_pCamera->UpdateProjection(aspectRatio);
+    mpCamera->UpdateProjection(aspectRatio);
 }
 
 Game::~Game()
 {
     // Delete all unique ptrs
-    m_pLightingManager.reset();
-    m_pCamera.reset();
-    m_pInput.reset();
-    m_pRenderer.reset();
-    m_pDeviceResources.reset();
+    mpLightingManager.reset();
+    mpCamera.reset();
+    mpInput.reset();
+    mpRenderer.reset();
+    mpDeviceResources.reset();
 }
 
 #pragma region Game State Callbacks
@@ -146,20 +146,20 @@ void Game::OnSuspending()
 
 void Game::OnResuming()
 {
-    m_Timer.ResetElapsedTime();
+    mTimer.ResetElapsedTime();
 }
 
 // Recreates Window size dependent resources if needed
 void Game::OnMove()
 {
-    auto r = m_pDeviceResources->GetOutputSize();
-    m_pDeviceResources->WindowSizeChanged(r.right, r.bottom);
+    auto r = mpDeviceResources->GetOutputSize();
+    mpDeviceResources->WindowSizeChanged(r.right, r.bottom);
 }
 
 // Recreates Window size dependent resources if needed
 void Game::OnResize(int newWidth, int newHeight)
 {
-    if (!m_pDeviceResources->WindowSizeChanged(newWidth, newHeight))
+    if (!mpDeviceResources->WindowSizeChanged(newWidth, newHeight))
         return;
     try
     {
@@ -167,14 +167,14 @@ void Game::OnResize(int newWidth, int newHeight)
     }
     catch (std::exception const& e)
     {
-        MessageBoxA(m_pDeviceResources->GetWindow(), e.what(), "Fatal Exception!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
-        DestroyWindow(m_pDeviceResources->GetWindow());
+        MessageBoxA(mpDeviceResources->GetWindow(), e.what(), "Fatal Exception!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+        DestroyWindow(mpDeviceResources->GetWindow());
     }
 }
 
 void Game::OnMouseMove(short newX, short newY)
 {
-    m_pInput->OnMouseMove(newX, newY);
+    mpInput->OnMouseMove(newX, newY);
 }
 #pragma endregion
 }

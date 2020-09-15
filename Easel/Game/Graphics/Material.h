@@ -10,6 +10,7 @@ Description : Material class for shader information
 #include "Shader.h"
 #include "Texture.h"
 #include "ConstantBuffer.h"
+#include "CBufferStructs.h"
 #include "IBindable.h"
 #include <vector>
 
@@ -19,23 +20,23 @@ class Material : IBindable
 {
 public:
     Material(VertexShader* a_pVS, PixelShader* a_pPS, cbMaterialParams* a_pParams);
-    Material(VertexShader* a_pVS, PixelShader* a_pPS, cbMaterialParams* a_pParams, Texture*const* a_Resources, size_t numResources);
+    Material(VertexShader* a_pVS, PixelShader* a_pPS, cbMaterialParams* a_pParams, Texture*const* a_Resources, uint32_t numResources);
     ~Material();
 
-    // Getter for material parameters
-    inline VertexShader*        GetVertexShader() const { return m_pVertexShader; }
-    inline PixelShader*         GetPixelShader()  const { return m_pPixelShader;  }
-    cbMaterialParams const&     GetMaterialInfo() const { return m_Params;        }
+    // Access methods for shaders, material params
+    VertexShader*       GetVertexShader() const { return mpVertexShader; }
+    PixelShader*        GetPixelShader()  const { return mpPixelShader;  }
+    cbMaterialParams&   GetMaterialInfo()       { return mParams;        }
 
     // Bind override from IBindable
-    inline void Bind(ID3D11DeviceContext* context) noexcept override;
+    inline void Bind(ID3D11DeviceContext* context) const override;
 
 private:
-    VertexShader*       m_pVertexShader;
-    PixelShader*        m_pPixelShader;
-    cbMaterialParams    m_Params;
-    Texture**           m_Resources;
-    size_t              m_ResourceCount;
+    VertexShader*       mpVertexShader;
+    PixelShader*        mpPixelShader;
+    cbMaterialParams    mParams;
+    Texture**           mResources;
+    uint32_t            mResourceCount;
 };
 
 }

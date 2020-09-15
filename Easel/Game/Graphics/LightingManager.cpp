@@ -5,23 +5,18 @@ Description : Implementation of LightingManager.h
 ----------------------------------------------*/
 #include "LightingManager.h"
 
+#include "LightStructs.h"
+
 namespace Graphics
 {
     LightingManager::LightingManager(ID3D11Device* a_pDevice, DirectX::XMFLOAT3 a_CameraPos)
     {
         InitLights(a_CameraPos);
-        CreateLightBuffer(a_pDevice);
-    }
-
-    LightingManager::~LightingManager()
-    {
-        delete m_pLightingBuffer;
     }
 
     void LightingManager::Update(ID3D11DeviceContext* a_pContext, float dt, DirectX::XMFLOAT3 a_CameraPos)
     {
         UpdateLights(dt, a_CameraPos);
-        BindLightBuffer(a_pContext);
     }
 
 
@@ -33,15 +28,13 @@ namespace Graphics
 
         SetAmbient(XMFLOAT3A(0.12f, 0.12f, 0.15f));
 
-        m_LightData.directionalLight.diffuseColor   = XMFLOAT3A(+1.0f, +0.772f, +0.56f); // sunlight
-        m_LightData.directionalLight.toLight        = XMFLOAT3A(-1.0f, +0.5f, -1.3f);
+        mLightData.directionalLight.diffuseColor   = XMFLOAT3A(+1.0f, +0.772f, +0.56f); // sunlight
+        mLightData.directionalLight.toLight        = XMFLOAT3A(-1.0f, +0.5f, -1.3f);
 
         // hold camera position in light data
-        m_LightData.cameraWorldPos.x = a_CameraPos.x;
-        m_LightData.cameraWorldPos.y = a_CameraPos.y;
-        m_LightData.cameraWorldPos.z = a_CameraPos.z;
-
-        m_NeedsRebind = true;
+        mLightData.cameraWorldPos.x = a_CameraPos.x;
+        mLightData.cameraWorldPos.y = a_CameraPos.y;
+        mLightData.cameraWorldPos.z = a_CameraPos.z;
     }
 
     void LightingManager::UpdateLights(float dt, DirectX::XMFLOAT3 a_CameraPos)
@@ -51,33 +44,10 @@ namespace Graphics
         //light.toLight.x = cosf(dt);
         //light.toLight.z = sinf(dt);
         //
-        //// Overwrite held camera position
-        m_LightData.cameraWorldPos.x = a_CameraPos.x;
-        m_LightData.cameraWorldPos.y = a_CameraPos.y;
-        m_LightData.cameraWorldPos.z = a_CameraPos.z;
-        
-        m_NeedsRebind = true;
+
+        // Overwrite held camera position
+        mLightData.cameraWorldPos.x = a_CameraPos.x;
+        mLightData.cameraWorldPos.y = a_CameraPos.y;
+        mLightData.cameraWorldPos.z = a_CameraPos.z;
     }
-
-    void LightingManager::CreateLightBuffer(ID3D11Device* a_pDevice)
-    {
-        m_pLightingBuffer = new PSConstantBuffer(a_pDevice, sizeof(cbLighting), c_PSLighingSlot);
-    }
-
-    void LightingManager::BindLightBuffer(ID3D11DeviceContext* a_pContext)
-    {
-        // Only bind if any data has been changed
-        if (!NeedsRebind())
-            return;
-
-        // Set data through constant buffer interface
-        m_pLightingBuffer->SetData(a_pContext, sizeof(cbLighting), (void*) &m_LightData);
-
-        // Bind Light buffer
-        m_pLightingBuffer->Bind(a_pContext);
-
-        // Just bound, no need to rebind until next data change in UpdateLights
-        m_NeedsRebind = false;
-    }
-
 }

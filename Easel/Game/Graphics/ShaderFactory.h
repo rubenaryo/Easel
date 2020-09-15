@@ -37,19 +37,18 @@ public:
 private:
     // Creates shader with that file name and adds it to internal collection
     // The file name becomes the unique identifier for the unordered maps
-    inline void AddShader(std::wstring a_pFileName, ShaderType st, ID3D11Device* pDevice);
+    inline void AddShader(std::wstring fileName, ShaderType st, ID3D11Device* pDevice);
     inline void AddVertexShader(std::wstring UniqueID, ID3D11Device* pDevice);
     inline void AddPixelShader(std::wstring UniqueID, ID3D11Device* pDevice);
 
 private:
-    // Dictionaries that map Unique ID -> Shader*
-    std::unordered_map<std::wstring, VertexShader*>    m_pVertexShaders;
-    std::unordered_map<std::wstring, PixelShader*>     m_pPixelShaders;
+    // Tables that map Unique ID -> Shader*
+    std::unordered_map<std::wstring, VertexShader*>    mpVertexShaders;
+    std::unordered_map<std::wstring, PixelShader*>     mpPixelShaders;
 
 public: // Force use of default constructor
     ShaderFactory(ShaderFactory const&)             = delete;
     ShaderFactory& operator=(ShaderFactory const&)  = delete;
-
 };
 
 }

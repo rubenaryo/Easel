@@ -19,9 +19,9 @@ class COMException : public std::exception
 {
 public:
     COMException(int a_Line, const char* a_File, HRESULT a_HR) noexcept :
-        m_HR(a_HR),
-        m_Line(a_Line),
-        m_File(a_File),
+        mHRESULT(a_HR),
+        mLine(a_Line),
+        mFile(a_File),
         errorMsgBuffer(NULL)
     {}
 
@@ -36,8 +36,8 @@ public:
     {
         std::ostringstream oss;
         oss << GetType() << std::endl
-            << "[Error Code:] 0x" << std::hex << std::uppercase << m_HR
-            << std::dec << " (" << (unsigned long)m_HR << " )" << std::endl
+            << "[Error Code:] 0x" << std::hex << std::uppercase << mHRESULT
+            << std::dec << " (" << (unsigned long)mHRESULT << " )" << std::endl
             << "[Description: ]" << GetErrorMessage() << std::endl
             << GetOriginString();
 
@@ -52,7 +52,7 @@ public:
 
     HRESULT GetErrorCode() const noexcept
     {
-        return m_HR;
+        return mHRESULT;
     }
 
     const CHAR* GetErrorMessage() const noexcept
@@ -61,7 +61,7 @@ public:
           FORMAT_MESSAGE_FROM_SYSTEM |
           FORMAT_MESSAGE_IGNORE_INSERTS,
           NULL,
-          m_HR,
+          mHRESULT,
           MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
           (LPSTR)&errorMsgBuffer,
           0,
@@ -72,26 +72,26 @@ public:
 
     int GetLine() const noexcept
     {
-        return m_Line;
+        return mLine;
     }
 
     const std::string& GetFile() const noexcept
     {
-        return m_File;
+        return mFile;
     }
 
     std::string GetOriginString() const noexcept
     {
         std::ostringstream oss;
-        oss << "[File:] " << m_File << std::endl
-            << "[Line:] " << m_Line;
+        oss << "[File:] " << mFile << std::endl
+            << "[Line:] " << mLine;
         return oss.str();
     }
 
 private:
-    HRESULT     m_HR;
-    int         m_Line;
-    std::string m_File;
+    HRESULT     mHRESULT;
+    int         mLine;
+    std::string mFile;
 
     // must be mutable to be modifiable through const function
     mutable std::string whatBuffer;

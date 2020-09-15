@@ -8,13 +8,18 @@ to be used with game objects
 #define MATERIALFACTORY_H
 
 #include "DXCore.h"
-#include "Material.h"
-#include "Texture.h"
-#include "ShaderFactory.h"
+
 #include <string>
 #include <unordered_map>
 #include <vector>
 #include <memory>
+
+namespace Graphics
+{
+class Material;
+class ShaderFactory;
+class Texture;
+}
 
 namespace Graphics {
 
@@ -35,17 +40,16 @@ private:
     // Loads in every file in the designated textures folder and loads its SRV into the proper hash table
     void LoadTextures(ID3D11Device* device, ID3D11DeviceContext* context);
 
-    // Data structures to hold textures
-    std::unordered_map<std::wstring, ID3D11ShaderResourceView*> m_DiffuseTextures;
-    std::unordered_map<std::wstring, ID3D11ShaderResourceView*> m_NormalMaps;
-    std::unordered_map<std::wstring, std::vector<Texture*>>     m_Textures;
-    //TODO: spec,roughness, light, etc maps
-
+    // Data structures to hold textures 
+    //      This is a good candidate for a reorganization based on a markup language of some kind to sort through textures. 
+    //      Perhaps changing this to be a hash table of a hash tables, fi
+    std::unordered_map<std::wstring, std::vector<Texture*>> mTextures;
+    
     // Hold created materials
-    std::unordered_map<std::wstring, Material*>  m_Materials;
+    std::unordered_map<std::wstring, Material*>  mMaterials;
 
     // Unique instance of a ShaderFactory
-    std::unique_ptr<ShaderFactory> m_pShaderFactory;
+    std::unique_ptr<ShaderFactory> mpShaderFactory;
 
 public: // Enforce default constructor
     MaterialFactory(MaterialFactory const&) = delete;

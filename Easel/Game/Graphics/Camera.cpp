@@ -8,12 +8,12 @@ Description : Implementation of Camera Class
 namespace Graphics {
 
 Camera::Camera(float x, float y, float z, float a_AspectRatio, float a_Near, float a_Far, float a_Sensitivity) :
-    m_Near(a_Near),
-    m_Far(a_Far),
-    m_Sensitivity(a_Sensitivity)
+    mNear(a_Near),
+    mFar(a_Far),
+    mSensitivity(a_Sensitivity)
 {
     // Initialize the transform of the camera
-    m_Transform.SetPosition(x, y, z);
+    mTransform.SetPosition(x, y, z);
 
     // Create initial matrices
     UpdateView();
@@ -25,7 +25,7 @@ void Camera::UpdateView()
 {
     using namespace DirectX;
     // Grab rotation quaternion
-    XMVECTOR rotation = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&m_Transform.GetPitchYawRoll()));
+    XMVECTOR rotation = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&mTransform.GetPitchYawRoll()));
 
     // Calculate Forward vector
     XMVECTOR zDir = XMVectorSet(0, 0, 1, 0);
@@ -33,12 +33,12 @@ void Camera::UpdateView()
 
     // Create view matrix
     XMMATRIX view = XMMatrixLookToLH(
-        XMLoadFloat3(&m_Transform.GetPosition()),
+        XMLoadFloat3(&mTransform.GetPosition()),
         forward,
         XMVectorSet(0, 1, 0, 0));
 
     // Store as a member field
-    XMStoreFloat4x4(&m_View, view);
+    XMStoreFloat4x4(&mView, view);
 }
 
 // Updates the projection matrix (like on screen resize)
@@ -48,10 +48,10 @@ void Camera::UpdateProjection(float a_AspectRatio)
     XMMATRIX projection = XMMatrixPerspectiveFovLH(
         XM_PIDIV4,      // FOV
         a_AspectRatio,  // Screen Aspect ratio
-        m_Near,         // Near clip plane
-        m_Far);         // Far clip plane
+        mNear,         // Near clip plane
+        mFar);         // Far clip plane
 
-    XMStoreFloat4x4(&m_Projection, projection);
+    XMStoreFloat4x4(&mProjection, projection);
 }
 
 }

@@ -32,8 +32,8 @@ struct alignas(16) cbLighting
 
 struct alignas(16) cbMaterialParams
 {
-    DirectX::XMFLOAT4  m_ColorTint;
-    float              m_Specularity;
+    DirectX::XMFLOAT4  colorTint;
+    float              specularExp;
 };
 
 }

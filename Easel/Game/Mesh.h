@@ -7,20 +7,24 @@ Description : Mesh holds the internal vertex/index buffers for a particular obje
 #define MESH_H
 
 #include "Graphics/DXCore.h"
-#include "Graphics/Vertex.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
-#include <vector>
 
 #include <wrl/client.h>
+
+namespace Graphics
+{
+struct Vertex;
+}
 
 namespace Game {
 
 class Mesh
 {
 public:
-    Mesh(Graphics::Vertex* a_VertexArray, unsigned int a_NumVertices, unsigned int* a_IndexArray, unsigned int a_NumIndices, ID3D11Device* a_pDevice);
+    Mesh(Graphics::Vertex* vertexArray, unsigned int numVertices, unsigned int* indexArray, unsigned int numIndices, ID3D11Device* pDevice);
+    //@architecture: Require input layout description. That way mesh only stores the data it needs
     Mesh(const std::string& pFile, ID3D11Device* a_pDevice);
     Mesh() = delete;
     ~Mesh() = default;
@@ -29,23 +33,23 @@ public:
     void Draw(ID3D11DeviceContext* a_pContext);
 
     // Accessors
-    inline ID3D11Buffer* GetVertexBuffer() const { return m_pVertexBuffer.Get(); }
-    inline ID3D11Buffer* GetIndexBuffer()  const { return m_pIndexBuffer.Get();  }
-    inline int           GetIndexCount()   const { return m_IndexCount;          }
+    inline ID3D11Buffer* GetVertexBuffer() const { return mpVertexBuffer.Get(); }
+    inline ID3D11Buffer* GetIndexBuffer()  const { return mpIndexBuffer.Get();  }
+    inline int           GetIndexCount()   const { return mIndexCount;          }
 
 protected:
     // Model Loading Helper Functions
-    void LoadSceneInfo(const aiScene* a_pScene, ID3D11Device* a_pDevice);
+    void LoadSceneInfo(const aiScene* pScene, ID3D11Device* pDevice);
 
     // Internal buffers
-    Microsoft::WRL::ComPtr<ID3D11Buffer> m_pVertexBuffer;
-    Microsoft::WRL::ComPtr<ID3D11Buffer> m_pIndexBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> mpVertexBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> mpIndexBuffer;
 
     // How many indices are in the index buffer
-    int m_IndexCount;
+    int mIndexCount;
 
     // Creates the internally held vertex/index buffers
-    void CreateBuffers(Graphics::Vertex* a_VertexArray, unsigned int a_NumVertices, unsigned int* a_IndexArray, unsigned int a_NumIndices, ID3D11Device* a_pDevice);
+    void CreateBuffers(Graphics::Vertex* vertexArray, unsigned int numVertices, unsigned int* indexArray, unsigned int numIndices, ID3D11Device* pDevice);
 };
 
 }

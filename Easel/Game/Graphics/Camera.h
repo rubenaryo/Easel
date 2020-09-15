@@ -5,11 +5,13 @@ Description : Interface for Quaternion-Based Camera functionality
 ----------------------------------------------*/
 #ifndef CAMERA_H
 #define CAMERA_H
-#include "../Transform.h"
+
+#include "CBufferStructs.h"
 #include "DXCore.h"
 
-namespace Graphics {    
-using DirectX::XMFLOAT4X4;
+#include "../Transform.h"
+
+namespace Graphics {
 
 class Camera
 {
@@ -26,27 +28,27 @@ public:
     void UpdateProjection(float a_AspectRatio);
 
     // Accessors:
-    Game::Transform*    GetTransform()      { return &m_Transform;  }
-    XMFLOAT4X4          GetView()           { return m_View;        }
-    XMFLOAT4X4          GetProjection()     { return m_Projection;  }
-    float               GetSensitivity()    { return m_Sensitivity; }
+    const cbCamera      AsConstantBuffer() const { return cbCamera{mView, mProjection}; }
+    Game::Transform*    GetTransform()           { return &mTransform;   }
+    DirectX::XMFLOAT4X4 GetView() const          { return mView;         }
+    DirectX::XMFLOAT4X4 GetProjection() const    { return mProjection;   }
+    float               GetSensitivity() const   { return mSensitivity;  }
 
 private:
     // Information about camera position and rotation
-    Game::Transform m_Transform;
+    Game::Transform mTransform;
 
     // View and Projection Matrices
-    XMFLOAT4X4 m_View;
-    XMFLOAT4X4 m_Projection;
+    DirectX::XMFLOAT4X4 mView;
+    DirectX::XMFLOAT4X4 mProjection;
 
     // Position of near and far planes along forward axis
-    float m_Near;
-    float m_Far;
+    float mNear;
+    float mFar;
 
     // Look Sensitivity
-    float m_Sensitivity;
+    float mSensitivity;
 };
-    
 }
 
 

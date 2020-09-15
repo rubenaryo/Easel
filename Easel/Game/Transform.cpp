@@ -8,101 +8,101 @@ Description : Transform class implementation
 namespace Game {
 
 Transform::Transform() :
-    m_Position(0.0f, 0.0f, 0.0f),
-    m_Scale(1.0f, 1.0f, 1.0f),
-    m_PitchYawRoll(0.0f, 0.0f, 0.0f),
-    m_MatrixDirty(false)
+    mPosition(0.0f, 0.0f, 0.0f),
+    mScale(1.0f, 1.0f, 1.0f),
+    mPitchYawRoll(0.0f, 0.0f, 0.0f),
+    mMatrixDirty(false)
 {
-    XMStoreFloat4x4(&m_World, DirectX::XMMatrixIdentity());
+    XMStoreFloat4x4(&mWorld, DirectX::XMMatrixIdentity());
 }
 
 void Transform::MoveAbsolute(float x, float y, float z)
 {
-    m_Position.x += x;
-    m_Position.y += y;
-    m_Position.z += z;
-    m_MatrixDirty = true;
+    mPosition.x += x;
+    mPosition.y += y;
+    mPosition.z += z;
+    mMatrixDirty = true;
 }
 
 void Transform::MoveRelative(float x, float y, float z)
 {
     using namespace DirectX;
     XMVECTOR movement = XMVectorSet(x, y, z, 0);
-    XMVECTOR rotation = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&m_PitchYawRoll));
+    XMVECTOR rotation = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&mPitchYawRoll));
 
     // Rotate by the quaternion
     XMVECTOR dir = DirectX::XMVector3Rotate(movement, rotation);
 
     // Store as member field
-    XMStoreFloat3(&m_Position, XMLoadFloat3(&m_Position) + dir);
+    XMStoreFloat3(&mPosition, XMLoadFloat3(&mPosition) + dir);
 }
 
 void Transform::Rotate(float p, float y, float r)
 {
-    m_PitchYawRoll.x += p;
-    m_PitchYawRoll.y += y;
-    m_PitchYawRoll.z += r;
-    m_MatrixDirty = true;
+    mPitchYawRoll.x += p;
+    mPitchYawRoll.y += y;
+    mPitchYawRoll.z += r;
+    mMatrixDirty = true;
 }
 
 void Transform::Scale(float x, float y, float z)
 {
-    m_Scale.x *= x;
-    m_Scale.y *= y;
-    m_Scale.z *= z;
-    m_MatrixDirty = true;
+    mScale.x *= x;
+    mScale.y *= y;
+    mScale.z *= z;
+    mMatrixDirty = true;
 }
 
 void Transform::SetPosition(float x, float y, float z)
 {
-    m_Position.x = x;
-    m_Position.y = y;
-    m_Position.z = z;
-    m_MatrixDirty = true;
+    mPosition.x = x;
+    mPosition.y = y;
+    mPosition.z = z;
+    mMatrixDirty = true;
 }
 
 void Transform::SetRotation(float p, float y, float r)
 {
-    m_PitchYawRoll.x = p;
-    m_PitchYawRoll.y = y;
-    m_PitchYawRoll.z = r;
-    m_MatrixDirty = true;
+    mPitchYawRoll.x = p;
+    mPitchYawRoll.y = y;
+    mPitchYawRoll.z = r;
+    mMatrixDirty = true;
 }
 
 void Transform::SetScale(float x, float y, float z)
 {
-    m_Scale.x = x;
-    m_Scale.y = y;
-    m_Scale.z = z;
-    m_MatrixDirty = true;
+    mScale.x = x;
+    mScale.y = y;
+    mScale.z = z;
+    mMatrixDirty = true;
 }
 
-DirectX::XMFLOAT3 Transform::GetPosition() const { return m_Position; }
+DirectX::XMFLOAT3 Transform::GetPosition() const { return mPosition; }
 
-DirectX::XMFLOAT3 Transform::GetPitchYawRoll() const { return m_PitchYawRoll; }
+DirectX::XMFLOAT3 Transform::GetPitchYawRoll() const { return mPitchYawRoll; }
 
-DirectX::XMFLOAT3 Transform::GetScale() const { return m_Scale; }
+DirectX::XMFLOAT3 Transform::GetScale() const { return mScale; }
 
 DirectX::XMFLOAT4X4 Transform::GetWorldMatrix()
 {
     using namespace DirectX;
     
-    if (m_MatrixDirty) // Recalculate World Matrix?
+    if (mMatrixDirty) // Recalculate World Matrix?
     {
         
         // Calculate individual pieces
-        XMMATRIX translation = XMMatrixTranslationFromVector(XMLoadFloat3(&m_Position));
-        XMMATRIX rotation    = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&m_PitchYawRoll));
-        XMMATRIX scaling     = XMMatrixScalingFromVector(XMLoadFloat3(&m_Scale));
+        XMMATRIX translation = XMMatrixTranslationFromVector(XMLoadFloat3(&mPosition));
+        XMMATRIX rotation    = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&mPitchYawRoll));
+        XMMATRIX scaling     = XMMatrixScalingFromVector(XMLoadFloat3(&mScale));
 
         // Calculate world matrix
         XMMATRIX worldmat = scaling * rotation * translation;
-        XMStoreFloat4x4(&m_World, worldmat);
+        XMStoreFloat4x4(&mWorld, worldmat);
 
         // Switch flag
-        m_MatrixDirty = false;
+        mMatrixDirty = false;
     }
 
-    return m_World;
+    return mWorld;
 }
 }
