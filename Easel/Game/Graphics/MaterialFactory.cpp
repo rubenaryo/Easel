@@ -30,7 +30,7 @@ void MaterialFactory::Init(ID3D11Device* device, ID3D11DeviceContext* context)
     BuildMaterials();
 }
 
-Material* MaterialFactory::GetMaterial(std::wstring a_UID) const
+const Material* MaterialFactory::GetMaterial(std::wstring a_UID) const
 {
     if(mMaterials.find(a_UID) != mMaterials.end())
         return mMaterials.at(a_UID);
@@ -45,8 +45,12 @@ void MaterialFactory::BuildMaterials()
     // development pipeline if this were a AAA game, but for now I just use the ShaderFactory to load some 
     // shaders, then make some sample materials out of them
     VertexShader* phongVS = mpShaderFactory->GetVertexShader(L"PhongVS.cso");
-    PixelShader* phongPS = mpShaderFactory->GetPixelShader(L"PhongPS_NormalMap.cso");
-    PixelShader* phongPS_noNormal = mpShaderFactory->GetPixelShader(L"PhongPS.cso");
+    PixelShader*  phongPS = mpShaderFactory->GetPixelShader(L"PhongPS_NormalMap.cso");
+    PixelShader*  phongPS_noNormal = mpShaderFactory->GetPixelShader(L"PhongPS.cso");
+
+    // Skybox shaders
+    VertexShader* skyVS = mpShaderFactory->GetVertexShader(L"SkyVS.cso");
+    PixelShader*  skyPS = mpShaderFactory->GetPixelShader(L"SkyPS.cso");
 
     // Material with high specular exponent
     cbMaterialParams highSpec;
@@ -56,6 +60,13 @@ void MaterialFactory::BuildMaterials()
     // For every material name, create a new material that holds all associated resources
     for (const auto& entry : mTextures)
     {
+        // Special case: Sky:
+        if (entry.first == L"Sky")
+        {
+            mMaterials[entry.first] = new Material(skyVS, skyPS, nullptr, &entry.second[0], static_cast<uint32_t>(entry.second.size()));
+            continue;
+        }
+
         mMaterials[entry.first] = new Material(phongVS, phongPS, &highSpec, &entry.second[0], static_cast<uint32_t>(entry.second.size()));
     }
 }
@@ -137,13 +148,13 @@ void MaterialFactory::LoadTextures(ID3D11Device* device, ID3D11DeviceContext* co
 MaterialFactory::~MaterialFactory()
 {
     // Release all allocated materials
-    for (const auto mat : mMaterials)
+    for (const auto& mat : mMaterials)
     {
         delete mat.second;
     }
 
     // Release all allocated textures
-    for (auto const& entry : mTextures)
+    for (const auto& entry : mTextures)
     {
         for (Texture* tex : entry.second)
         {

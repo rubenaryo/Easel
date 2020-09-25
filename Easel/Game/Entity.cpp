@@ -8,27 +8,21 @@ Description : Entity class functionality
 
 namespace Game {
 
-Entity::Entity(Mesh* a_pMesh) :
-    mpMesh(a_pMesh)
+Entity::Entity(const Mesh* pMesh) :
+    mpMesh(pMesh)
 {}
 
-Entity::Entity(Mesh* a_pMesh, Transform a_Transform) :
-    mpMesh(a_pMesh),
-    mTransform(a_Transform)
+Entity::Entity(const Mesh* pMesh, Transform transform) :
+    mpMesh(pMesh),
+    mTransform(transform)
 {}
 
 
-void Entity::Draw(ID3D11DeviceContext* a_pContext)
+void Entity::Draw(ID3D11DeviceContext* context)
 {
     // Draw the mesh
-    // Note: This method used to be far more convoluted, now it is in a good place to eventually implement instanced rendering
     // TODO: Instanced Rendering
-    mpMesh->Draw(a_pContext);
-}
-
-inline Mesh* Entity::GetMesh() const
-{
-    return mpMesh;
+    mpMesh->Draw(context);
 }
 
 Transform* Entity::GetTransform()

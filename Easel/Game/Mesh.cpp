@@ -9,6 +9,9 @@ Description : Mesh functionality
 #include <vector>
 #include "../System/PathMacros.h"
 
+#include "Graphics/COMException.h"
+#include "Graphics/ThrowMacros.h"
+
 namespace Game {
 
 Mesh::Mesh(Graphics::Vertex* vertexArray, unsigned int numVertices, unsigned int* indexArray, unsigned int numIndices, ID3D11Device* pDevice)
@@ -88,8 +91,10 @@ void Mesh::LoadSceneInfo(const aiScene* pScene, ID3D11Device* pDevice)
         for (unsigned int j = 0; j < pMesh->mNumFaces; ++j)
         {
             const aiFace& face = pMesh->mFaces[j];
+
+            #if defined(DEBUG)
             assert(face.mNumIndices == 3); // Sanity check
-            
+            #endif
             // All the indices of this face are valid, add to list
             indices.push_back(face.mIndices[0]);
             indices.push_back(face.mIndices[1]);
@@ -118,8 +123,10 @@ void Mesh::CreateBuffers(Graphics::Vertex* vertexArray, unsigned int numVertices
     vbd.StructureByteStride = 0;
     D3D11_SUBRESOURCE_DATA initialVertexData;
     initialVertexData.pSysMem = vertexArray;
-    pDevice->CreateBuffer(&vbd, &initialVertexData, mpVertexBuffer.GetAddressOf());
+    HRESULT hr = pDevice->CreateBuffer(&vbd, &initialVertexData, &mpVertexBuffer);
     
+    if(FAILED(hr)) throw COM_EXCEPT(hr);
+
     // Create the index buffer
     D3D11_BUFFER_DESC ibd;
     ibd.Usage = D3D11_USAGE_IMMUTABLE;
@@ -130,24 +137,32 @@ void Mesh::CreateBuffers(Graphics::Vertex* vertexArray, unsigned int numVertices
     ibd.StructureByteStride = 0;
     D3D11_SUBRESOURCE_DATA initialIndexData;
     initialIndexData.pSysMem = indexArray;
-    pDevice->CreateBuffer(&ibd, &initialIndexData, mpIndexBuffer.GetAddressOf());
+    hr = pDevice->CreateBuffer(&ibd, &initialIndexData, &mpIndexBuffer);
     
+    if(FAILED(hr)) throw COM_EXCEPT(hr);
+
     // Save the index count
     this->mIndexCount = numIndices;
 }
 
-void Mesh::Draw(ID3D11DeviceContext* pContext)
+void Mesh::Draw(ID3D11DeviceContext* pContext) const
 {
     // Bind buffers to IA
     UINT stride = sizeof(Graphics::Vertex);
-    UINT offset = 0u;
+    UINT offset = 0;
     
-    pContext->IASetVertexBuffers(0u, 1u, mpVertexBuffer.GetAddressOf(), &stride, &offset);
-    pContext->IASetIndexBuffer(mpIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0u);
+    pContext->IASetVertexBuffers(0, 1, &mpVertexBuffer, &stride, &offset);
+    pContext->IASetIndexBuffer(mpIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
     
     // Actually draw the mesh
-    pContext->DrawIndexed(this->mIndexCount, 0u, 0);
+    pContext->DrawIndexed(this->mIndexCount, 0, 0);
 
+}
+
+Mesh::~Mesh()
+{
+    mpVertexBuffer->Release();
+    mpIndexBuffer->Release();
 }
 
 }

@@ -31,7 +31,7 @@ public:
 
     void Init(ID3D11Device* device, ID3D11DeviceContext* context);
 
-    Material* GetMaterial(std::wstring a_UID) const;
+    const Material* GetMaterial(std::wstring a_UID) const;
 
 private:
     // Builds materials out of the textures gotten from LoadTextures
@@ -46,7 +46,7 @@ private:
     std::unordered_map<std::wstring, std::vector<Texture*>> mTextures;
     
     // Hold created materials
-    std::unordered_map<std::wstring, Material*>  mMaterials;
+    std::unordered_map<std::wstring, const Material*>  mMaterials;
 
     // Unique instance of a ShaderFactory
     std::unique_ptr<ShaderFactory> mpShaderFactory;

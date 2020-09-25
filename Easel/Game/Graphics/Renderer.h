@@ -12,14 +12,13 @@ Description : Manager-level class for intelligently binding and drawing objects
 #include <string>
 #include <unordered_map>
 
-#include <wrl/client.h>
-
 namespace Graphics
 {
     class DeviceResources;
     class Camera;
     class Material;
     class MaterialFactory;
+    class SkyRenderer;
 }
 
 namespace Game
@@ -36,7 +35,7 @@ public:
     Renderer();
     ~Renderer();
 
-    void Init(DeviceResources* a_DR);
+    void Init(DeviceResources* dr);
 
     // For now, the renderer will handle updating the entities, 
     // In the future, perhaps a Physics Manager or AI Manager would be a good solution?
@@ -47,18 +46,18 @@ public:
 
 private:
     // Loads the necessary models into a collection
-    void InitMeshes(DeviceResources* a_DR);
+    void InitMeshes(DeviceResources* dr);
 
     // Creates the necessary material keys within m_Map, 
     void InitEntities();
 
 private:
     // Maps a material to a list of entities that utilize it
-    std::unordered_map<Material*, std::vector<Game::Entity*>> mEntityMap;
+    std::unordered_map<const Material*, std::vector<Game::Entity*>> mEntityMap;
 
     // Dictionary of all loaded meshes (Eventually this may be handled by a mesh manager, who takes them in/out of memory
     // Key is a hardcoded :( identifying id
-    std::unordered_map<std::string, Game::Mesh*> mMeshes;
+    std::unordered_map<std::string, const Game::Mesh*> mMeshes;
 
     // Sample all textures the same way,
     // TODO: DON'T Sample all textures the same way
@@ -67,10 +66,12 @@ private:
     // This begs the question: Perhaps drawing should be organized in separate piles, a table for
     // textured objects, and another for non-textured. Do real games even use non-textured objects?
     // This requires more thought.
-    Microsoft::WRL::ComPtr<ID3D11SamplerState> mpSamplerState;
+    ID3D11SamplerState* mpSamplerState;
 
     // Owning pointer to a material factory instance, which creates and distributes materials and textures
     std::unique_ptr<MaterialFactory> mpMaterialFactory;
+
+    const SkyRenderer* mpSkyRenderer;
 
     // Cached constant buffer structs for camera and lighting
     cbCamera    mCameraBuffer;

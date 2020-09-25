@@ -29,8 +29,8 @@ Description : Standard includes/ macros for a DirectX 11 app
 
 
 // Debug information
-#ifdef _DEBUG
-#include <dxgidebug.h>
+#if defined(DEBUG)
+    #include <dxgidebug.h>
 #endif
 
 namespace Graphics {

@@ -12,6 +12,7 @@ Description : Implementation of Renderer class
 #include "Material.h"
 #include "MaterialFactory.h"
 #include "ShaderFactory.h"
+#include "SkyRenderer.h"
 
 #include "../Entity.h"
 #include "../Mesh.h"
@@ -25,10 +26,10 @@ Renderer::Renderer()
     mpMaterialFactory = std::make_unique<MaterialFactory>();
 }
 
-void Renderer::Init(DeviceResources* a_DR)
+void Renderer::Init(DeviceResources* dr)
 {
     // Grab reference to ID3D11Device
-    auto device = a_DR->GetDevice();
+    auto device = dr->GetDevice();
 
     // Create a generic sampler state
     D3D11_SAMPLER_DESC samplerDesc;
@@ -39,29 +40,30 @@ void Renderer::Init(DeviceResources* a_DR)
     samplerDesc.Filter   = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     samplerDesc.MaxLOD   = D3D11_FLOAT32_MAX;
 
-    HRESULT hr = device->CreateSamplerState(&samplerDesc, mpSamplerState.GetAddressOf());
+    HRESULT hr = device->CreateSamplerState(&samplerDesc, &mpSamplerState);
     if (FAILED(hr)) throw COM_EXCEPT(hr);
 
     // TODO: In the future, sample textures differently! See note in Renderer.h
-    a_DR->GetContext()->PSSetSamplers(0, 1, mpSamplerState.GetAddressOf());
+    dr->GetContext()->PSSetSamplers(0, 1, &mpSamplerState);
 
     // Initialize meshes, materials, entities
-    InitMeshes(a_DR);
-    mpMaterialFactory->Init(device, a_DR->GetContext());
+    InitMeshes(dr);
+    mpMaterialFactory->Init(device, dr->GetContext());
+    mpSkyRenderer = new SkyRenderer(mMeshes["cube"], mpMaterialFactory->GetMaterial(L"Sky"), device);
     InitEntities();
     
     // For now, assume we're only using trianglelist
-    a_DR->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    dr->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void Renderer::InitMeshes(DeviceResources* a_DR)
+void Renderer::InitMeshes(DeviceResources* dr)
 {
     using Game::Mesh;
-    auto device = a_DR->GetDevice();
+    auto device = dr->GetDevice();
 
     // Load some models from memory
     mMeshes["teapot"] = new Mesh("teapot.obj", device);
-    mMeshes["cube"]   = new Mesh("cube.obj", device);
+    mMeshes["cube"]   = new Mesh("cube.obj"  , device);
     mMeshes["sphere"] = new Mesh("sphere.obj", device);
     mMeshes["torus"]  = new Mesh("torus.obj" , device);
 }
@@ -72,8 +74,8 @@ void Renderer::InitEntities()
     using Game::Transform;
 
     // Grab material pointer from factory instance
-    Material* mat1 = mpMaterialFactory->GetMaterial(L"Lunar");
-    Material* mat2 = mpMaterialFactory->GetMaterial(L"Earth");
+    const Material* mat1 = mpMaterialFactory->GetMaterial(L"Lunar");
+    const Material* mat2 = mpMaterialFactory->GetMaterial(L"Earth");
     assert(mat1);
     assert(mat2);
 
@@ -105,11 +107,11 @@ void Renderer::Update(ID3D11DeviceContext* context, float dt, const Camera* came
 void Renderer::Draw(ID3D11DeviceContext* context)
 {
     using Game::Entity;
-    for (std::pair<Material* const, std::vector<Entity*>> element : mEntityMap)
+    for (std::pair<const Material* const, std::vector<Entity*>> element : mEntityMap)
     {
         // Set material data, then bind 
         // "Binding" a material means binding its internal VS/PS
-        Material* material = element.first;
+        const Material* material = element.first;
 
         // Set data for lighting, camera buffers
         material->GetPixelShader()->SetBufferData(context, (UINT)ReservedRegisters::RR_PS_LIGHTS, sizeof(cbLighting), &mLightingBuffer);
@@ -131,6 +133,8 @@ void Renderer::Draw(ID3D11DeviceContext* context)
             entity->Draw(context);
         }
     }
+
+    mpSkyRenderer->Render(context);
 }
 
 Renderer::~Renderer()
@@ -138,7 +142,7 @@ Renderer::~Renderer()
     using Game::Entity;
 
     // Cleanup entities
-    for (std::pair<Material* const, std::vector<Entity*>> element : mEntityMap)
+    for (std::pair<const Material* const, std::vector<Entity*>> element : mEntityMap)
     {
         // Free every entity
         for (Entity* entity : element.second)
@@ -148,12 +152,14 @@ Renderer::~Renderer()
     }
 
     // Cleanup meshes
-    for (std::pair<std::string, Game::Mesh*> element : mMeshes)
+    for (std::pair<std::string, const Game::Mesh*> element : mMeshes)
     {
         delete element.second;
     }
+
+    mpSamplerState->Release();
     
-    // Cleanup material factory
     mpMaterialFactory.reset();
+    delete mpSkyRenderer;
 }
 }

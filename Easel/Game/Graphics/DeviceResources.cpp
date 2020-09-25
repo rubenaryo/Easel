@@ -10,32 +10,36 @@ Description : Implementation of DeviceResources.h
 
 #include "COMException.h" 
 #include "ThrowMacros.h"
+
 #include <stdexcept> // std::exception, std::out_of_range
 #include <algorithm> // std::min, std::max
+
+#if defined(DEBUG)
 #include <sstream>   // wstringstream
+#endif
 
 namespace Graphics {
 
 // Initializer List for Member Fields
 DeviceResources::DeviceResources(
-    DXGI_FORMAT       a_BackBufferFormat,
-    DXGI_FORMAT       a_DepthBufferFormat,
-    UINT              a_BackBufferCount,
-    D3D_FEATURE_LEVEL a_MinFeatureLevel,
-    unsigned int      a_Flags) noexcept :
+    DXGI_FORMAT       backBufferFormat,
+    DXGI_FORMAT       depthBufferFormat,
+    UINT              backBufferCount,
+    D3D_FEATURE_LEVEL minFeatureLevel,
+    uint8_t           options) noexcept :
 
-    m_ScreenViewport    ({}),
-    m_BackBufferFormat  (a_BackBufferFormat),
-    m_DepthBufferFormat (a_DepthBufferFormat),
-    m_BackBufferCount   (a_BackBufferCount),
-    m_MinFeatureLevel(a_MinFeatureLevel),
-    m_Window            (nullptr),
-    m_FeatureLevel      (D3D_FEATURE_LEVEL_9_1),
-    m_OutputSize        ({0,0,1,1}),
-    m_ColorSpaceType    (DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709),
-    m_Options           (a_Flags),
-    m_MsaaSampleCount   (4),
-    m_pDeviceNotify     (nullptr)
+    mViewportInfo      ({}),
+    mBackBufferFormat  (backBufferFormat),
+    mDepthBufferFormat (depthBufferFormat),
+    mBackBufferCount   (backBufferCount),
+    mMinFeatureLevel   (minFeatureLevel),
+    mWindow            (nullptr),
+    mFeatureLevel      (D3D_FEATURE_LEVEL_9_1),
+    mOutputSize        ({0,0,1,1}),
+    mColorSpaceType    (DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709),
+    mDeviceOptions     (options),
+    mMSAASampleCount   (4),
+    mpDeviceNotify     (nullptr)
 {}
 
 // This initializes the following fields:
@@ -45,28 +49,30 @@ void DeviceResources::CreateDeviceResources()
 {
     UINT createFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
-    #if defined(DEBUG) | defined(_DEBUG)
+    #if defined(DEBUG)
     createFlags |= D3D11_CREATE_DEVICE_DEBUG;
     #endif
 
     CreateFactory();
 
-    // TOOD: Check for Tearing Support
-    if (m_Options & c_AllowTearing)
+    // TODO: Check for Tearing Support
+    if (OptionEnabled(DR_OPTIONS::DR_ALLOW_TEARING))
     {}
 
     // TODO: Disable HDR if we are on an OS that can't support FLIP swap effects
 
+    HRESULT hr = E_FAIL;
     // Disable FLIP if the OS doesn't support it.
-    if (m_Options & c_FlipPresent)
+    if (OptionEnabled(DR_OPTIONS::DR_FLIP_PRESENT))
     {
-        ComPtr<IDXGIFactory4> factory4;
-        if (FAILED(m_pDXGIFactory.As(&factory4)))
+        IDXGIFactory4* factory4;
+        hr = mpDXGIFactory->QueryInterface(__uuidof(IDXGIFactory4), reinterpret_cast<void**>(&factory4));
+        if (FAILED(hr))
         {
-            m_Options &= ~c_FlipPresent;
+            mDeviceOptions &= ~(uint8_t)DR_OPTIONS::DR_FLIP_PRESENT;
 
-            #ifdef _DEBUG
-            OutputDebugStringA("INFO: Flip swap effects not supported");
+            #ifdef DEBUG
+            OutputDebugStringA("INFO: Flip swap effects not supported\n");
             #endif
         }
     }
@@ -75,7 +81,7 @@ void DeviceResources::CreateDeviceResources()
     UINT featLevelCount = 0;
     while(featLevelCount < _countof(s_featureLevels))
     {
-        if (s_featureLevels[featLevelCount] < m_MinFeatureLevel)
+        if (s_featureLevels[featLevelCount] < mMinFeatureLevel)
             break;
 
         featLevelCount++;
@@ -85,11 +91,7 @@ void DeviceResources::CreateDeviceResources()
 
     // POSSIBLE TODO: Get a hardware adapter
 
-    // Create the Direct3D 11 API device object and a corresponding context.
-    ComPtr<ID3D11Device>        device;
-    ComPtr<ID3D11DeviceContext> context;
-
-    HRESULT hr = E_FAIL;
+    hr = E_FAIL;
 
     hr = D3D11CreateDevice(
         0,                        // pAdapter (IDXGIAdapter*): Using default adapter 
@@ -99,9 +101,9 @@ void DeviceResources::CreateDeviceResources()
         s_featureLevels,          // Feature Level Array
         featLevelCount,           // Feature Level Count
         D3D11_SDK_VERSION,        // SDK Version (UINT) : Always D3D11_SDK_VERSION
-        device.GetAddressOf(),    // ID3D11Device** : Pass device pointer to member field
-        &m_FeatureLevel,          // D3D_FEATURE_LEVEL* : Return first supported feature level
-        context.GetAddressOf()    // ID3D11DeviceContext** : Pass created device context to member field
+        &mpDevice,                // ID3D11Device** : Pass device pointer to member field
+        &mFeatureLevel,           // D3D_FEATURE_LEVEL* : Return first supported feature level
+        &mpContext                // ID3D11DeviceContext** : Pass created device context to member field
     );
 
     if (FAILED(hr))
@@ -115,9 +117,9 @@ void DeviceResources::CreateDeviceResources()
             s_featureLevels,
             featLevelCount,
             D3D11_SDK_VERSION,
-            device.GetAddressOf(),
-            &m_FeatureLevel,
-            context.GetAddressOf()
+            &mpDevice,
+            &mFeatureLevel,
+            &mpContext
         );
 
         if(SUCCEEDED(hr))
@@ -128,41 +130,44 @@ void DeviceResources::CreateDeviceResources()
     if (FAILED(hr)) throw COM_EXCEPT(hr);
 
     // Check for MSAA Support
-    while (m_MsaaSampleCount > 1)
+    while (mMSAASampleCount > 1)
     {
         UINT levels = 0;
-        if (FAILED(device->CheckMultisampleQualityLevels(m_BackBufferFormat, m_MsaaSampleCount, &levels)))
+        if (FAILED(mpDevice->CheckMultisampleQualityLevels(mBackBufferFormat, mMSAASampleCount, &levels)))
             continue;
 
         if (levels > 0)
             break;
 
         // Decrease Sample count by powers of two
-        m_MsaaSampleCount /= 2;
+        mMSAASampleCount /= 2;
     }
 
     // MSAA not supported or not a power of two or too high
-    if (m_MsaaSampleCount < 2 || m_MsaaSampleCount % 2 || m_MsaaSampleCount > 16)
+    if (mMSAASampleCount < 2 || mMSAASampleCount % 2 || mMSAASampleCount > 16)
     {
         // Turn off MSAA support
-        m_Options &= ~c_EnableMSAA;
+        mDeviceOptions &= ~(uint8_t)DR_OPTIONS::DR_ENABLE_MSAA;
 
         // Ensure Consistency of sample count
-        m_MsaaSampleCount = 1;
+        mMSAASampleCount = 1;
     }
 
+    
+#if defined(DEBUG)
+    hr = mpContext->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), reinterpret_cast<void**>(&mpAnnotation));
+    if(FAILED(hr)) throw COM_EXCEPT(hr); //@note: Might be ok to let this fail, and just disable its behavior.
+
+    hr = mpDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&mpDebugInterface));
     // Query the D3D Info Queue Interface:
-#ifndef NDEBUG
-    ComPtr<ID3D11Debug> d3dDebug;
-    if (SUCCEEDED(device.As(&d3dDebug)))
+    if (SUCCEEDED(hr))
     {
-        ComPtr<ID3D11InfoQueue> d3dInfoQueue;
-        if (SUCCEEDED(d3dDebug.As(&d3dInfoQueue)))
+        ID3D11InfoQueue* d3dInfoQueue = nullptr;
+        hr = mpDebugInterface->QueryInterface(__uuidof(ID3D11InfoQueue), reinterpret_cast<void**>(&d3dInfoQueue));
+        if (SUCCEEDED(hr))
         {
-#ifdef _DEBUG
             d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
             d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
-#endif
             D3D11_MESSAGE_ID hide[] =
             {
                 D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS,
@@ -171,35 +176,19 @@ void DeviceResources::CreateDeviceResources()
             filter.DenyList.NumIDs = _countof(hide);
             filter.DenyList.pIDList = hide;
             d3dInfoQueue->AddStorageFilterEntries(&filter);
+            d3dInfoQueue->Release();
         }
     }
 #endif
-
-    // Hold created device and context as class members
-    hr = device.As(&m_pDevice);
-    if (FAILED(hr)) throw COM_EXCEPT(hr);
-    hr = context.As(&m_pContext);
-    if (FAILED(hr)) throw COM_EXCEPT(hr);
-    hr = context.As(&m_pAnnotation);
-    if (FAILED(hr)) throw COM_EXCEPT(hr);
 }
 
 // Wrapper function for CreateDXGIFactory
 // Retrieves the REFIID and checks the HRESULT of the function for failure
 void DeviceResources::CreateFactory()
 {
-    HRESULT hr = CreateDXGIFactory(IID_PPV_ARGS(m_pDXGIFactory.ReleaseAndGetAddressOf()));
+    if (mpDXGIFactory) mpDXGIFactory->Release();
+    HRESULT hr = CreateDXGIFactory(IID_PPV_ARGS(&mpDXGIFactory));
     if (FAILED(hr)) throw COM_EXCEPT(hr);
-}
-
-void DeviceResources::GetHardwareAdapter(IDXGIAdapter1** ppAdapter)
-{
-    // TODO: implement later
-}
-
-void DeviceResources::UpdateColorSpace()
-{
-    // TODO: implement later
 }
 
 // Callback method for when we initialize the window, or when there's a need to recreate the resources that are dependent on window size (when the window is resized basically)
@@ -214,41 +203,70 @@ void DeviceResources::UpdateColorSpace()
 // - Depth Stencil Buffer
 void DeviceResources::CreateWindowSizeDependentResources()
 {
-    if (!m_Window)
-        throw std::exception("m_Window member not set!");
+    if (!mWindow)
+        throw std::exception("mWindow member not set!");
 
     // Clear current window dependent fields.
-    m_pContext->OMSetRenderTargets(0u, NULL, NULL);  // Reset bound render targets
-    m_pRenderTargetView.Reset();
-    m_pDepthStencilView.Reset();
-    m_pMsaaRenderTargetView.Reset();
-    m_pMsaaDepthStencilView.Reset();
-    m_pMsaaRenderTarget.Reset();
-    m_pRenderTarget.Reset();
-    m_pDepthStencil.Reset();
-    m_pContext->Flush();
+    mpContext->OMSetRenderTargets(0, NULL, NULL);  // Reset bound render targets
+
+    if (mpRenderTargetView)
+    {
+        mpRenderTargetView->Release();
+        mpRenderTargetView = nullptr;
+    }
+    if (mpDepthStencilView)
+    {
+        mpDepthStencilView->Release();
+        mpDepthStencilView = nullptr;
+    }
+    if (mpMSAARenderTargetView)
+    {
+        mpMSAARenderTargetView->Release();
+        mpMSAARenderTargetView = nullptr;
+    }
+    if (mpMSAADepthStencilView)
+    {
+        mpMSAADepthStencilView->Release();
+        mpMSAARenderTargetView = nullptr;
+    }
+    if (mpMSAARenderTarget)
+    {
+        mpMSAARenderTarget->Release();
+        mpMSAARenderTarget = nullptr;
+    }
+    if (mpRenderTarget)
+    {
+        mpRenderTarget->Release();
+        mpRenderTarget = nullptr;
+    }
+    if (mpDepthStencil)
+    {
+        mpDepthStencil->Release();
+        mpDepthStencil = nullptr;
+    }
+    mpContext->Flush();
 
     // Find the height of the render target, using std::max to ensure neither dimension is 0
-    UINT bbWidth  = std::max<UINT>(static_cast<UINT>((m_OutputSize.right - m_OutputSize.left)), 1U);
-    UINT bbHeight = std::max<UINT>(static_cast<UINT>((m_OutputSize.bottom - m_OutputSize.top)), 1U);
-    DXGI_FORMAT bbFormat = m_BackBufferFormat;
+    UINT bbWidth  = std::max<UINT>(static_cast<UINT>((mOutputSize.right - mOutputSize.left)), 1U);
+    UINT bbHeight = std::max<UINT>(static_cast<UINT>((mOutputSize.bottom - mOutputSize.top)), 1U);
+    DXGI_FORMAT bbFormat = mBackBufferFormat;
 
-    if (m_pSwapChain)
+    if (mpSwapChain)
     {
         // Resize an already existing swap chain
         HRESULT hr;
-        hr = m_pSwapChain->ResizeBuffers(
-            m_BackBufferCount,
+        hr = mpSwapChain->ResizeBuffers(
+            mBackBufferCount,
             bbWidth,
             bbHeight,
             bbFormat,
-            (m_Options & c_AllowTearing) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0u
+            OptionEnabled(DR_OPTIONS::DR_ALLOW_TEARING) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0
         );
 
         if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
         {
             char buf[256];
-            sprintf_s(buf, "Device Lost on Resize Buffers: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pDevice->GetDeviceRemovedReason() : hr);
+            sprintf_s(buf, "Device Lost on Resize Buffers: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? mpDevice->GetDeviceRemovedReason() : hr);
             OutputDebugStringA(buf);
 
             // A new device and swapchain need to be created
@@ -264,56 +282,59 @@ void DeviceResources::CreateWindowSizeDependentResources()
     else // Create a new swap chain
     {
         // Fill out the necessary descriptor structures
-        DXGI_SWAP_CHAIN_DESC1 scDesc = {0};
+        DXGI_SWAP_CHAIN_DESC1 scDesc = {};
         scDesc.Width = bbWidth;
         scDesc.Height = bbHeight;
         scDesc.Format = bbFormat;
         scDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        scDesc.BufferCount = m_BackBufferCount;
+        scDesc.BufferCount = mBackBufferCount;
         scDesc.SampleDesc.Count   = 1;
         scDesc.SampleDesc.Quality = 0;
         scDesc.Scaling = DXGI_SCALING_STRETCH;
-        scDesc.SwapEffect = (m_Options & (c_FlipPresent | c_AllowTearing | c_EnableHDR)) ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_DISCARD;
+        
+        uint8_t allowFlip = mDeviceOptions & ((uint8_t)DR_OPTIONS::DR_FLIP_PRESENT | (uint8_t)DR_OPTIONS::DR_ALLOW_TEARING | (uint8_t)DR_OPTIONS::DR_ENABLE_HDR);
+        scDesc.SwapEffect = allowFlip ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_DISCARD;
+        
         scDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-        scDesc.Flags = (m_Options & c_AllowTearing) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0u;
+        scDesc.Flags = OptionEnabled(DR_OPTIONS::DR_ALLOW_TEARING) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
 
-        DXGI_SWAP_CHAIN_FULLSCREEN_DESC fsDesc = {0};
+        DXGI_SWAP_CHAIN_FULLSCREEN_DESC fsDesc = {};
         fsDesc.Windowed = TRUE;
 
-        auto device = m_pDevice.Get();
-
-        HRESULT hr = m_pDXGIFactory->CreateSwapChainForHwnd(
-            device,
-            m_Window,
+        HRESULT hr = mpDXGIFactory->CreateSwapChainForHwnd(
+            mpDevice,
+            mWindow,
             &scDesc,
             &fsDesc,
             NULL,
-            m_pSwapChain.ReleaseAndGetAddressOf()
+            &mpSwapChain
         );
         if (FAILED(hr)) throw COM_EXCEPT(hr);
 
         // Prevent Alt+Enter by monitoring the app message queue
-        hr = m_pDXGIFactory->MakeWindowAssociation(m_Window, DXGI_MWA_NO_ALT_ENTER);
+        hr = mpDXGIFactory->MakeWindowAssociation(mWindow, DXGI_MWA_NO_ALT_ENTER);
         if (FAILED(hr)) throw COM_EXCEPT(hr);
     
-        // Create a Render Target View of the SC Back Buffer
-        hr = m_pSwapChain->GetBuffer(0, IID_PPV_ARGS(m_pRenderTarget.ReleaseAndGetAddressOf()));
+        // Create a Render Target of the SC Back Buffer
+        if (mpRenderTarget) mpRenderTarget->Release();
+        hr = mpSwapChain->GetBuffer(0, IID_PPV_ARGS(&mpRenderTarget));
         if (FAILED(hr)) throw COM_EXCEPT(hr);
 
         // Create a new Render Target View Description
-        CD3D11_RENDER_TARGET_VIEW_DESC RTVD(D3D11_RTV_DIMENSION_TEXTURE2D, m_BackBufferFormat);
+        CD3D11_RENDER_TARGET_VIEW_DESC RTVD(D3D11_RTV_DIMENSION_TEXTURE2D, mBackBufferFormat);
 
         // Create a Render Target View from this Description, holding it as a member variable
-        hr = device->CreateRenderTargetView(
-            m_pRenderTarget.Get(),
+        if (mpRenderTargetView) mpRenderTargetView->Release();
+        hr = mpDevice->CreateRenderTargetView(
+            mpRenderTarget,
             &RTVD,
-            m_pRenderTargetView.ReleaseAndGetAddressOf()
+            &mpRenderTargetView
         );
         if (FAILED(hr)) throw COM_EXCEPT(hr);
 
         // Create an MSAA Render Target
         CD3D11_TEXTURE2D_DESC MsaaRTD(
-            m_BackBufferFormat,
+            mBackBufferFormat,
             bbWidth,
             bbHeight,
             1, // The render target view has only one texture.
@@ -321,32 +342,33 @@ void DeviceResources::CreateWindowSizeDependentResources()
             D3D11_BIND_RENDER_TARGET,
             D3D11_USAGE_DEFAULT,
             0,
-            m_MsaaSampleCount
+            mMSAASampleCount
         );
 
-        hr = device->CreateTexture2D(
-            &MsaaRTD,
-            nullptr,
-            m_pMsaaRenderTarget.ReleaseAndGetAddressOf()
-        );
+        if (mpMSAARenderTarget) mpMSAARenderTarget->Release();
+        hr = mpDevice->CreateTexture2D(
+             &MsaaRTD,
+             nullptr,
+             &mpMSAARenderTarget);
+
         if (FAILED(hr)) throw COM_EXCEPT(hr);
 
         // Create a new MSAA Render Target View Description
-        CD3D11_RENDER_TARGET_VIEW_DESC MsaaRTVD(D3D11_RTV_DIMENSION_TEXTURE2DMS, m_BackBufferFormat);
+        CD3D11_RENDER_TARGET_VIEW_DESC MsaaRTVD(D3D11_RTV_DIMENSION_TEXTURE2DMS, mBackBufferFormat);
 
         // Create an MSAA Render Target View from this Description, holding it as a member variable
-        hr = device->CreateRenderTargetView(
-            m_pMsaaRenderTarget.Get(),
-            &MsaaRTVD,
-            m_pMsaaRenderTargetView.ReleaseAndGetAddressOf()
-        );
+        if (mpMSAARenderTargetView) mpMSAARenderTargetView->Release();
+        hr = mpDevice->CreateRenderTargetView(
+             mpMSAARenderTarget,
+             &MsaaRTVD,
+             &mpMSAARenderTargetView);
         if (FAILED(hr)) throw COM_EXCEPT(hr);
 
-        if (m_DepthBufferFormat != DXGI_FORMAT_UNKNOWN)
+        if (mDepthBufferFormat != DXGI_FORMAT_UNKNOWN)
         {
             // Fill out descriptor to create Depth Stencil Buffer, holding onto it as a member
             CD3D11_TEXTURE2D_DESC depthStencilDesc(
-                m_DepthBufferFormat,
+                mDepthBufferFormat,
                 bbWidth,
                 bbHeight,
                 1, // This depth stencil view has only one texture.
@@ -354,25 +376,26 @@ void DeviceResources::CreateWindowSizeDependentResources()
                 D3D11_BIND_DEPTH_STENCIL
             );
 
-            hr = device->CreateTexture2D(
+            if (mpDepthStencil) mpDepthStencil->Release();
+            hr = mpDevice->CreateTexture2D(
                 &depthStencilDesc,
                 nullptr,
-                m_pDepthStencil.ReleaseAndGetAddressOf()
-            );
+                &mpDepthStencil);
             if (FAILED(hr)) throw COM_EXCEPT(hr);
 
             // Fill out descriptor to create Depth Stencil View, holding onto it as a member
+            if (mpDepthStencilView) mpDepthStencilView->Release();
             CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D);
-            hr = device->CreateDepthStencilView(
-                m_pDepthStencil.Get(),
+            hr = mpDevice->CreateDepthStencilView(
+                mpDepthStencil,
                 &depthStencilViewDesc,
-                m_pDepthStencilView.ReleaseAndGetAddressOf()
+                &mpDepthStencilView
             );
             if (FAILED(hr)) throw COM_EXCEPT(hr);
 
             // Do the same for MSAA
             CD3D11_TEXTURE2D_DESC MsaaDSD(
-                m_DepthBufferFormat,
+                mDepthBufferFormat,
                 bbWidth,
                 bbHeight,
                 1, // This depth stencil view has only one texture.
@@ -380,29 +403,31 @@ void DeviceResources::CreateWindowSizeDependentResources()
                 D3D11_BIND_DEPTH_STENCIL,
                 D3D11_USAGE_DEFAULT,
                 0,
-                m_MsaaSampleCount
+                mMSAASampleCount
             );
 
             // fill temporary texture
-            ComPtr<ID3D11Texture2D> MsaaDepthStencil;
-            hr = device->CreateTexture2D(
+            ID3D11Texture2D* MsaaDepthStencil;
+            hr = mpDevice->CreateTexture2D(
                 &MsaaDSD,
                 nullptr,
-                MsaaDepthStencil.GetAddressOf()
+                &MsaaDepthStencil
             );
             if (FAILED(hr)) throw COM_EXCEPT(hr);
 
             // fill member MsaaDepthStencilView
-            hr = device->CreateDepthStencilView(
-                MsaaDepthStencil.Get(),
+            if (mpMSAADepthStencilView) mpMSAADepthStencilView->Release();
+            hr = mpDevice->CreateDepthStencilView(
+                MsaaDepthStencil,
                 nullptr,
-                m_pMsaaDepthStencilView.ReleaseAndGetAddressOf()
+                &mpMSAADepthStencilView
             );
             if (FAILED(hr)) throw COM_EXCEPT(hr);
+            MsaaDepthStencil->Release();
         }
 
         // Set the 3D rendering viewport to target the entire window.
-        m_ScreenViewport = CD3D11_VIEWPORT(
+        mViewportInfo = CD3D11_VIEWPORT(
             0.0f,                           // TopLeft X Coord
             0.0f,                           // TopLeft Y Coord
             static_cast<FLOAT>(bbWidth),    // Width
@@ -417,11 +442,11 @@ void DeviceResources::CreateWindowSizeDependentResources()
 // Setter for member fields that may change depending on window state
 void DeviceResources::SetWindow(HWND a_Window, int a_Width, int a_Height)
 {
-    m_Window = a_Window;
-    m_OutputSize.left = 0;
-    m_OutputSize.top = 0;
-    m_OutputSize.right = a_Width;
-    m_OutputSize.bottom = a_Height;
+    mWindow = a_Window;
+    mOutputSize.left = 0;
+    mOutputSize.top = 0;
+    mOutputSize.right = a_Width;
+    mOutputSize.bottom = a_Height;
 }
 
 // Handle Window Size being changed
@@ -431,7 +456,7 @@ bool DeviceResources::WindowSizeChanged(int a_Width, int a_Height)
     newRc.left = newRc.top = 0;
     newRc.right = a_Width;
     newRc.bottom = a_Height;
-    if (newRc == m_OutputSize)
+    if (newRc == mOutputSize)
     {
         // Handle color space settings for HDR
         UpdateColorSpace();
@@ -439,65 +464,26 @@ bool DeviceResources::WindowSizeChanged(int a_Width, int a_Height)
         return false;
     }
 
-    m_OutputSize = newRc;
+    mOutputSize = newRc;
     CreateWindowSizeDependentResources();
     return true;
 }
 
-// Re-creates all device resources
-void DeviceResources::HandleDeviceLost()
-{
-    if (m_pDeviceNotify)
-        m_pDeviceNotify->OnDeviceLost();
-
-    m_pDepthStencilView.Reset();
-    m_pRenderTargetView.Reset();
-    m_pRenderTarget.Reset();
-    m_pMsaaDepthStencilView.Reset();
-    m_pMsaaRenderTarget.Reset();
-    m_pMsaaRenderTargetView.Reset();
-    m_pDepthStencil.Reset();
-    m_pSwapChain.Reset();
-    m_pContext.Reset();
-    m_pAnnotation.Reset();
-
-    #ifdef _DEBUG
-    {
-        ComPtr<ID3D11Debug> d3dDebug;
-        if (SUCCEEDED(m_pDevice.As(&d3dDebug)))
-        {
-            d3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY);
-        }
-    }
-    #endif
-
-    m_pDevice.Reset();
-    m_pDXGIFactory.Reset();
-
-    // Recreate all device resources
-    CreateDeviceResources();
-    CreateWindowSizeDependentResources();
-
-    if (m_pDeviceNotify)
-        m_pDeviceNotify->OnDeviceRestored();
-
-}
-
 void DeviceResources::UpdateTitleBar(uint32_t a_FPS, uint32_t a_FrameCount)
 {
-    // Update title bar every 60 frames
-    if (a_FrameCount % 60 == 0)
+    // Update title bar every 120 frames
+    if (a_FrameCount % 120 == 0)
         return;
 
     std::wstringstream wss;
 
     // Window Information
-    wss <<  L"Width: "      << m_ScreenViewport.Width  <<
-        L"    Height: "     << m_ScreenViewport.Height <<
+    wss <<  L"Width: "      << mViewportInfo.Width  <<
+        L"    Height: "     << mViewportInfo.Height <<
         L"    FPS: "        << a_FPS;
 
     // Check and Print Feature Level
-    switch (m_FeatureLevel)
+    switch (mFeatureLevel)
     {
     case D3D_FEATURE_LEVEL_11_1: wss << L"    Direct3D 11.1"; break;
     case D3D_FEATURE_LEVEL_11_0: wss << L"    Direct3D 11.0"; break;
@@ -510,7 +496,7 @@ void DeviceResources::UpdateTitleBar(uint32_t a_FPS, uint32_t a_FrameCount)
     }
     
     // MSAA Level
-    wss << L"    " << m_MsaaSampleCount << L"xMSAA";
+    wss << L"    " << mMSAASampleCount << L"xMSAA";
 
     SetWindowText(GetWindow(), wss.str().c_str());
 }
@@ -520,32 +506,34 @@ void DeviceResources::Present()
 {
     HRESULT hr;
 
+    //@todo: LOTS OF BRANCHES HERE! BAD
+
     // Resolve the MSAA Render Target
-    if (m_Options & c_EnableMSAA)
+    if (OptionEnabled(DR_OPTIONS::DR_ENABLE_MSAA))
     {
-        m_pContext->ResolveSubresource(m_pRenderTarget.Get(), 0, m_pMsaaRenderTarget.Get(), 0, m_BackBufferFormat);
+        mpContext->ResolveSubresource(mpRenderTarget, 0, mpMSAARenderTarget, 0, mBackBufferFormat);
     }
 
-    if (m_Options & c_AllowTearing)
+    if (OptionEnabled(DR_OPTIONS::DR_ALLOW_TEARING))
     {
         // Recommended to always use tearing if supported when using a sync interval of 0.
-        hr = m_pSwapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
+        hr = mpSwapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
     }
     else
     {
         // The first argument instructs DXGI to block until VSync, putting the application
         // to sleep until the next VSync. This ensures we don't waste any cycles rendering
         // frames that will never be displayed to the screen.
-        hr = m_pSwapChain->Present(1, 0);
+        hr = mpSwapChain->Present(1, 0);
     }
 
     // If the device was removed either by a disconnection or a driver upgrade, we
     // must recreate all device resources.
     if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
     {
-        #ifdef _DEBUG
+        #if defined(DEBUG)
         char buff[64] = {0};
-        sprintf_s(buff, "Device Lost on Present: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pDevice->GetDeviceRemovedReason() : hr);
+        sprintf_s(buff, "Device Lost on Present: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? mpDevice->GetDeviceRemovedReason() : hr);
         OutputDebugStringA(buff);
         #endif
 
@@ -553,7 +541,7 @@ void DeviceResources::Present()
     }
     else
     {
-        if (!m_pDXGIFactory->IsCurrent())
+        if (!mpDXGIFactory->IsCurrent())
         {
             // Output information is cached on the DXGI Factory. If it is stale we need to create a new factory.
             CreateFactory();
@@ -562,28 +550,145 @@ void DeviceResources::Present()
 
 }
 
-// Clears the backbuffer to a_BackgroundColor, taking into account MSAA
+// Clears the back buffer to a_BackgroundColor, taking into account MSAA
 void DeviceResources::Clear(const FLOAT* a_BackgroundColor)
 {
-    auto context = m_pContext.Get();
+    auto context = mpContext;
 
-    // Clear views
-    if (m_Options & c_EnableMSAA)
+    // Clear views @todo: Branch necessary?
+    if (OptionEnabled(DR_OPTIONS::DR_ENABLE_MSAA))
     {
-        context->ClearRenderTargetView(m_pMsaaRenderTargetView.Get(), a_BackgroundColor);
-        context->ClearDepthStencilView(m_pMsaaDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-        context->OMSetRenderTargets(1, m_pMsaaRenderTargetView.GetAddressOf(), m_pMsaaDepthStencilView.Get());
+        mpContext->ClearRenderTargetView(mpMSAARenderTargetView, a_BackgroundColor);
+        mpContext->ClearDepthStencilView(mpMSAADepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+        mpContext->OMSetRenderTargets(1, &mpMSAARenderTargetView, mpMSAADepthStencilView);
     }
     else
     {
-        context->ClearRenderTargetView(m_pRenderTargetView.Get(), a_BackgroundColor);
-        context->ClearDepthStencilView(m_pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-        context->OMSetRenderTargets(1, m_pRenderTargetView.GetAddressOf(), m_pDepthStencilView.Get());
+        mpContext->ClearRenderTargetView(mpRenderTargetView, a_BackgroundColor);
+        mpContext->ClearDepthStencilView(mpDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+        mpContext->OMSetRenderTargets(1, &mpRenderTargetView, mpDepthStencilView);
     }
     
     // Set the viewport
-    context->RSSetViewports(1, &m_ScreenViewport);
+    mpContext->RSSetViewports(1, &mViewportInfo);
 
+}
+
+#ifdef DEBUG
+void DeviceResources::ReportLiveDeviceObjects_d()
+{
+    mpDebugInterface->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL | D3D11_RLDO_IGNORE_INTERNAL);
+}
+#endif
+
+void DeviceResources::ReleaseAllComAndDumpLiveObjects()
+{
+    if (mpDepthStencilView)
+    {
+        mpDepthStencilView->Release();
+        mpDepthStencilView = nullptr;
+    }
+    if (mpRenderTargetView)
+    {
+        mpRenderTargetView->Release();
+        mpRenderTargetView = nullptr;
+    }
+    if (mpRenderTarget)
+    {
+        mpRenderTarget->Release();
+        mpRenderTarget = nullptr;
+    }
+    if (mpMSAADepthStencilView)
+    {
+        mpMSAADepthStencilView->Release();
+        mpMSAADepthStencilView = nullptr;
+    }
+    if (mpMSAARenderTarget)
+    {
+        mpMSAARenderTarget->Release();
+        mpMSAARenderTarget = nullptr;
+    }
+    if (mpMSAARenderTargetView)
+    {
+        mpMSAARenderTargetView->Release();
+        mpMSAARenderTargetView = nullptr;
+    }
+    if (mpDepthStencil)
+    {
+        mpDepthStencil->Release();
+        mpDepthStencil = nullptr;
+    }
+    if (mpSwapChain)
+    {
+        mpSwapChain->Release();
+        mpSwapChain = nullptr;
+    }
+    if (mpContext)
+    {
+        mpContext->ClearState();
+        mpContext->Flush();
+        mpContext->Release();
+        mpContext = nullptr;
+    }
+    if (mpDXGIFactory)
+    {
+        mpDXGIFactory->Release();
+        mpDXGIFactory = nullptr;
+    }
+    if (mpDevice)
+    {
+        mpDevice->Release();
+        mpDevice = nullptr;
+    }
+
+#if defined(DEBUG)
+    if (mpAnnotation)
+    {
+        mpAnnotation->Release();
+        mpAnnotation = nullptr;
+    }
+    if (mpDebugInterface)
+    {
+        ReportLiveDeviceObjects_d();
+        mpDebugInterface->Release();
+        mpDebugInterface = nullptr;
+    }
+#endif
+}
+
+DeviceResources::~DeviceResources()
+{
+    OutputDebugStringA("INFO: Shutting Down Rendering System...\n");
+    ReleaseAllComAndDumpLiveObjects();
+}
+
+// Re-creates all device resources: Just short of a fatal error
+void DeviceResources::HandleDeviceLost()
+{
+    // Let Game know by invoking callback
+    if (mpDeviceNotify)
+        mpDeviceNotify->OnDeviceLost();
+
+    // Delete all COM Objects
+    ReleaseAllComAndDumpLiveObjects();
+
+    // Recreate ALL device resources
+    CreateDeviceResources();
+    CreateWindowSizeDependentResources();
+
+    // Try to restore Game
+    if (mpDeviceNotify)
+        mpDeviceNotify->OnDeviceRestored();
+}
+
+void DeviceResources::GetHardwareAdapter(IDXGIAdapter1** ppAdapter)
+{
+    // TODO: implement later
+}
+
+void DeviceResources::UpdateColorSpace()
+{
+    // TODO: implement later
 }
 
 }

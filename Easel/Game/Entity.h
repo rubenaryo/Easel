@@ -20,21 +20,25 @@ namespace Game
 class Entity
 {
 public:
-    Entity(Mesh* pMesh);
-    Entity(Mesh* pMesh, Transform transform);
-    Entity() = delete;
+    Entity(const Mesh* pMesh);
+    Entity(const Mesh* pMesh, Transform transform);
     ~Entity() = default;
 
     // Call Mesh's draw, passing in the world matrix is done by the Renderer class
     void Draw(ID3D11DeviceContext* pContext);
 
     // Accessors
-    inline Mesh*    GetMesh() const;
-    Transform*      GetTransform();
+    inline const Mesh* GetMesh() const { return mpMesh; }
+    Transform*         GetTransform();
 private:
     // Entity information
-    Mesh*     mpMesh;
-    Transform mTransform;
+    const Mesh* mpMesh;
+    Transform   mTransform;
+
+public:
+    Entity()                            = delete;
+    Entity(Entity const&)               = delete;
+    Entity& operator=(Entity const&)    = delete;
 };
 
 }

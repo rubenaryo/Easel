@@ -22,8 +22,11 @@ Material::Material(VertexShader* a_pVS, PixelShader* a_pPS, cbMaterialParams* a_
 
 Material::Material(VertexShader* a_pVS, PixelShader* a_pPS, cbMaterialParams* a_pParams, Texture*const* a_Resources, uint32_t numResources)
 {
-    // Set material parameters
-    mParams = *a_pParams;
+    // Set material parameters if they exist
+    if (a_pParams)
+        mParams = *a_pParams;
+    else
+        mParams = {};
 
     // Set Shader fields
     mpVertexShader = a_pVS;

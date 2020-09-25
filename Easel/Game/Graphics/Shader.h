@@ -12,8 +12,6 @@ Description : Wrapper for Vertex/Pixel/other shader code
 #include <string>
 #include <unordered_map>
 
-#include <wrl/client.h> // ComPtr
-
 #include "COMException.h"
 #include "ThrowMacros.h"
 
@@ -81,7 +79,7 @@ public:
         if(slot > (UINT)ReservedRegisters::RR_MAX_INDEX) return false;
 
         ID3D11Buffer* buffer = mConstantBuffers[slot];
-
+        
         if(!buffer)
             return false;
 
@@ -92,7 +90,6 @@ public:
         context->Unmap(buffer, 0);
 
         if(FAILED(hr)) return false;
-
         return true;
     }
 
