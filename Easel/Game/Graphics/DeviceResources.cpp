@@ -33,13 +33,15 @@ DeviceResources::DeviceResources(
     mDepthBufferFormat (depthBufferFormat),
     mBackBufferCount   (backBufferCount),
     mMinFeatureLevel   (minFeatureLevel),
+    mPresentFlags      (0),
     mWindow            (nullptr),
     mFeatureLevel      (D3D_FEATURE_LEVEL_9_1),
     mOutputSize        ({0,0,1,1}),
     mColorSpaceType    (DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709),
     mDeviceOptions     (options),
     mMSAASampleCount   (4),
-    mpDeviceNotify     (nullptr)
+    mpDeviceNotify     (nullptr),
+    mpDebugInterface   (nullptr)
 {}
 
 // This initializes the following fields:
@@ -54,10 +56,6 @@ void DeviceResources::CreateDeviceResources()
     #endif
 
     CreateFactory();
-
-    // TODO: Check for Tearing Support
-    if (OptionEnabled(DR_OPTIONS::DR_ALLOW_TEARING))
-    {}
 
     // TODO: Disable HDR if we are on an OS that can't support FLIP swap effects
 
@@ -91,8 +89,6 @@ void DeviceResources::CreateDeviceResources()
 
     // POSSIBLE TODO: Get a hardware adapter
 
-    hr = E_FAIL;
-
     hr = D3D11CreateDevice(
         0,                        // pAdapter (IDXGIAdapter*): Using default adapter 
         D3D_DRIVER_TYPE_HARDWARE, // DriverType (D3D_DRIVER_TYPE): Always hardware for now
@@ -123,7 +119,7 @@ void DeviceResources::CreateDeviceResources()
         );
 
         if(SUCCEEDED(hr))
-        OutputDebugStringA("INFO: Falling back to using WARP\n");
+            OutputDebugStringA("INFO: Falling back to using WARP\n");
     }
 
     // Check for failure when creating device
@@ -155,10 +151,13 @@ void DeviceResources::CreateDeviceResources()
 
     
 #if defined(DEBUG)
+    // Populate User Defined Annotation Member
     hr = mpContext->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), reinterpret_cast<void**>(&mpAnnotation));
     if(FAILED(hr)) throw COM_EXCEPT(hr); //@note: Might be ok to let this fail, and just disable its behavior.
 
+    // Populate Debug Interface Member
     hr = mpDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&mpDebugInterface));
+
     // Query the D3D Info Queue Interface:
     if (SUCCEEDED(hr))
     {
@@ -296,10 +295,19 @@ void DeviceResources::CreateWindowSizeDependentResources()
         scDesc.SwapEffect = allowFlip ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_DISCARD;
         
         scDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-        scDesc.Flags = OptionEnabled(DR_OPTIONS::DR_ALLOW_TEARING) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
+
+        if (OptionEnabled(DR_OPTIONS::DR_ALLOW_TEARING))
+        {
+            scDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+            mPresentFlags = DXGI_PRESENT_ALLOW_TEARING;
+        }
 
         DXGI_SWAP_CHAIN_FULLSCREEN_DESC fsDesc = {};
         fsDesc.Windowed = TRUE;
+        fsDesc.RefreshRate.Numerator = 60;
+        fsDesc.RefreshRate.Denominator = 1;
+        fsDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+        fsDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 
         HRESULT hr = mpDXGIFactory->CreateSwapChainForHwnd(
             mpDevice,
@@ -514,18 +522,8 @@ void DeviceResources::Present()
         mpContext->ResolveSubresource(mpRenderTarget, 0, mpMSAARenderTarget, 0, mBackBufferFormat);
     }
 
-    if (OptionEnabled(DR_OPTIONS::DR_ALLOW_TEARING))
-    {
-        // Recommended to always use tearing if supported when using a sync interval of 0.
-        hr = mpSwapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
-    }
-    else
-    {
-        // The first argument instructs DXGI to block until VSync, putting the application
-        // to sleep until the next VSync. This ensures we don't waste any cycles rendering
-        // frames that will never be displayed to the screen.
-        hr = mpSwapChain->Present(1, 0);
-    }
+    // Recommended to always use tearing if supported when using a sync interval of 0.
+    hr = mpSwapChain->Present(0, mPresentFlags);
 
     // If the device was removed either by a disconnection or a driver upgrade, we
     // must recreate all device resources.

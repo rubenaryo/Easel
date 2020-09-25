@@ -29,7 +29,7 @@ namespace Game
 
 namespace Graphics {
 
-class Renderer final
+class Renderer
 {
 public:
     Renderer();

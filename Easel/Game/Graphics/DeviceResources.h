@@ -72,7 +72,7 @@ public:
     D3D11_VIEWPORT           GetScreenViewport()    const { return mViewportInfo;        }
     UINT                     GetBackBufferCount()   const { return mBackBufferCount;     }
     DXGI_COLOR_SPACE_TYPE    GetColorSpace()        const { return mColorSpaceType;      }
-    unsigned int             GetDeviceOptions()     const { return mDeviceOptions;             }
+    unsigned int             GetDeviceOptions()     const { return mDeviceOptions;       }
     RECT                     GetOutputSize()        const { return mOutputSize;          }
     HWND                     GetWindow()            const { return mWindow;              }
 
@@ -89,6 +89,7 @@ private:
     ID3D11Device*                mpDevice;
     ID3D11DeviceContext*         mpContext;
     IDXGISwapChain1*             mpSwapChain;
+    UINT                         mPresentFlags;
 
     ID3D11Texture2D*             mpRenderTarget;
     ID3D11Texture2D*             mpDepthStencil;
