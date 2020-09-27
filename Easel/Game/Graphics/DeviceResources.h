@@ -34,16 +34,16 @@ private:
         DR_ENABLE_MSAA   = 1 << 3
     };
     uint8_t mDeviceOptions;
-    inline bool OptionEnabled(DR_OPTIONS option) { return mDeviceOptions | (uint8_t)option; }
+    inline bool OptionEnabled(DR_OPTIONS option) { return mDeviceOptions & (uint8_t)option; }
 
 public:
 
     DeviceResources(
-        DXGI_FORMAT       backBufferFormat  = DXGI_FORMAT_B8G8R8A8_UNORM,
-        DXGI_FORMAT       depthBufferFormat = DXGI_FORMAT_D32_FLOAT,
+        DXGI_FORMAT       backBufferFormat  = DXGI_FORMAT_R8G8B8A8_UNORM,
+        DXGI_FORMAT       depthBufferFormat = DXGI_FORMAT_D24_UNORM_S8_UINT,
         UINT              backBufferCount   = 2,
         D3D_FEATURE_LEVEL minFeatureLevel   = D3D_FEATURE_LEVEL_10_0,
-        uint8_t           flags             = static_cast<uint8_t>(DR_OPTIONS::DR_FLIP_PRESENT) | static_cast<uint8_t>(DR_OPTIONS::DR_ENABLE_MSAA)
+        uint8_t           flags             = static_cast<uint8_t>(DR_OPTIONS::DR_FLIP_PRESENT)
     ) noexcept;
 
     virtual ~DeviceResources();
@@ -64,7 +64,7 @@ public:
     IDXGISwapChain*          GetSwapChain()         const { return mpSwapChain;          }
     D3D_FEATURE_LEVEL        GetDeviceFeatureLevel()const { return mFeatureLevel;        }
     ID3D11Texture2D*         GetRenderTarget()      const { return mpRenderTarget;       }
-    ID3D11Texture2D*         GetDepthStencil()      const { return mpDepthStencil;       }
+    ID3D11Texture2D*         GetDepthStencil()      const { return mpDepthStencilTex;       }
     ID3D11RenderTargetView*  GetRenderTargetView()  const { return mpRenderTargetView;   }
     ID3D11DepthStencilView*  GetDepthStencilView()  const { return mpDepthStencilView;   }
     DXGI_FORMAT              GetBackBufferFormat()  const { return mBackBufferFormat;    }
@@ -85,14 +85,14 @@ private:
 
 
     // Direct3D Objects (COM RefCounted)
-    IDXGIFactory2*               mpDXGIFactory;
+    IDXGIFactory*                mpDXGIFactory;
     ID3D11Device*                mpDevice;
     ID3D11DeviceContext*         mpContext;
-    IDXGISwapChain1*             mpSwapChain;
+    IDXGISwapChain*              mpSwapChain;
     UINT                         mPresentFlags;
 
     ID3D11Texture2D*             mpRenderTarget;
-    ID3D11Texture2D*             mpDepthStencil;
+    ID3D11Texture2D*             mpDepthStencilTex;
     ID3D11RenderTargetView*      mpRenderTargetView;
     ID3D11DepthStencilView*      mpDepthStencilView;
 

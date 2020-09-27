@@ -39,7 +39,7 @@ DeviceResources::DeviceResources(
     mOutputSize        ({0,0,1,1}),
     mColorSpaceType    (DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709),
     mDeviceOptions     (options),
-    mMSAASampleCount   (4),
+    mMSAASampleCount   (1),
     mpDeviceNotify     (nullptr),
     mpDebugInterface   (nullptr)
 {}
@@ -49,7 +49,7 @@ DeviceResources::DeviceResources(
 // - Context
 void DeviceResources::CreateDeviceResources()
 {
-    UINT createFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+    UINT createFlags = 0;
 
     #if defined(DEBUG)
     createFlags |= D3D11_CREATE_DEVICE_DEBUG;
@@ -59,8 +59,8 @@ void DeviceResources::CreateDeviceResources()
 
     // TODO: Disable HDR if we are on an OS that can't support FLIP swap effects
 
-    HRESULT hr = E_FAIL;
-    // Disable FLIP if the OS doesn't support it.
+    HRESULT hr;
+    // Disable FLIP if the OS doesn't support it. @note: This should probably be removed later, as non-flip is deprecated
     if (OptionEnabled(DR_OPTIONS::DR_FLIP_PRESENT))
     {
         IDXGIFactory4* factory4;
@@ -70,7 +70,7 @@ void DeviceResources::CreateDeviceResources()
             mDeviceOptions &= ~(uint8_t)DR_OPTIONS::DR_FLIP_PRESENT;
 
             #ifdef DEBUG
-            OutputDebugStringA("INFO: Flip swap effects not supported\n");
+            OutputDebugStringA("WARNING: Flip swap effects not supported\n");
             #endif
         }
     }
@@ -117,40 +117,38 @@ void DeviceResources::CreateDeviceResources()
             &mFeatureLevel,
             &mpContext
         );
-
-        if(SUCCEEDED(hr))
-            OutputDebugStringA("INFO: Falling back to using WARP\n");
+        
+        OutputDebugStringA("INFO: Falling back to using WARP\n");
     }
 
     // Check for failure when creating device
     if (FAILED(hr)) throw COM_EXCEPT(hr);
 
     // Check for MSAA Support
-    while (mMSAASampleCount > 1)
-    {
-        UINT levels = 0;
-        if (FAILED(mpDevice->CheckMultisampleQualityLevels(mBackBufferFormat, mMSAASampleCount, &levels)))
-            continue;
+	while (mMSAASampleCount > 1)
+	{
+		UINT levels = 0;
+		if (FAILED(mpDevice->CheckMultisampleQualityLevels(mBackBufferFormat, mMSAASampleCount, &levels)))
+			continue;
 
-        if (levels > 0)
-            break;
+		if (levels > 0)
+			break;
 
-        // Decrease Sample count by powers of two
-        mMSAASampleCount /= 2;
-    }
+		// Decrease Sample count by powers of two
+		mMSAASampleCount /= 2;
+	}
 
-    // MSAA not supported or not a power of two or too high
-    if (mMSAASampleCount < 2 || mMSAASampleCount % 2 || mMSAASampleCount > 16)
-    {
-        // Turn off MSAA support
-        mDeviceOptions &= ~(uint8_t)DR_OPTIONS::DR_ENABLE_MSAA;
+	// MSAA not supported or not a power of two or too high
+	if (mMSAASampleCount < 2 || mMSAASampleCount % 2 || mMSAASampleCount > 16)
+	{
+		// Turn off MSAA support
+		mDeviceOptions &= ~(uint8_t)DR_OPTIONS::DR_ENABLE_MSAA;
 
-        // Ensure Consistency of sample count
-        mMSAASampleCount = 1;
-    }
-
+		// Ensure Consistency of sample count
+		mMSAASampleCount = 1;
+	}
     
-#if defined(DEBUG)
+#if defined(DEBUG) // Create annotation and debug interface
     // Populate User Defined Annotation Member
     hr = mpContext->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), reinterpret_cast<void**>(&mpAnnotation));
     if(FAILED(hr)) throw COM_EXCEPT(hr); //@note: Might be ok to let this fail, and just disable its behavior.
@@ -208,6 +206,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
     // Clear current window dependent fields.
     mpContext->OMSetRenderTargets(0, NULL, NULL);  // Reset bound render targets
 
+    #pragma region Cleanup COM Objects
     if (mpRenderTargetView)
     {
         mpRenderTargetView->Release();
@@ -238,27 +237,28 @@ void DeviceResources::CreateWindowSizeDependentResources()
         mpRenderTarget->Release();
         mpRenderTarget = nullptr;
     }
-    if (mpDepthStencil)
+    if (mpDepthStencilTex)
     {
-        mpDepthStencil->Release();
-        mpDepthStencil = nullptr;
+        mpDepthStencilTex->Release();
+        mpDepthStencilTex = nullptr;
     }
     mpContext->Flush();
+    #pragma endregion
 
     // Find the height of the render target, using std::max to ensure neither dimension is 0
-    UINT bbWidth  = std::max<UINT>(static_cast<UINT>((mOutputSize.right - mOutputSize.left)), 1U);
-    UINT bbHeight = std::max<UINT>(static_cast<UINT>((mOutputSize.bottom - mOutputSize.top)), 1U);
-    DXGI_FORMAT bbFormat = mBackBufferFormat;
+    UINT backBufferWidth  = std::max<UINT>(static_cast<UINT>((mOutputSize.right - mOutputSize.left)), 1U);
+    UINT backBufferHeight = std::max<UINT>(static_cast<UINT>((mOutputSize.bottom - mOutputSize.top)), 1U);
+    DXGI_FORMAT backBufferFormat = mBackBufferFormat;
 
+    HRESULT hr;
     if (mpSwapChain)
     {
-        // Resize an already existing swap chain
-        HRESULT hr;
+        // Resize an existing swap chain
         hr = mpSwapChain->ResizeBuffers(
             mBackBufferCount,
-            bbWidth,
-            bbHeight,
-            bbFormat,
+            backBufferWidth,
+            backBufferHeight,
+            backBufferFormat,
             OptionEnabled(DR_OPTIONS::DR_ALLOW_TEARING) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0
         );
 
@@ -273,51 +273,51 @@ void DeviceResources::CreateWindowSizeDependentResources()
 
             return;
         }
-        else
+        else if (FAILED(hr))
         {
-            if (FAILED(hr)) throw COM_EXCEPT(hr);
+             throw COM_EXCEPT(hr);
         }
     }
     else // Create a new swap chain
     {
-        // Fill out the necessary descriptor structures
-        DXGI_SWAP_CHAIN_DESC1 scDesc = {};
-        scDesc.Width = bbWidth;
-        scDesc.Height = bbHeight;
-        scDesc.Format = bbFormat;
-        scDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        scDesc.BufferCount = mBackBufferCount;
-        scDesc.SampleDesc.Count   = 1;
-        scDesc.SampleDesc.Quality = 0;
-        scDesc.Scaling = DXGI_SCALING_STRETCH;
-        
-        uint8_t allowFlip = mDeviceOptions & ((uint8_t)DR_OPTIONS::DR_FLIP_PRESENT | (uint8_t)DR_OPTIONS::DR_ALLOW_TEARING | (uint8_t)DR_OPTIONS::DR_ENABLE_HDR);
-        scDesc.SwapEffect = allowFlip ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_DISCARD;
-        
-        scDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
+        // Swap Chain Creation:
+        // - Hardcoded 60Hz
+        // - Blt (non-flip) effects conditionally supported. In the future, it may be better to outright disable this deprecated behavior.
+		DXGI_SWAP_CHAIN_DESC swapDesc = {};
+		swapDesc.BufferCount = 2;
+		swapDesc.BufferDesc.Width = backBufferWidth;
+		swapDesc.BufferDesc.Height = backBufferHeight;
+		swapDesc.BufferDesc.RefreshRate.Numerator = 60;
+		swapDesc.BufferDesc.RefreshRate.Denominator = 1;
+		swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		swapDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+		swapDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+		swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		swapDesc.Flags = 0;
+		swapDesc.OutputWindow = mWindow;
+        swapDesc.SwapEffect = OptionEnabled(DR_OPTIONS::DR_FLIP_PRESENT) ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_DISCARD;
+		swapDesc.SampleDesc.Count = 1;
+		swapDesc.SampleDesc.Quality = 0;
+		swapDesc.Windowed = true;
 
-        if (OptionEnabled(DR_OPTIONS::DR_ALLOW_TEARING))
+        // VSYNC check
+		if (OptionEnabled(DR_OPTIONS::DR_ALLOW_TEARING))
+		{
+            swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+			mPresentFlags = DXGI_PRESENT_ALLOW_TEARING;
+		}
+        else
         {
-            scDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-            mPresentFlags = DXGI_PRESENT_ALLOW_TEARING;
+			swapDesc.Flags = 0;
+			mPresentFlags = 0;
         }
 
-        DXGI_SWAP_CHAIN_FULLSCREEN_DESC fsDesc = {};
-        fsDesc.Windowed = TRUE;
-        fsDesc.RefreshRate.Numerator = 60;
-        fsDesc.RefreshRate.Denominator = 1;
-        fsDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-        fsDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-
-        HRESULT hr = mpDXGIFactory->CreateSwapChainForHwnd(
-            mpDevice,
-            mWindow,
-            &scDesc,
-            &fsDesc,
-            NULL,
-            &mpSwapChain
-        );
-        if (FAILED(hr)) throw COM_EXCEPT(hr);
+		hr = mpDXGIFactory->CreateSwapChain(
+			mpDevice,
+            &swapDesc,
+			&mpSwapChain
+		);
+		if (FAILED(hr)) throw COM_EXCEPT(hr);
 
         // Prevent Alt+Enter by monitoring the app message queue
         hr = mpDXGIFactory->MakeWindowAssociation(mWindow, DXGI_MWA_NO_ALT_ENTER);
@@ -335,41 +335,9 @@ void DeviceResources::CreateWindowSizeDependentResources()
         if (mpRenderTargetView) mpRenderTargetView->Release();
         hr = mpDevice->CreateRenderTargetView(
             mpRenderTarget,
-            &RTVD,
+            0,
             &mpRenderTargetView
         );
-        if (FAILED(hr)) throw COM_EXCEPT(hr);
-
-        // Create an MSAA Render Target
-        CD3D11_TEXTURE2D_DESC MsaaRTD(
-            mBackBufferFormat,
-            bbWidth,
-            bbHeight,
-            1, // The render target view has only one texture.
-            1, // Use a single mipmap level.
-            D3D11_BIND_RENDER_TARGET,
-            D3D11_USAGE_DEFAULT,
-            0,
-            mMSAASampleCount
-        );
-
-        if (mpMSAARenderTarget) mpMSAARenderTarget->Release();
-        hr = mpDevice->CreateTexture2D(
-             &MsaaRTD,
-             nullptr,
-             &mpMSAARenderTarget);
-
-        if (FAILED(hr)) throw COM_EXCEPT(hr);
-
-        // Create a new MSAA Render Target View Description
-        CD3D11_RENDER_TARGET_VIEW_DESC MsaaRTVD(D3D11_RTV_DIMENSION_TEXTURE2DMS, mBackBufferFormat);
-
-        // Create an MSAA Render Target View from this Description, holding it as a member variable
-        if (mpMSAARenderTargetView) mpMSAARenderTargetView->Release();
-        hr = mpDevice->CreateRenderTargetView(
-             mpMSAARenderTarget,
-             &MsaaRTVD,
-             &mpMSAARenderTargetView);
         if (FAILED(hr)) throw COM_EXCEPT(hr);
 
         if (mDepthBufferFormat != DXGI_FORMAT_UNKNOWN)
@@ -377,69 +345,105 @@ void DeviceResources::CreateWindowSizeDependentResources()
             // Fill out descriptor to create Depth Stencil Buffer, holding onto it as a member
             CD3D11_TEXTURE2D_DESC depthStencilDesc(
                 mDepthBufferFormat,
-                bbWidth,
-                bbHeight,
+                backBufferWidth,
+                backBufferHeight,
                 1, // This depth stencil view has only one texture.
                 1, // Use a single mipmap level.
                 D3D11_BIND_DEPTH_STENCIL
             );
 
-            if (mpDepthStencil) mpDepthStencil->Release();
+            if (mpDepthStencilTex) mpDepthStencilTex->Release();
             hr = mpDevice->CreateTexture2D(
                 &depthStencilDesc,
                 nullptr,
-                &mpDepthStencil);
+                &mpDepthStencilTex);
             if (FAILED(hr)) throw COM_EXCEPT(hr);
 
             // Fill out descriptor to create Depth Stencil View, holding onto it as a member
             if (mpDepthStencilView) mpDepthStencilView->Release();
             CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D);
             hr = mpDevice->CreateDepthStencilView(
-                mpDepthStencil,
+                mpDepthStencilTex,
                 &depthStencilViewDesc,
                 &mpDepthStencilView
             );
             if (FAILED(hr)) throw COM_EXCEPT(hr);
 
-            // Do the same for MSAA
-            CD3D11_TEXTURE2D_DESC MsaaDSD(
-                mDepthBufferFormat,
-                bbWidth,
-                bbHeight,
-                1, // This depth stencil view has only one texture.
-                1, // Use a single mipmap level.
-                D3D11_BIND_DEPTH_STENCIL,
-                D3D11_USAGE_DEFAULT,
-                0,
-                mMSAASampleCount
-            );
+            #pragma region MSAA Stuff
+            if (OptionEnabled(DR_OPTIONS::DR_ENABLE_MSAA))
+            {
+				// Create an MSAA Render Target
+				CD3D11_TEXTURE2D_DESC MsaaRTD(
+					mBackBufferFormat,
+					backBufferWidth,
+					backBufferHeight,
+					1, // The render target view has only one texture.
+					1, // Use a single mipmap level.
+					D3D11_BIND_RENDER_TARGET,
+					D3D11_USAGE_DEFAULT,
+					0,
+					mMSAASampleCount
+				);
 
-            // fill temporary texture
-            ID3D11Texture2D* MsaaDepthStencil;
-            hr = mpDevice->CreateTexture2D(
-                &MsaaDSD,
-                nullptr,
-                &MsaaDepthStencil
-            );
-            if (FAILED(hr)) throw COM_EXCEPT(hr);
+				if (mpMSAARenderTarget) mpMSAARenderTarget->Release();
+				hr = mpDevice->CreateTexture2D(
+					&MsaaRTD,
+					nullptr,
+					&mpMSAARenderTarget);
 
-            // fill member MsaaDepthStencilView
-            if (mpMSAADepthStencilView) mpMSAADepthStencilView->Release();
-            hr = mpDevice->CreateDepthStencilView(
-                MsaaDepthStencil,
-                nullptr,
-                &mpMSAADepthStencilView
-            );
-            if (FAILED(hr)) throw COM_EXCEPT(hr);
-            MsaaDepthStencil->Release();
+				if (FAILED(hr)) throw COM_EXCEPT(hr);
+
+				// Create a new MSAA Render Target View Description
+				CD3D11_RENDER_TARGET_VIEW_DESC MsaaRTVD(D3D11_RTV_DIMENSION_TEXTURE2DMS, mBackBufferFormat);
+
+				// Create an MSAA Render Target View from this Description, holding it as a member variable
+				if (mpMSAARenderTargetView) mpMSAARenderTargetView->Release();
+				hr = mpDevice->CreateRenderTargetView(
+					mpMSAARenderTarget,
+					&MsaaRTVD,
+					&mpMSAARenderTargetView);
+				if (FAILED(hr)) throw COM_EXCEPT(hr);
+
+				CD3D11_TEXTURE2D_DESC MsaaDSD(
+					mDepthBufferFormat,
+					backBufferWidth,
+					backBufferHeight,
+					1, // This depth stencil view has only one texture.
+					1, // Use a single mipmap level.
+					D3D11_BIND_DEPTH_STENCIL,
+					D3D11_USAGE_DEFAULT,
+					0,
+					mMSAASampleCount
+				);
+
+				// fill temporary texture
+				ID3D11Texture2D* MsaaDepthStencil;
+				hr = mpDevice->CreateTexture2D(
+					&MsaaDSD,
+					nullptr,
+					&MsaaDepthStencil
+				);
+				if (FAILED(hr)) throw COM_EXCEPT(hr);
+
+				// fill member MsaaDepthStencilView
+				if (mpMSAADepthStencilView) mpMSAADepthStencilView->Release();
+				hr = mpDevice->CreateDepthStencilView(
+					MsaaDepthStencil,
+					nullptr,
+					&mpMSAADepthStencilView
+				);
+				if (FAILED(hr)) throw COM_EXCEPT(hr);
+				MsaaDepthStencil->Release();
+            }
+            #pragma endregion
         }
 
         // Set the 3D rendering viewport to target the entire window.
         mViewportInfo = CD3D11_VIEWPORT(
             0.0f,                           // TopLeft X Coord
             0.0f,                           // TopLeft Y Coord
-            static_cast<FLOAT>(bbWidth),    // Width
-            static_cast<FLOAT>(bbHeight),   // Height
+            static_cast<FLOAT>(backBufferWidth),    // Width
+            static_cast<FLOAT>(backBufferHeight),   // Height
             0.0f,                           // Min Depth
             1.0f                            // Max Depth
         );
@@ -537,32 +541,23 @@ void DeviceResources::Present()
 
         HandleDeviceLost();
     }
-    else
-    {
-        if (!mpDXGIFactory->IsCurrent())
-        {
-            // Output information is cached on the DXGI Factory. If it is stale we need to create a new factory.
-            CreateFactory();
-        }
-    }
-
 }
 
 // Clears the back buffer to a_BackgroundColor, taking into account MSAA
-void DeviceResources::Clear(const FLOAT* a_BackgroundColor)
+void DeviceResources::Clear(const FLOAT* backgroundColor)
 {
     auto context = mpContext;
 
     // Clear views @todo: Branch necessary?
     if (OptionEnabled(DR_OPTIONS::DR_ENABLE_MSAA))
     {
-        mpContext->ClearRenderTargetView(mpMSAARenderTargetView, a_BackgroundColor);
+        mpContext->ClearRenderTargetView(mpMSAARenderTargetView, backgroundColor);
         mpContext->ClearDepthStencilView(mpMSAADepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
         mpContext->OMSetRenderTargets(1, &mpMSAARenderTargetView, mpMSAADepthStencilView);
     }
     else
     {
-        mpContext->ClearRenderTargetView(mpRenderTargetView, a_BackgroundColor);
+        mpContext->ClearRenderTargetView(mpRenderTargetView, backgroundColor);
         mpContext->ClearDepthStencilView(mpDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
         mpContext->OMSetRenderTargets(1, &mpRenderTargetView, mpDepthStencilView);
     }
@@ -611,10 +606,10 @@ void DeviceResources::ReleaseAllComAndDumpLiveObjects()
         mpMSAARenderTargetView->Release();
         mpMSAARenderTargetView = nullptr;
     }
-    if (mpDepthStencil)
+    if (mpDepthStencilTex)
     {
-        mpDepthStencil->Release();
-        mpDepthStencil = nullptr;
+        mpDepthStencilTex->Release();
+        mpDepthStencilTex = nullptr;
     }
     if (mpSwapChain)
     {

@@ -134,6 +134,7 @@ void Renderer::Draw(ID3D11DeviceContext* context)
         }
     }
 
+    mpSkyRenderer->GetMaterial()->GetVertexShader()->SetBufferData(context, (UINT)ReservedRegisters::RR_VS_CAMERA, sizeof(cbCamera), &mCameraBuffer);
     mpSkyRenderer->Render(context);
 }
 

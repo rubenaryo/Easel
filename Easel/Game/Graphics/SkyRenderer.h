@@ -25,6 +25,7 @@ public:
     ~SkyRenderer();
 
     void Render(ID3D11DeviceContext* context) const;
+    const Material* GetMaterial() const { return mpSkyMaterial; }
 
 private:
     ID3D11RasterizerState*      mpRSState;
