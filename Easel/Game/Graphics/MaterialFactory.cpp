@@ -20,6 +20,10 @@ to be used with game objects
 #include <WICTextureLoader.h>
 #include <unordered_set>
 
+#if defined(DEBUG)
+#include <stdlib.h>
+#endif
+
 namespace Graphics {
 
 void MaterialFactory::Init(ID3D11Device* device, ID3D11DeviceContext* context)
@@ -97,13 +101,15 @@ void MaterialFactory::LoadTextures(ID3D11Device* device, ID3D11DeviceContext* co
         
         HRESULT hr = E_FAIL;
 
+        ID3D11Resource* dummy = nullptr;
+
         // Special Case: DDS Files (Cube maps with no mipmaps)
         if (TexExt == L"dds")
         {
             hr = DirectX::CreateDDSTextureFromFile(
                 device,
                 path.c_str(),
-                nullptr,
+                &dummy,
                 &pSRV);
         } 
         else // For most textures, use WIC with mipmaps
@@ -111,10 +117,12 @@ void MaterialFactory::LoadTextures(ID3D11Device* device, ID3D11DeviceContext* co
             hr = DirectX::CreateWICTextureFromFile(
                 device, context,    // Passing in the context auto generates mipmaps
                 path.c_str(),
-                nullptr,
+                &dummy,
                 &pSRV);
+            
         }
-
+        // Clean up Texture2D
+        dummy->Release();
         assert(!FAILED(hr));
 
         // Classify based on Letter following '_'
@@ -138,10 +146,28 @@ void MaterialFactory::LoadTextures(ID3D11Device* device, ID3D11DeviceContext* co
                 mTextures[TexName].push_back(new Texture(pSRV, type));
                 break;
             default:
-                OutputDebugStringW(L"INFO: Attempted to load a texture with an unrecognized type\n");
+
+                #if defined(DEBUG)
+                std::wstring debugMsg = L"INFO: Attempted to load a texture with an unrecognized type: ";
+                debugMsg.append(name.c_str());
+                OutputDebugStringW(debugMsg.append(L"\n").c_str());
+                #endif
+
                 pSRV->Release(); // The SRV is still created, so it must be released
+                pSRV = nullptr;
                 break;
         }
+
+        #if defined(DEBUG)
+        if (pSRV)
+        {
+            size_t byteSize;
+            static char texDebugName[64];
+            wcstombs_s(&byteSize, texDebugName, name.c_str(), name.size());
+			hr = pSRV->SetPrivateData(WKPDID_D3DDebugObjectName, byteSize, texDebugName);
+			if (FAILED(hr)) throw COM_EXCEPT(hr);
+        }
+        #endif
     }
 }
 

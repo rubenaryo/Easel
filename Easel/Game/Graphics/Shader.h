@@ -15,6 +15,10 @@ Description : Wrapper for Vertex/Pixel/other shader code
 #include "COMException.h"
 #include "ThrowMacros.h"
 
+#if defined(DEBUG)
+#include <typeinfo>
+#endif
+
 namespace Graphics
 {
 class Texture;
@@ -140,6 +144,14 @@ private:
 
             // Store in contiguous list
             mConstantBuffers[slot] = rawBuffer;
+
+			#if defined(DEBUG)
+            static char nameBuf[256];
+            ZeroMemory(nameBuf, 256 * sizeof(char));
+            sprintf_s(nameBuf, "%s_%s", typeid(ShaderType).name(), "cbuffer");
+			hr = mConstantBuffers[slot]->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(nameBuf) - 1, nameBuf);
+			if (FAILED(hr)) throw COM_EXCEPT(hr);
+			#endif
         }
     }
 

@@ -40,8 +40,10 @@ DeviceResources::DeviceResources(
     mColorSpaceType    (DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709),
     mDeviceOptions     (options),
     mMSAASampleCount   (1),
-    mpDeviceNotify     (nullptr),
-    mpDebugInterface   (nullptr)
+    mpDeviceNotify     (nullptr)
+    #if defined(DEBUG)
+    ,mpDebugInterface   (nullptr)
+    #endif
 {}
 
 // This initializes the following fields:
@@ -118,7 +120,9 @@ void DeviceResources::CreateDeviceResources()
             &mpContext
         );
         
+        #if defined(DEBUG)
         OutputDebugStringA("INFO: Falling back to using WARP\n");
+        #endif
     }
 
     // Check for failure when creating device
@@ -176,6 +180,13 @@ void DeviceResources::CreateDeviceResources()
             d3dInfoQueue->Release();
         }
     }
+
+	static const char deviceName[] = "DR_Device";
+	hr = mpDevice->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(deviceName) - 1, deviceName);
+
+	if (FAILED(hr)) throw COM_EXCEPT(hr);
+
+
 #endif
 }
 
@@ -264,9 +275,11 @@ void DeviceResources::CreateWindowSizeDependentResources()
 
         if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
         {
+            #if defined(DEBUG)
             char buf[256];
             sprintf_s(buf, "Device Lost on Resize Buffers: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? mpDevice->GetDeviceRemovedReason() : hr);
             OutputDebugStringA(buf);
+            #endif
 
             // A new device and swapchain need to be created
             HandleDeviceLost();
@@ -534,9 +547,10 @@ void DeviceResources::Present()
     if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
     {
         #if defined(DEBUG)
-        char buff[64] = {0};
-        sprintf_s(buff, "Device Lost on Present: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? mpDevice->GetDeviceRemovedReason() : hr);
-        OutputDebugStringA(buff);
+        static char buf[64];
+        ZeroMemory(buf, 64);
+        sprintf_s(buf, "Device Lost on Present: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? mpDevice->GetDeviceRemovedReason() : hr);
+        OutputDebugStringA(buf);
         #endif
 
         HandleDeviceLost();
@@ -618,8 +632,8 @@ void DeviceResources::ReleaseAllComAndDumpLiveObjects()
     }
     if (mpContext)
     {
-        mpContext->ClearState();
-        mpContext->Flush();
+		mpContext->ClearState();
+		mpContext->Flush();
         mpContext->Release();
         mpContext = nullptr;
     }
@@ -651,7 +665,9 @@ void DeviceResources::ReleaseAllComAndDumpLiveObjects()
 
 DeviceResources::~DeviceResources()
 {
+    #if defined(DEBUG)
     OutputDebugStringA("INFO: Shutting Down Rendering System...\n");
+    #endif
     ReleaseAllComAndDumpLiveObjects();
 }
 

@@ -38,16 +38,20 @@ void ShaderFactory::Init(ID3D11Device* device)
             {
                 AddShader(name, ShaderType::PIXEL, device);
             }
+            #if defined(DEBUG)
             else // Neither, throw warning
             {
-                OutputDebugStringW(L"INFO: Attempted to load non-supported .cso file, doing nothing.\n");
+                OutputDebugStringA("INFO: Attempted to load non-supported .cso file, doing nothing.\n");
             }
+            #endif
         }
+        #if defined(DEBUG)
         else // Not a .cso file, throw warning
         {
             std::wstring errorMsg = L"WARNING: Invalid File Format found in " + entry.path().generic_wstring() + L"\n";
             OutputDebugStringW(errorMsg.c_str());
         }
+        #endif
     }
 }
 
