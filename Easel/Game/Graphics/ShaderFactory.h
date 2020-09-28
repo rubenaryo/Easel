@@ -7,12 +7,19 @@ distribution of shaders across the program.
 #ifndef SHADERFACTORY_H
 #define SHADERFACTORY_H
 
-#include "../../System/PathMacros.h"
 #include "DXCore.h"
-#include "Shader.h"
+
+#include "../../System/PathMacros.h"
+
 #include <vector>
 #include <unordered_map>
 #include <string>
+
+namespace Graphics
+{
+class VertexShader;
+class PixelShader;
+}
 
 namespace Graphics {
 

@@ -6,6 +6,8 @@ Description : Handles the rendering of the sky backdrop
 #include "SkyRenderer.h"
 
 #include "Material.h"
+#include "ThrowMacros.h"
+
 #include "../Mesh.h"
 
 namespace Graphics {

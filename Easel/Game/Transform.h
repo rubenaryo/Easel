@@ -5,6 +5,7 @@ Description : Transform class for game objects
 ----------------------------------------------*/
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
+
 #include "Graphics/DXCore.h"
 
 namespace Game {

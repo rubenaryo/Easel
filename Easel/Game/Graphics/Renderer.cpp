@@ -10,8 +10,10 @@ Description : Implementation of Renderer class
 #include "DeviceResources.h"
 #include "Material.h"
 #include "MaterialFactory.h"
+#include "Shader.h"
 #include "ShaderFactory.h"
 #include "SkyRenderer.h"
+#include "ThrowMacros.h"
 
 #include "../Entity.h"
 #include "../Mesh.h"

@@ -5,7 +5,12 @@ Description : Implementation of Game.h
 ----------------------------------------------*/
 #include "Game.h"
 
+#include "Graphics/Camera.h"
 #include "Graphics/COMException.h"
+#include "Graphics/LightingManager.h"
+#include "Graphics/Renderer.h"
+
+#include "Input/GameInput.h"
 
 namespace Game {
 
@@ -109,6 +114,7 @@ void Game::CreateDeviceDependentResources()
 
 void Game::CreateWindowSizeDependentResources(int newWidth, int newHeight)
 {
+    mpDeviceResources->WindowSizeChanged(newWidth, newHeight);
     float aspectRatio = (float)newWidth / (float)newHeight;
     mpCamera->UpdateProjection(aspectRatio);
 }

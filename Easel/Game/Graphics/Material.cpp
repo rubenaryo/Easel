@@ -5,6 +5,9 @@ Description : Material class for shader information
 ----------------------------------------------*/
 #include "Material.h"
 
+#include "Shader.h"
+#include "Texture.h"
+
 namespace Graphics {
 
 Material::Material(VertexShader* a_pVS, PixelShader* a_pPS, cbMaterialParams* a_pParams)
@@ -33,7 +36,7 @@ Material::Material(VertexShader* a_pVS, PixelShader* a_pPS, cbMaterialParams* a_
     mpPixelShader  = a_pPS;
 
     // Copy over resource pointers
-    mResources     = new Texture*[numResources];
+    mResources = new Texture*[numResources];
     memcpy(mResources, a_Resources, sizeof(Texture*) * numResources);
     mResourceCount = numResources;
 }

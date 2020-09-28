@@ -7,13 +7,23 @@ This class encapsulates all app functionality
 #ifndef GAME_H
 #define GAME_H
 
-#include "Graphics/LightingManager.h"
-#include "Graphics/Renderer.h"
-#include "Input/GameInput.h"
-#include "Graphics/Camera.h"
 #include "StepTimer.h"
+
 #include "Graphics/DeviceResources.h"
+
 #include <memory>
+
+namespace Graphics
+{
+class Camera;
+class LightingManager;
+class Renderer;
+}
+
+namespace Input
+{
+class GameInput;
+}
 
 namespace Game {
 class Game final : public Graphics::IDeviceNotify

@@ -38,7 +38,7 @@ DeviceResources::DeviceResources(
     mOutputSize        ({0,0,1,1}),
     mColorSpaceType    (DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709),
     mDeviceOptions     (options),
-    mMSAASampleCount   (1),
+    mMSAASampleCount   (4),
     mpDeviceNotify     (nullptr)
     #if defined(DEBUG)
     ,mpDebugInterface   (nullptr)

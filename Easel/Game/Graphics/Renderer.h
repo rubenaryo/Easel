@@ -8,6 +8,7 @@ Description : Manager-level class for intelligently binding and drawing objects
 
 #include "CBufferStructs.h"
 #include "DXCore.h"
+
 #include <memory>
 #include <string>
 #include <unordered_map>

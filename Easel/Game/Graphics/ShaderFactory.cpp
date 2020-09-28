@@ -4,9 +4,13 @@ Date : 2020/3
 Description : Implementation of ShaderFactory.h
 ----------------------------------------------*/
 #include "ShaderFactory.h"
+
+#include "../../System/PathMacros.h"
+#include "Shader.h"
+
 #include <stdexcept>
 #include <filesystem>
-#include "../../System/PathMacros.h"
+
 
 namespace Graphics {
 

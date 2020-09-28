@@ -7,12 +7,18 @@ Description : Material class for shader information
 #define MATERIAL_H
 
 #include "DXCore.h"
-#include "Shader.h"
-#include "Texture.h"
 #include "ConstantBuffer.h"
 #include "CBufferStructs.h"
 #include "IBindable.h"
+
 #include <vector>
+
+namespace Graphics
+{
+class VertexShader;
+class PixelShader;
+class Texture;
+}
 
 namespace Graphics {
 
