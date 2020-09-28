@@ -7,7 +7,6 @@ Description : Implementation of Renderer class
 
 #include "Camera.h"
 #include "CBufferStructs.h"
-#include "COMException.h"
 #include "DeviceResources.h"
 #include "Material.h"
 #include "MaterialFactory.h"

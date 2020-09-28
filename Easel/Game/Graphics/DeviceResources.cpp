@@ -8,7 +8,6 @@ Description : Implementation of DeviceResources.h
 ----------------------------------------------*/
 #include "DeviceResources.h"
 
-#include "COMException.h" 
 #include "ThrowMacros.h"
 
 #include <stdexcept> // std::exception, std::out_of_range

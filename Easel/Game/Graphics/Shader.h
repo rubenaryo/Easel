@@ -12,7 +12,6 @@ Description : Wrapper for Vertex/Pixel/other shader code
 #include <string>
 #include <unordered_map>
 
-#include "COMException.h"
 #include "ThrowMacros.h"
 
 #if defined(DEBUG)

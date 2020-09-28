@@ -9,7 +9,6 @@ Description : Mesh functionality
 #include <vector>
 #include "../System/PathMacros.h"
 
-#include "Graphics/COMException.h"
 #include "Graphics/ThrowMacros.h"
 
 namespace Game {

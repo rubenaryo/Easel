@@ -10,9 +10,7 @@ to be used with game objects
 #include "ShaderFactory.h"
 #include "Texture.h"
 
-#include "COMException.h"
 #include "ThrowMacros.h"
-#include "../../System/PathMacros.h"
 
 #include <exception>
 #include <filesystem>

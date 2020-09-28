@@ -10,7 +10,6 @@ Description : Implementation of Shader wrapper
 
 #if defined(DEBUG)
 #include "DXCore.h"
-#include "COMException.h"
 #include "ThrowMacros.h"
 #endif
 

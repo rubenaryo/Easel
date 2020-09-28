@@ -7,6 +7,7 @@ helper macros for reaching certain paths
 #ifndef THROWMACROS_H
 #define THROWMACROS_H
 
+#include "COMException.h"
 #include "../../System/PathMacros.h"
 
 // helper macro for throwing COM Exceptions 
