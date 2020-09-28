@@ -128,28 +128,28 @@ void DeviceResources::CreateDeviceResources()
     if (FAILED(hr)) throw COM_EXCEPT(hr);
 
     // Check for MSAA Support
-	while (mMSAASampleCount > 1)
-	{
-		UINT levels = 0;
-		if (FAILED(mpDevice->CheckMultisampleQualityLevels(mBackBufferFormat, mMSAASampleCount, &levels)))
-			continue;
+    while (mMSAASampleCount > 1)
+    {
+        UINT levels = 0;
+        if (FAILED(mpDevice->CheckMultisampleQualityLevels(mBackBufferFormat, mMSAASampleCount, &levels)))
+            continue;
 
-		if (levels > 0)
-			break;
+        if (levels > 0)
+            break;
 
-		// Decrease Sample count by powers of two
-		mMSAASampleCount /= 2;
-	}
+        // Decrease Sample count by powers of two
+        mMSAASampleCount /= 2;
+    }
 
-	// MSAA not supported or not a power of two or too high
-	if (mMSAASampleCount < 2 || mMSAASampleCount % 2 || mMSAASampleCount > 16)
-	{
-		// Turn off MSAA support
-		mDeviceOptions &= ~(uint8_t)DR_OPTIONS::DR_ENABLE_MSAA;
+    // MSAA not supported or not a power of two or too high
+    if (mMSAASampleCount < 2 || mMSAASampleCount % 2 || mMSAASampleCount > 16)
+    {
+        // Turn off MSAA support
+        mDeviceOptions &= ~(uint8_t)DR_OPTIONS::DR_ENABLE_MSAA;
 
-		// Ensure Consistency of sample count
-		mMSAASampleCount = 1;
-	}
+        // Ensure Consistency of sample count
+        mMSAASampleCount = 1;
+    }
     
 #if defined(DEBUG) // Create annotation and debug interface
     // Populate User Defined Annotation Member
@@ -180,10 +180,10 @@ void DeviceResources::CreateDeviceResources()
         }
     }
 
-	static const char deviceName[] = "DR_Device";
-	hr = mpDevice->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(deviceName) - 1, deviceName);
+    static const char deviceName[] = "DR_Device";
+    hr = mpDevice->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(deviceName) - 1, deviceName);
 
-	if (FAILED(hr)) throw COM_EXCEPT(hr);
+    if (FAILED(hr)) throw COM_EXCEPT(hr);
 
 
 #endif
@@ -295,46 +295,63 @@ void DeviceResources::CreateWindowSizeDependentResources()
         // Swap Chain Creation:
         // - Hardcoded 60Hz
         // - Blt (non-flip) effects conditionally supported. In the future, it may be better to outright disable this deprecated behavior.
-		DXGI_SWAP_CHAIN_DESC swapDesc = {};
-		swapDesc.BufferCount = 2;
-		swapDesc.BufferDesc.Width = backBufferWidth;
-		swapDesc.BufferDesc.Height = backBufferHeight;
-		swapDesc.BufferDesc.RefreshRate.Numerator = 60;
-		swapDesc.BufferDesc.RefreshRate.Denominator = 1;
-		swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		swapDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-		swapDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-		swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		swapDesc.Flags = 0;
-		swapDesc.OutputWindow = mWindow;
+        DXGI_SWAP_CHAIN_DESC swapDesc = {};
+        swapDesc.BufferCount = 2;
+        swapDesc.BufferDesc.Width = backBufferWidth;
+        swapDesc.BufferDesc.Height = backBufferHeight;
+        swapDesc.BufferDesc.RefreshRate.Numerator = 60;
+        swapDesc.BufferDesc.RefreshRate.Denominator = 1;
+        swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        swapDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+        swapDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+        swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        swapDesc.Flags = 0;
+        swapDesc.OutputWindow = mWindow;
         swapDesc.SwapEffect = OptionEnabled(DR_OPTIONS::DR_FLIP_PRESENT) ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_DISCARD;
-		swapDesc.SampleDesc.Count = 1;
-		swapDesc.SampleDesc.Quality = 0;
-		swapDesc.Windowed = true;
+        swapDesc.SampleDesc.Count = 1;
+        swapDesc.SampleDesc.Quality = 0;
+        swapDesc.Windowed = true;
 
         // VSYNC check
-		if (OptionEnabled(DR_OPTIONS::DR_ALLOW_TEARING))
-		{
+        if (OptionEnabled(DR_OPTIONS::DR_ALLOW_TEARING))
+        {
             swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-			mPresentFlags = DXGI_PRESENT_ALLOW_TEARING;
-		}
+            mPresentFlags = DXGI_PRESENT_ALLOW_TEARING;
+        }
         else
         {
-			swapDesc.Flags = 0;
-			mPresentFlags = 0;
+            swapDesc.Flags = 0;
+            mPresentFlags = 0;
         }
 
-		hr = mpDXGIFactory->CreateSwapChain(
-			mpDevice,
+        hr = mpDXGIFactory->CreateSwapChain(
+            mpDevice,
             &swapDesc,
-			&mpSwapChain
-		);
-		if (FAILED(hr)) throw COM_EXCEPT(hr);
-
-        // Prevent Alt+Enter by monitoring the app message queue
-        hr = mpDXGIFactory->MakeWindowAssociation(mWindow, DXGI_MWA_NO_ALT_ENTER);
+            &mpSwapChain
+        );
         if (FAILED(hr)) throw COM_EXCEPT(hr);
-    
+
+        #pragma region Prevent Alt+Enter by monitoring the app message queue 
+        // Get correct IDXGIFactory
+        IDXGIDevice* pDXGIDevice;
+        hr = mpDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&pDXGIDevice);
+        if (FAILED(hr)) throw COM_EXCEPT(hr);
+        IDXGIAdapter* pDXGIAdapter;
+        hr = pDXGIDevice->GetParent(__uuidof(IDXGIAdapter), (void**)&pDXGIAdapter);
+        if (FAILED(hr)) throw COM_EXCEPT(hr);
+        IDXGIFactory* pIDXGIFactory;
+        hr = pDXGIAdapter->GetParent(__uuidof(IDXGIFactory), (void**)&pIDXGIFactory);
+        if (FAILED(hr)) throw COM_EXCEPT(hr);
+
+        // Make the window association
+        hr = pIDXGIFactory->MakeWindowAssociation(mWindow, DXGI_MWA_NO_WINDOW_CHANGES);
+        if (FAILED(hr)) throw COM_EXCEPT(hr);
+
+        pIDXGIFactory->Release();
+        pDXGIAdapter->Release();
+        pDXGIDevice->Release();
+        #pragma endregion
+
         // Create a Render Target of the SC Back Buffer
         if (mpRenderTarget) mpRenderTarget->Release();
         hr = mpSwapChain->GetBuffer(0, IID_PPV_ARGS(&mpRenderTarget));
@@ -384,68 +401,68 @@ void DeviceResources::CreateWindowSizeDependentResources()
             #pragma region MSAA Stuff
             if (OptionEnabled(DR_OPTIONS::DR_ENABLE_MSAA))
             {
-				// Create an MSAA Render Target
-				CD3D11_TEXTURE2D_DESC MsaaRTD(
-					mBackBufferFormat,
-					backBufferWidth,
-					backBufferHeight,
-					1, // The render target view has only one texture.
-					1, // Use a single mipmap level.
-					D3D11_BIND_RENDER_TARGET,
-					D3D11_USAGE_DEFAULT,
-					0,
-					mMSAASampleCount
-				);
+                // Create an MSAA Render Target
+                CD3D11_TEXTURE2D_DESC MsaaRTD(
+                    mBackBufferFormat,
+                    backBufferWidth,
+                    backBufferHeight,
+                    1, // The render target view has only one texture.
+                    1, // Use a single mipmap level.
+                    D3D11_BIND_RENDER_TARGET,
+                    D3D11_USAGE_DEFAULT,
+                    0,
+                    mMSAASampleCount
+                );
 
-				if (mpMSAARenderTarget) mpMSAARenderTarget->Release();
-				hr = mpDevice->CreateTexture2D(
-					&MsaaRTD,
-					nullptr,
-					&mpMSAARenderTarget);
+                if (mpMSAARenderTarget) mpMSAARenderTarget->Release();
+                hr = mpDevice->CreateTexture2D(
+                    &MsaaRTD,
+                    nullptr,
+                    &mpMSAARenderTarget);
 
-				if (FAILED(hr)) throw COM_EXCEPT(hr);
+                if (FAILED(hr)) throw COM_EXCEPT(hr);
 
-				// Create a new MSAA Render Target View Description
-				CD3D11_RENDER_TARGET_VIEW_DESC MsaaRTVD(D3D11_RTV_DIMENSION_TEXTURE2DMS, mBackBufferFormat);
+                // Create a new MSAA Render Target View Description
+                CD3D11_RENDER_TARGET_VIEW_DESC MsaaRTVD(D3D11_RTV_DIMENSION_TEXTURE2DMS, mBackBufferFormat);
 
-				// Create an MSAA Render Target View from this Description, holding it as a member variable
-				if (mpMSAARenderTargetView) mpMSAARenderTargetView->Release();
-				hr = mpDevice->CreateRenderTargetView(
-					mpMSAARenderTarget,
-					&MsaaRTVD,
-					&mpMSAARenderTargetView);
-				if (FAILED(hr)) throw COM_EXCEPT(hr);
+                // Create an MSAA Render Target View from this Description, holding it as a member variable
+                if (mpMSAARenderTargetView) mpMSAARenderTargetView->Release();
+                hr = mpDevice->CreateRenderTargetView(
+                    mpMSAARenderTarget,
+                    &MsaaRTVD,
+                    &mpMSAARenderTargetView);
+                if (FAILED(hr)) throw COM_EXCEPT(hr);
 
-				CD3D11_TEXTURE2D_DESC MsaaDSD(
-					mDepthBufferFormat,
-					backBufferWidth,
-					backBufferHeight,
-					1, // This depth stencil view has only one texture.
-					1, // Use a single mipmap level.
-					D3D11_BIND_DEPTH_STENCIL,
-					D3D11_USAGE_DEFAULT,
-					0,
-					mMSAASampleCount
-				);
+                CD3D11_TEXTURE2D_DESC MsaaDSD(
+                    mDepthBufferFormat,
+                    backBufferWidth,
+                    backBufferHeight,
+                    1, // This depth stencil view has only one texture.
+                    1, // Use a single mipmap level.
+                    D3D11_BIND_DEPTH_STENCIL,
+                    D3D11_USAGE_DEFAULT,
+                    0,
+                    mMSAASampleCount
+                );
 
-				// fill temporary texture
-				ID3D11Texture2D* MsaaDepthStencil;
-				hr = mpDevice->CreateTexture2D(
-					&MsaaDSD,
-					nullptr,
-					&MsaaDepthStencil
-				);
-				if (FAILED(hr)) throw COM_EXCEPT(hr);
+                // fill temporary texture
+                ID3D11Texture2D* MsaaDepthStencil;
+                hr = mpDevice->CreateTexture2D(
+                    &MsaaDSD,
+                    nullptr,
+                    &MsaaDepthStencil
+                );
+                if (FAILED(hr)) throw COM_EXCEPT(hr);
 
-				// fill member MsaaDepthStencilView
-				if (mpMSAADepthStencilView) mpMSAADepthStencilView->Release();
-				hr = mpDevice->CreateDepthStencilView(
-					MsaaDepthStencil,
-					nullptr,
-					&mpMSAADepthStencilView
-				);
-				if (FAILED(hr)) throw COM_EXCEPT(hr);
-				MsaaDepthStencil->Release();
+                // fill member MsaaDepthStencilView
+                if (mpMSAADepthStencilView) mpMSAADepthStencilView->Release();
+                hr = mpDevice->CreateDepthStencilView(
+                    MsaaDepthStencil,
+                    nullptr,
+                    &mpMSAADepthStencilView
+                );
+                if (FAILED(hr)) throw COM_EXCEPT(hr);
+                MsaaDepthStencil->Release();
             }
             #pragma endregion
         }
@@ -577,7 +594,6 @@ void DeviceResources::Clear(const FLOAT* backgroundColor)
     
     // Set the viewport
     mpContext->RSSetViewports(1, &mViewportInfo);
-
 }
 
 #ifdef DEBUG
@@ -631,8 +647,8 @@ void DeviceResources::ReleaseAllComAndDumpLiveObjects()
     }
     if (mpContext)
     {
-		mpContext->ClearState();
-		mpContext->Flush();
+        mpContext->ClearState();
+        mpContext->Flush();
         mpContext->Release();
         mpContext = nullptr;
     }
