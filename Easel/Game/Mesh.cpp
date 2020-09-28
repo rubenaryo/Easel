@@ -41,7 +41,20 @@ Mesh::Mesh(const std::string& fileName, ID3D11Device* pDevice)
         char buf[256];
         sprintf_s(buf, "Error parsing '%s': '%s'\n", fileName.c_str(), Importer.GetErrorString());
         throw std::exception(buf);
+        return;
     }
+
+
+	#if defined(DEBUG)
+	static const char vbDebug[] = "_VertexBuffer";
+	static const char ibDebug[] = "_IndexBuffer";
+    std::string debugName = fileName + vbDebug;
+	HRESULT hr = mpVertexBuffer->SetPrivateData(WKPDID_D3DDebugObjectName, debugName.size(), debugName.c_str());
+	if (FAILED(hr)) throw COM_EXCEPT(hr);
+    debugName = fileName + ibDebug;
+	hr = mpIndexBuffer->SetPrivateData(WKPDID_D3DDebugObjectName, debugName.size(), debugName.c_str());
+	if (FAILED(hr)) throw COM_EXCEPT(hr);
+	#endif
 }
 
 // Loads imports the model data passed in by an Assimp scene into 
@@ -82,7 +95,7 @@ void Mesh::LoadSceneInfo(const aiScene* pScene, ID3D11Device* pDevice)
             v.normal    = DirectX::XMFLOAT3(normal.x, normal.y, normal.z);
             v.uv        = DirectX::XMFLOAT2(texCoord.x, texCoord.y);
             v.tangent   = DirectX::XMFLOAT3(tangent.x, tangent.y, tangent.z);
-            v.binormal = DirectX::XMFLOAT3(bitangent.x, bitangent.y, bitangent.z);
+            v.binormal  = DirectX::XMFLOAT3(bitangent.x, bitangent.y, bitangent.z);
 
             vertices.push_back(v);
         }
