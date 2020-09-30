@@ -6,6 +6,7 @@ Description : Interface for custom COM Exception reporting
 #ifndef COMEXCEPTION_H
 #define COMEXCEPTION_H
 
+#if defined(DEBUG)
 #include <windows.h>
 #include <winbase.h>
 #include <string>
@@ -14,6 +15,7 @@ Description : Interface for custom COM Exception reporting
 
 // Putting this in the graphics namespace, since it's primarily meant to interface with DeviceResources
 namespace Graphics {
+
 
 class COMException : public std::exception
 {
@@ -99,5 +101,5 @@ private:
 };
 
 }
-
+#endif
 #endif

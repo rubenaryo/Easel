@@ -511,38 +511,6 @@ bool DeviceResources::WindowSizeChanged(int a_Width, int a_Height)
     return true;
 }
 
-void DeviceResources::UpdateTitleBar(uint32_t a_FPS, uint32_t a_FrameCount)
-{
-    // Update title bar every 120 frames
-    if (a_FrameCount % 120 == 0)
-        return;
-
-    std::wstringstream wss;
-
-    // Window Information
-    wss <<  L"Width: "      << mViewportInfo.Width  <<
-        L"    Height: "     << mViewportInfo.Height <<
-        L"    FPS: "        << a_FPS;
-
-    // Check and Print Feature Level
-    switch (mFeatureLevel)
-    {
-    case D3D_FEATURE_LEVEL_11_1: wss << L"    Direct3D 11.1"; break;
-    case D3D_FEATURE_LEVEL_11_0: wss << L"    Direct3D 11.0"; break;
-    case D3D_FEATURE_LEVEL_10_1: wss << L"    Direct3D 10.1"; break;
-    case D3D_FEATURE_LEVEL_10_0: wss << L"    Direct3D 10.0"; break;
-    case D3D_FEATURE_LEVEL_9_3:  wss << L"    Direct3D 9.3";  break;
-    case D3D_FEATURE_LEVEL_9_2:  wss << L"    Direct3D 9.2";  break;
-    case D3D_FEATURE_LEVEL_9_1:  wss << L"    Direct3D 9.1";  break;
-    default:                     wss << L"    Direct3D ???";  break;
-    }
-    
-    // MSAA Level
-    wss << L"    " << mMSAASampleCount << L"xMSAA";
-
-    SetWindowText(GetWindow(), wss.str().c_str());
-}
-
 // Presents the contents of the swap chain
 void DeviceResources::Present()
 {
@@ -715,5 +683,40 @@ void DeviceResources::UpdateColorSpace()
 {
     // TODO: implement later
 }
+
+#if defined(DEBUG)
+void DeviceResources::UpdateTitleBar(uint32_t a_FPS, uint32_t a_FrameCount)
+{
+
+    // Update title bar every 120 frames
+    if (a_FrameCount % 120 == 0)
+        return;
+
+    std::wstringstream wss;
+
+    // Window Information
+    wss << L"Width: " << mViewportInfo.Width <<
+        L"    Height: " << mViewportInfo.Height <<
+        L"    FPS: " << a_FPS;
+
+    // Check and Print Feature Level
+    switch (mFeatureLevel)
+    {
+    case D3D_FEATURE_LEVEL_11_1: wss << L"    Direct3D 11.1"; break;
+    case D3D_FEATURE_LEVEL_11_0: wss << L"    Direct3D 11.0"; break;
+    case D3D_FEATURE_LEVEL_10_1: wss << L"    Direct3D 10.1"; break;
+    case D3D_FEATURE_LEVEL_10_0: wss << L"    Direct3D 10.0"; break;
+    case D3D_FEATURE_LEVEL_9_3:  wss << L"    Direct3D 9.3";  break;
+    case D3D_FEATURE_LEVEL_9_2:  wss << L"    Direct3D 9.2";  break;
+    case D3D_FEATURE_LEVEL_9_1:  wss << L"    Direct3D 9.1";  break;
+    default:                     wss << L"    Direct3D ???";  break;
+    }
+
+    // MSAA Level
+    wss << L"    " << mMSAASampleCount << L"xMSAA";
+
+    SetWindowText(GetWindow(), wss.str().c_str());
+}
+#endif
 
 }

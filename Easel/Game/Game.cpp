@@ -62,8 +62,8 @@ void Game::Frame()
 
     Render();
 
-    #ifdef DEBUG
-    mpDeviceResources->UpdateTitleBar(mTimer.GetFramesPerSecond(), mTimer.GetFrameCount());
+    #if defined(DEBUG)
+        mpDeviceResources->UpdateTitleBar(mTimer.GetFramesPerSecond(), mTimer.GetFrameCount());
     #endif
 }
 

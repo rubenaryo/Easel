@@ -54,7 +54,6 @@ public:
     bool WindowSizeChanged(int a_Width, int a_Height);
     void HandleDeviceLost();
     void RegisterDeviceNotify(IDeviceNotify* device) { mpDeviceNotify = device; }
-    void UpdateTitleBar(uint32_t a_FPS, uint32_t a_FrameCount);
     void Present();
     void Clear(const FLOAT*);
 
@@ -75,6 +74,10 @@ public:
     unsigned int             GetDeviceOptions()     const { return mDeviceOptions;       }
     RECT                     GetOutputSize()        const { return mOutputSize;          }
     HWND                     GetWindow()            const { return mWindow;              }
+
+#if defined(DEBUG)
+    void UpdateTitleBar(uint32_t fps, uint32_t frameCount);
+#endif
 
 private:
     void CreateFactory();
