@@ -63,7 +63,7 @@ public:
     IDXGISwapChain*          GetSwapChain()         const { return mpSwapChain;          }
     D3D_FEATURE_LEVEL        GetDeviceFeatureLevel()const { return mFeatureLevel;        }
     ID3D11Texture2D*         GetRenderTarget()      const { return mpRenderTarget;       }
-    ID3D11Texture2D*         GetDepthStencil()      const { return mpDepthStencilTex;       }
+    ID3D11Texture2D*         GetDepthStencil()      const { return mpDepthStencilTex;    }
     ID3D11RenderTargetView*  GetRenderTargetView()  const { return mpRenderTargetView;   }
     ID3D11DepthStencilView*  GetDepthStencilView()  const { return mpDepthStencilView;   }
     DXGI_FORMAT              GetBackBufferFormat()  const { return mBackBufferFormat;    }
