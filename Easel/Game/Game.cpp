@@ -167,15 +167,20 @@ void Game::OnResize(int newWidth, int newHeight)
 {
     if (!mpDeviceResources->WindowSizeChanged(newWidth, newHeight))
         return;
-    try
-    {
+
+    #if defined(DEBUG)
+        try
+        {
+            CreateWindowSizeDependentResources(newWidth, newHeight);
+        }
+        catch (std::exception const& e)
+        {
+            MessageBoxA(mpDeviceResources->GetWindow(), e.what(), "Fatal Exception!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+            DestroyWindow(mpDeviceResources->GetWindow());
+        }
+    #else
         CreateWindowSizeDependentResources(newWidth, newHeight);
-    }
-    catch (std::exception const& e)
-    {
-        MessageBoxA(mpDeviceResources->GetWindow(), e.what(), "Fatal Exception!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
-        DestroyWindow(mpDeviceResources->GetWindow());
-    }
+    #endif
 }
 
 void Game::OnMouseMove(short newX, short newY)

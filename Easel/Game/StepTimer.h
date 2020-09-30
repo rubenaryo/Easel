@@ -28,15 +28,21 @@ public:
         m_isFixedTimeStep(false),
         m_targetElapsedTicks(TicksPerSecond / 60)
     {
-        if (!QueryPerformanceFrequency(&m_qpcFrequency))
-        {
-            throw std::exception("QueryPerformanceFrequency");
-        }
 
-        if (!QueryPerformanceCounter(&m_qpcLastTime))
-        {
-            throw std::exception("QueryPerformanceCounter");
-        }
+        #if defined(DEBUG)
+            if (!QueryPerformanceFrequency(&m_qpcFrequency))
+            {
+                throw std::exception("QueryPerformanceFrequency");
+            }
+
+            if (!QueryPerformanceCounter(&m_qpcLastTime))
+            {
+                throw std::exception("QueryPerformanceCounter");
+            }
+        #else
+            QueryPerformanceFrequency(&m_qpcFrequency);
+            QueryPerformanceCounter(&m_qpcLastTime);
+        #endif
 
         // Initialize max delta to 1/10 of a second.
         m_qpcMaxDelta = static_cast<uint64_t>(m_qpcFrequency.QuadPart / 10);
@@ -75,10 +81,12 @@ public:
 
     void ResetElapsedTime()
     {
+        #if defined(DEBUG)
         if (!QueryPerformanceCounter(&m_qpcLastTime))
         {
             throw std::exception("QueryPerformanceCounter");
         }
+        #endif
 
         m_leftOverTicks = 0;
         m_framesPerSecond = 0;
@@ -92,11 +100,15 @@ public:
     {
         // Query the current time.
         LARGE_INTEGER currentTime;
-
-        if (!QueryPerformanceCounter(&currentTime))
-        {
-            throw std::exception("QueryPerformanceCounter");
-        }
+        
+        #if defined(DEBUG)
+            if (!QueryPerformanceCounter(&currentTime))
+            {
+                throw std::exception("QueryPerformanceCounter");
+            }
+        #else
+            QueryPerformanceCounter(&currentTime);
+        #endif
 
         uint64_t timeDelta = static_cast<uint64_t>(currentTime.QuadPart - m_qpcLastTime.QuadPart);
 

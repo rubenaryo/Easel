@@ -35,6 +35,7 @@ Mesh::Mesh(const std::string& fileName, ID3D11Device* pDevice)
     {
         LoadSceneInfo(pScene, pDevice);
     }
+    #if defined(DEBUG)
     else
     {
         char buf[256];
@@ -42,18 +43,18 @@ Mesh::Mesh(const std::string& fileName, ID3D11Device* pDevice)
         throw std::exception(buf);
         return;
     }
+    #endif
 
-
-	#if defined(DEBUG)
-	static const char vbDebug[] = "_VertexBuffer";
-	static const char ibDebug[] = "_IndexBuffer";
+    #if defined(DEBUG)
+    static const char vbDebug[] = "_VertexBuffer";
+    static const char ibDebug[] = "_IndexBuffer";
     std::string debugName = fileName + vbDebug;
-	HRESULT hr = mpVertexBuffer->SetPrivateData(WKPDID_D3DDebugObjectName, debugName.size(), debugName.c_str());
-	if (FAILED(hr)) throw COM_EXCEPT(hr);
+    HRESULT hr = mpVertexBuffer->SetPrivateData(WKPDID_D3DDebugObjectName, debugName.size(), debugName.c_str());
+    COM_EXCEPT(hr);
     debugName = fileName + ibDebug;
-	hr = mpIndexBuffer->SetPrivateData(WKPDID_D3DDebugObjectName, debugName.size(), debugName.c_str());
-	if (FAILED(hr)) throw COM_EXCEPT(hr);
-	#endif
+    hr = mpIndexBuffer->SetPrivateData(WKPDID_D3DDebugObjectName, debugName.size(), debugName.c_str());
+    COM_EXCEPT(hr);
+    #endif
 }
 
 // Loads imports the model data passed in by an Assimp scene into 
@@ -137,7 +138,7 @@ void Mesh::CreateBuffers(Graphics::Vertex* vertexArray, unsigned int numVertices
     initialVertexData.pSysMem = vertexArray;
     HRESULT hr = pDevice->CreateBuffer(&vbd, &initialVertexData, &mpVertexBuffer);
     
-    if(FAILED(hr)) throw COM_EXCEPT(hr);
+    COM_EXCEPT(hr);
 
     // Create the index buffer
     D3D11_BUFFER_DESC ibd;
@@ -150,8 +151,8 @@ void Mesh::CreateBuffers(Graphics::Vertex* vertexArray, unsigned int numVertices
     D3D11_SUBRESOURCE_DATA initialIndexData;
     initialIndexData.pSysMem = indexArray;
     hr = pDevice->CreateBuffer(&ibd, &initialIndexData, &mpIndexBuffer);
-    
-    if(FAILED(hr)) throw COM_EXCEPT(hr);
+
+    COM_EXCEPT(hr);
 
     // Save the index count
     this->mIndexCount = numIndices;

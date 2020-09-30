@@ -86,8 +86,9 @@ void DeviceResources::CreateDeviceResources()
         featLevelCount++;
     }
 
+    #if defined(DEBUG)
     if (!featLevelCount) throw std::out_of_range("Minimum feature level too high");
-
+    #endif
     // POSSIBLE TODO: Get a hardware adapter
 
     hr = D3D11CreateDevice(
@@ -125,7 +126,7 @@ void DeviceResources::CreateDeviceResources()
     }
 
     // Check for failure when creating device
-    if (FAILED(hr)) throw COM_EXCEPT(hr);
+    COM_EXCEPT(hr);
 
     // Check for MSAA Support
     while (mMSAASampleCount > 1)
@@ -154,7 +155,7 @@ void DeviceResources::CreateDeviceResources()
 #if defined(DEBUG) // Create annotation and debug interface
     // Populate User Defined Annotation Member
     hr = mpContext->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), reinterpret_cast<void**>(&mpAnnotation));
-    if(FAILED(hr)) throw COM_EXCEPT(hr); //@note: Might be ok to let this fail, and just disable its behavior.
+    COM_EXCEPT(hr); //@note: Might be ok to let this fail, and just disable its behavior.
 
     // Populate Debug Interface Member
     hr = mpDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&mpDebugInterface));
@@ -183,7 +184,7 @@ void DeviceResources::CreateDeviceResources()
     static const char deviceName[] = "DR_Device";
     hr = mpDevice->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(deviceName) - 1, deviceName);
 
-    if (FAILED(hr)) throw COM_EXCEPT(hr);
+    COM_EXCEPT(hr);
 
 
 #endif
@@ -195,7 +196,7 @@ void DeviceResources::CreateFactory()
 {
     if (mpDXGIFactory) mpDXGIFactory->Release();
     HRESULT hr = CreateDXGIFactory(IID_PPV_ARGS(&mpDXGIFactory));
-    if (FAILED(hr)) throw COM_EXCEPT(hr);
+    COM_EXCEPT(hr);
 }
 
 // Callback method for when we initialize the window, or when there's a need to recreate the resources that are dependent on window size (when the window is resized basically)
@@ -210,8 +211,10 @@ void DeviceResources::CreateFactory()
 // - Depth Stencil Buffer
 void DeviceResources::CreateWindowSizeDependentResources()
 {
+    #if defined(DEBUG)
     if (!mWindow)
         throw std::exception("mWindow member not set!");
+    #endif
 
     // Clear current window dependent fields.
     mpContext->OMSetRenderTargets(0, NULL, NULL);  // Reset bound render targets
@@ -285,10 +288,8 @@ void DeviceResources::CreateWindowSizeDependentResources()
 
             return;
         }
-        else if (FAILED(hr))
-        {
-             throw COM_EXCEPT(hr);
-        }
+
+        COM_EXCEPT(hr);
     }
     else // Create a new swap chain
     {
@@ -329,23 +330,23 @@ void DeviceResources::CreateWindowSizeDependentResources()
             &swapDesc,
             &mpSwapChain
         );
-        if (FAILED(hr)) throw COM_EXCEPT(hr);
+        COM_EXCEPT(hr);
 
         #pragma region Prevent Alt+Enter by monitoring the app message queue 
         // Get correct IDXGIFactory
         IDXGIDevice* pDXGIDevice;
         hr = mpDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&pDXGIDevice);
-        if (FAILED(hr)) throw COM_EXCEPT(hr);
+        COM_EXCEPT(hr);
         IDXGIAdapter* pDXGIAdapter;
         hr = pDXGIDevice->GetParent(__uuidof(IDXGIAdapter), (void**)&pDXGIAdapter);
-        if (FAILED(hr)) throw COM_EXCEPT(hr);
+        COM_EXCEPT(hr);
         IDXGIFactory* pIDXGIFactory;
         hr = pDXGIAdapter->GetParent(__uuidof(IDXGIFactory), (void**)&pIDXGIFactory);
-        if (FAILED(hr)) throw COM_EXCEPT(hr);
+        COM_EXCEPT(hr);
 
         // Make the window association
         hr = pIDXGIFactory->MakeWindowAssociation(mWindow, DXGI_MWA_NO_WINDOW_CHANGES);
-        if (FAILED(hr)) throw COM_EXCEPT(hr);
+        COM_EXCEPT(hr);
 
         pIDXGIFactory->Release();
         pDXGIAdapter->Release();
@@ -355,7 +356,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
         // Create a Render Target of the SC Back Buffer
         if (mpRenderTarget) mpRenderTarget->Release();
         hr = mpSwapChain->GetBuffer(0, IID_PPV_ARGS(&mpRenderTarget));
-        if (FAILED(hr)) throw COM_EXCEPT(hr);
+        COM_EXCEPT(hr);
 
         // Create a new Render Target View Description
         CD3D11_RENDER_TARGET_VIEW_DESC RTVD(D3D11_RTV_DIMENSION_TEXTURE2D, mBackBufferFormat);
@@ -367,7 +368,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
             0,
             &mpRenderTargetView
         );
-        if (FAILED(hr)) throw COM_EXCEPT(hr);
+        COM_EXCEPT(hr);
 
         if (mDepthBufferFormat != DXGI_FORMAT_UNKNOWN)
         {
@@ -386,7 +387,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
                 &depthStencilDesc,
                 nullptr,
                 &mpDepthStencilTex);
-            if (FAILED(hr)) throw COM_EXCEPT(hr);
+            COM_EXCEPT(hr);
 
             // Fill out descriptor to create Depth Stencil View, holding onto it as a member
             if (mpDepthStencilView) mpDepthStencilView->Release();
@@ -396,7 +397,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
                 &depthStencilViewDesc,
                 &mpDepthStencilView
             );
-            if (FAILED(hr)) throw COM_EXCEPT(hr);
+            COM_EXCEPT(hr);
 
             #pragma region MSAA Stuff
             if (OptionEnabled(DR_OPTIONS::DR_ENABLE_MSAA))
@@ -420,7 +421,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
                     nullptr,
                     &mpMSAARenderTarget);
 
-                if (FAILED(hr)) throw COM_EXCEPT(hr);
+                COM_EXCEPT(hr);
 
                 // Create a new MSAA Render Target View Description
                 CD3D11_RENDER_TARGET_VIEW_DESC MsaaRTVD(D3D11_RTV_DIMENSION_TEXTURE2DMS, mBackBufferFormat);
@@ -431,7 +432,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
                     mpMSAARenderTarget,
                     &MsaaRTVD,
                     &mpMSAARenderTargetView);
-                if (FAILED(hr)) throw COM_EXCEPT(hr);
+                COM_EXCEPT(hr);
 
                 CD3D11_TEXTURE2D_DESC MsaaDSD(
                     mDepthBufferFormat,
@@ -452,7 +453,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
                     nullptr,
                     &MsaaDepthStencil
                 );
-                if (FAILED(hr)) throw COM_EXCEPT(hr);
+                COM_EXCEPT(hr);
 
                 // fill member MsaaDepthStencilView
                 if (mpMSAADepthStencilView) mpMSAADepthStencilView->Release();
@@ -461,7 +462,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
                     nullptr,
                     &mpMSAADepthStencilView
                 );
-                if (FAILED(hr)) throw COM_EXCEPT(hr);
+                COM_EXCEPT(hr);
                 MsaaDepthStencil->Release();
             }
             #pragma endregion

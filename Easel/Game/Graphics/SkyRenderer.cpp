@@ -30,13 +30,13 @@ SkyRenderer::SkyRenderer(const Game::Mesh* pMesh, const Material* pMaterial, ID3
     dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
     device->CreateDepthStencilState(&dsDesc, &mpDSState);
 
-	#if defined(DEBUG)
-	const char RSdebugName[] = "Sky_RS";
+    #if defined(DEBUG)
+    const char RSdebugName[] = "Sky_RS";
     const char DSdebugName[] = "Sky_DS";
-	HRESULT hr = mpRSState->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(RSdebugName) - 1, RSdebugName);
+    HRESULT hr = mpRSState->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(RSdebugName) - 1, RSdebugName);
     hr = mpDSState->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(DSdebugName) - 1, DSdebugName);
-	if (FAILED(hr)) throw COM_EXCEPT(hr);
-	#endif
+    COM_EXCEPT(hr);
+    #endif
 }
 
 // Bind material, d3d states, and then draw the sky mesh.

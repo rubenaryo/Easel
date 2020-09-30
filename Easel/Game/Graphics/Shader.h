@@ -38,7 +38,7 @@ public:
         // Store file in Blob
         ID3D10Blob* pBlob;
         hr = D3DReadFileToBlob(path, &pBlob);
-        if (FAILED(hr)) throw COM_EXCEPT(hr);
+        COM_EXCEPT(hr);
 
         // Create Shader using device
         this->Impl().CreateDXShader(pBlob, device);
@@ -46,7 +46,7 @@ public:
         // Use Blob to create a Reflection
         ID3D11ShaderReflection* pReflection = nullptr;
         hr = D3DReflect(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), IID_ID3D11ShaderReflection, reinterpret_cast<void**>(&pReflection));
-        if (FAILED(hr)) throw COM_EXCEPT(hr);
+        COM_EXCEPT(hr);
 
         // Initialize Constant Buffer Array
         BuildConstantBuffers(pReflection, device);
@@ -139,18 +139,18 @@ private:
             // Create the cbuffer
             ID3D11Buffer* rawBuffer;
             HRESULT hr = device->CreateBuffer(&cbDesc, nullptr, &rawBuffer);
-            if (FAILED(hr)) throw COM_EXCEPT(hr);
+            COM_EXCEPT(hr);
 
             // Store in contiguous list
             mConstantBuffers[slot] = rawBuffer;
 
-			#if defined(DEBUG)
+            #if defined(DEBUG)
             static char nameBuf[256];
             ZeroMemory(nameBuf, 256 * sizeof(char));
             sprintf_s(nameBuf, "%s_%s", typeid(ShaderType).name(), "cbuffer");
-			hr = mConstantBuffers[slot]->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(nameBuf) - 1, nameBuf);
-			if (FAILED(hr)) throw COM_EXCEPT(hr);
-			#endif
+            hr = mConstantBuffers[slot]->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(nameBuf) - 1, nameBuf);
+            COM_EXCEPT(hr);
+            #endif
         }
     }
 

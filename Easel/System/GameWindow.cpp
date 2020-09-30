@@ -101,17 +101,21 @@ LRESULT GameWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 bool GameWindow::InitGame(HWND hwnd, int width, int height)
 {
-    bool result = false;
-    try
-    {
-        result = m_pGame->Init(hwnd, width, height);
-    }
-    catch (std::exception const& e)
-    {
-        MessageBoxA(hwnd, e.what(), "Fatal Exception!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
-        DestroyWindow(hwnd);
-    }
-    return result;
+    #if defined(DEBUG)
+        bool result = false;
+        try
+        {
+            result = m_pGame->Init(hwnd, width, height);
+        }
+        catch (std::exception const& e)
+        {
+            MessageBoxA(hwnd, e.what(), "Fatal Exception!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+            DestroyWindow(hwnd);
+        }
+        return result;
+    #else
+        return m_pGame->Init(hwnd, width, height);
+    #endif
 }
 
 // Here we invoke the window procedure to handle windows messages

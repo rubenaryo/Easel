@@ -42,7 +42,7 @@ void Renderer::Init(DeviceResources* dr)
     samplerDesc.MaxLOD   = D3D11_FLOAT32_MAX;
 
     HRESULT hr = device->CreateSamplerState(&samplerDesc, &mpSamplerState);
-    if (FAILED(hr)) throw COM_EXCEPT(hr);
+    COM_EXCEPT(hr);
 
     // TODO: In the future, sample textures differently! See note in Renderer.h
     dr->GetContext()->PSSetSamplers(0, 1, &mpSamplerState);

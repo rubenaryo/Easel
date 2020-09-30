@@ -98,8 +98,10 @@ inline void ShaderFactory::AddVertexShader(std::wstring UniqueID, ID3D11Device* 
         // Create a vertex shader on the heap.
         mpVertexShaders[UniqueID] = new VertexShader(System::GetShaderPathFromFile_W(UniqueID).c_str(), device);
     }      
+    #if defined(DEBUG)
     else // Unique ID already exists
         throw std::exception("Tried to add Vertex Shader, but Unique ID already exists!");
+    #endif
 }
 
 inline void ShaderFactory::AddPixelShader(std::wstring UniqueID, ID3D11Device* device)
@@ -109,8 +111,10 @@ inline void ShaderFactory::AddPixelShader(std::wstring UniqueID, ID3D11Device* d
         // Create pixel shader on the heap. 
         mpPixelShaders[UniqueID] = new PixelShader(System::GetShaderPathFromFile_W(UniqueID).c_str(), device);
     }
+    #if defined(DEBUG)
     else // Unique ID already exists
         throw std::exception("Tried to add Pixel Shader, but Unique ID already exists!");
+    #endif
 }
 
 // Free all allocated shaders

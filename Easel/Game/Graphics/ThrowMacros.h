@@ -10,10 +10,13 @@ helper macros for reaching certain paths
 #include "COMException.h"
 #include "../../System/PathMacros.h"
 
-// helper macro for throwing COM Exceptions 
-// - requires inclusion of COMException.h
-// - requires hr (HRESULT) to be defined in local scope
-#define COM_EXCEPT(hr) Graphics::COMException(__LINE__,__FILE__, hr);
-
+// helper macro for throwing COM Exceptions. Disabled on Release Builds.
+#if defined(DEBUG)
+    #define COM_EXCEPT(hr) \
+        if (FAILED(hr)) \
+            throw Graphics::COMException(__LINE__,__FILE__, hr);
+#else
+    #define COM_EXCEPT(hr)
+#endif
 
 #endif

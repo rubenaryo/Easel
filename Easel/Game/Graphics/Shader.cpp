@@ -38,9 +38,9 @@ void VertexShader::CreateDXShader(ID3D10Blob* pBlob, ID3D11Device* device)
         &mpVertexShader);
 
     #if defined(DEBUG)
-	static const char debugShaderName[] = "VS_Shader";
+    static const char debugShaderName[] = "VS_Shader";
     HRESULT hr = mpVertexShader->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(debugShaderName) - 1, debugShaderName);
-    if (FAILED(hr)) throw COM_EXCEPT(hr);
+    COM_EXCEPT(hr);
     #endif
 }
 
@@ -103,13 +103,13 @@ void VertexShader::BuildInputLayout(ID3D11ShaderReflection* pReflection, ID3D10B
 
     // Finally, try to create the input layout, storing it as a member if successful
     HRESULT hr = device->CreateInputLayout(&inputElements[0], inputElements.size(), pBlob->GetBufferPointer(), pBlob->GetBufferSize(), &mpInputLayout);
-    if (FAILED(hr)) throw COM_EXCEPT(hr);
+    COM_EXCEPT(hr);
 
-	#if defined(DEBUG)
-	static const char debugNameIL[] = "VS_InputLayout";
-	hr = mpInputLayout->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(debugNameIL) - 1, debugNameIL);
-	if (FAILED(hr)) throw COM_EXCEPT(hr);
-	#endif
+    #if defined(DEBUG)
+    static const char debugNameIL[] = "VS_InputLayout";
+    hr = mpInputLayout->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(debugNameIL) - 1, debugNameIL);
+    COM_EXCEPT(hr);
+    #endif
 }
 
 // Bind all the underlying constant buffers
@@ -144,11 +144,11 @@ void PixelShader::CreateDXShader(ID3D10Blob* pBlob, ID3D11Device* device)
         nullptr, 
         &mpPixelShader);
 
-	#if defined(DEBUG)
-	static const char debugShaderName[] = "PS_Shader";
-	HRESULT hr = mpPixelShader->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(debugShaderName) - 1, debugShaderName);
-	if (FAILED(hr)) throw COM_EXCEPT(hr);
-	#endif
+    #if defined(DEBUG)
+    static const char debugShaderName[] = "PS_Shader";
+    HRESULT hr = mpPixelShader->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(debugShaderName) - 1, debugShaderName);
+    COM_EXCEPT(hr);
+    #endif
 }
 
 void PixelShader::BuildReflectionFields(ID3D11ShaderReflection* pReflection, ID3D10Blob* pBlob, ID3D11Device* device)

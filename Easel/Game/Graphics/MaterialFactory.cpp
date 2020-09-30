@@ -77,9 +77,12 @@ void MaterialFactory::LoadTextures(ID3D11Device* device, ID3D11DeviceContext* co
 {
     namespace fs = std::filesystem;
     std::string texturePath = TEXTUREPATH;
+
+    #if defined(DEBUG)
     if(!fs::exists(texturePath))
         throw std::exception("Textures folder doesn't exist!");
-
+    #endif
+    
     // Iterate through folder and initialize materials
     for (const auto& entry : fs::directory_iterator(texturePath))
     {
@@ -162,8 +165,8 @@ void MaterialFactory::LoadTextures(ID3D11Device* device, ID3D11DeviceContext* co
             size_t byteSize;
             static char texDebugName[64];
             wcstombs_s(&byteSize, texDebugName, name.c_str(), name.size());
-			hr = pSRV->SetPrivateData(WKPDID_D3DDebugObjectName, byteSize, texDebugName);
-			if (FAILED(hr)) throw COM_EXCEPT(hr);
+            hr = pSRV->SetPrivateData(WKPDID_D3DDebugObjectName, byteSize, texDebugName);
+            COM_EXCEPT(hr);
         }
         #endif
     }
