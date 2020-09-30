@@ -77,16 +77,16 @@ PixelShader* ShaderFactory::GetPixelShader(std::wstring UniqueID)
         return mpPixelShaders[UniqueID];
 }
 
-inline void ShaderFactory::AddShader(std::wstring a_pFileName, ShaderType st, ID3D11Device* pDevice)
+inline void ShaderFactory::AddShader(std::wstring pFileName, ShaderType st, ID3D11Device* pDevice)
 {
     // Call the corresponding utility methods to add/compile shaders
     switch (st)
     {
         case ShaderType::VERTEX:
-            AddVertexShader(a_pFileName, pDevice);
+            AddVertexShader(pFileName, pDevice);
             break;
         case ShaderType::PIXEL:
-            AddPixelShader(a_pFileName, pDevice);
+            AddPixelShader(pFileName, pDevice);
             break;
     }
 }

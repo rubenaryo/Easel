@@ -10,34 +10,34 @@ Description : Material class for shader information
 
 namespace Graphics {
 
-Material::Material(VertexShader* a_pVS, PixelShader* a_pPS, cbMaterialParams* a_pParams)
+Material::Material(VertexShader* pVS, PixelShader* pPS, cbMaterialParams* pParams)
 {
     // Set material parameters
-    mParams = *a_pParams;
+    mParams = *pParams;
 
     // Set Shader fields
-    mpVertexShader = a_pVS;
-    mpPixelShader  = a_pPS;
+    mpVertexShader = pVS;
+    mpPixelShader  = pPS;
 
     // Not textured
     mResources = nullptr;
 }
 
-Material::Material(VertexShader* a_pVS, PixelShader* a_pPS, cbMaterialParams* a_pParams, Texture*const* a_Resources, uint32_t numResources)
+Material::Material(VertexShader* pVS, PixelShader* pPS, cbMaterialParams* pParams, Texture*const* ppResources, uint32_t numResources)
 {
     // Set material parameters if they exist
-    if (a_pParams)
-        mParams = *a_pParams;
+    if (pParams)
+        mParams = *pParams;
     else
         mParams = {};
 
     // Set Shader fields
-    mpVertexShader = a_pVS;
-    mpPixelShader  = a_pPS;
+    mpVertexShader = pVS;
+    mpPixelShader  = pPS;
 
     // Copy over resource pointers
     mResources = new Texture*[numResources];
-    memcpy(mResources, a_Resources, sizeof(Texture*) * numResources);
+    memcpy(mResources, ppResources, sizeof(Texture*) * numResources);
     mResourceCount = numResources;
 }
 

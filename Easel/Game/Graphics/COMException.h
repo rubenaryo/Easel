@@ -20,10 +20,10 @@ namespace Graphics {
 class COMException : public std::exception
 {
 public:
-    COMException(int a_Line, const char* a_File, HRESULT a_HR) noexcept :
-        mHRESULT(a_HR),
-        mLine(a_Line),
-        mFile(a_File),
+    COMException(int line, const char* pFile, HRESULT hresult) noexcept :
+        mHRESULT(hresult),
+        mLine(line),
+        mFile(pFile),
         errorMsgBuffer(NULL)
     {}
 

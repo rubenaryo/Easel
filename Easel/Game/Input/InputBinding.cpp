@@ -15,9 +15,9 @@ namespace Input {
     {};
 
     // Create Binding from keycode and keystate
-    Binding::Binding(const unsigned int a_keyCode, const KeyState a_keyState) :
-        mKeyCode(a_keyCode),
-        mKeyState(a_keyState)
+    Binding::Binding(const unsigned int keyCode, const KeyState keyState) :
+        mKeyCode(keyCode),
+        mKeyState(keyState)
     {};
 
     // Default Chord Constructor
@@ -27,22 +27,22 @@ namespace Input {
     {};
 
     // Create Chord from Name, create binding from keycode and keystate and add it to Chord structure
-    Chord::Chord(const std::wstring& a_Name, const unsigned int a_keyCode, const KeyState a_keyState) :
-        mName(a_Name)
+    Chord::Chord(const std::wstring& name, const unsigned int keyCode, const KeyState keyState) :
+        mName(name)
     {
-        mChord.push_back(Binding(a_keyCode, a_keyState));
+        mChord.push_back(Binding(keyCode, keyState));
     }
 
     // Create Chord from Name and Binding&
-    Chord::Chord(const std::wstring& a_Name, const Binding& a_Binding) :
-        mName(a_Name)
+    Chord::Chord(const std::wstring& name, const Binding& binding) :
+        mName(name)
     {
-        mChord.push_back(a_Binding);
+        mChord.push_back(binding);
     }
 
     // Create Chord from Name and vector of Bindings
-    Chord::Chord(const std::wstring& a_Name, const std::vector<Binding>& a_lBinding) :
-        mName(a_Name),
-        mChord(a_lBinding)
+    Chord::Chord(const std::wstring& name, const std::vector<Binding>& bindingList) :
+        mName(name),
+        mChord(bindingList)
     {};
 }

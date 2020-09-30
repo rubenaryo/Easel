@@ -23,11 +23,11 @@ class Mesh
 public:
     Mesh(Graphics::Vertex* vertexArray, unsigned int numVertices, unsigned int* indexArray, unsigned int numIndices, ID3D11Device* pDevice);
     //@architecture: Require input layout description. That way mesh only stores the data it needs
-    Mesh(const std::string& pFile, ID3D11Device* a_pDevice);
+    Mesh(const std::string& pFile, ID3D11Device* pDevice);
     ~Mesh();
 
     // Sets the buffers and calls DrawIndexed
-    void Draw(ID3D11DeviceContext* a_pContext) const ;
+    void Draw(ID3D11DeviceContext* pContext) const ;
 
     // Accessors
     inline ID3D11Buffer* GetVertexBuffer() const { return mpVertexBuffer; }

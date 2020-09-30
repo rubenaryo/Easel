@@ -97,15 +97,15 @@ namespace Input {
     }
 
     // Use logic to deduce Keystate from current and previous keyboard states
-    const KeyState InputSystem::GetKeyboardKeyState(const unsigned int a_keyCode) const
+    const KeyState InputSystem::GetKeyboardKeyState(const unsigned int keyCode) const
     {
-        if (mKeyboardPrevious[a_keyCode] == 1)
-            if (mKeyboardCurrent[a_keyCode] == 1)
+        if (mKeyboardPrevious[keyCode] == 1)
+            if (mKeyboardCurrent[keyCode] == 1)
                 return KeyState::StillPressed;  // true, true
             else
                 return KeyState::JustReleased;  // true, false
         else
-            if (mKeyboardCurrent[a_keyCode] == 1)
+            if (mKeyboardCurrent[keyCode] == 1)
                 return KeyState::JustPressed;   // false, true
             else
                 return KeyState::StillReleased; // false, false

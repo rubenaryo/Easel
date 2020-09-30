@@ -17,7 +17,7 @@ namespace Input {
     GameInput::~GameInput()
     {}
 
-    void GameInput::Frame(float dt, Graphics::Camera* a_Camera)
+    void GameInput::Frame(float dt, Graphics::Camera* pCamera)
     {
         float speed = 5 * dt;
 
@@ -33,28 +33,28 @@ namespace Input {
                 PostQuitMessage(0);
                 break;
             case GameCommands::MoveForward:
-                a_Camera->GetTransform()->MoveRelative(0.0f, 0.0f, speed);
+                pCamera->GetTransform()->MoveRelative(0.0f, 0.0f, speed);
                 break;
             case GameCommands::MoveBackward:
-                a_Camera->GetTransform()->MoveRelative(0.0f, 0.0f, -speed);
+                pCamera->GetTransform()->MoveRelative(0.0f, 0.0f, -speed);
                 break;
             case GameCommands::MoveLeft:
-                a_Camera->GetTransform()->MoveRelative(-speed, 0.0f, 0.0f);
+                pCamera->GetTransform()->MoveRelative(-speed, 0.0f, 0.0f);
                 break;
             case GameCommands::MoveRight:
-                a_Camera->GetTransform()->MoveRelative(speed, 0.0f, 0.0f);
+                pCamera->GetTransform()->MoveRelative(speed, 0.0f, 0.0f);
                 break;
             case GameCommands::CameraRotation:
             {
                 std::pair<float, float> delta = this->GetMouseDelta();
 
-                float mouseSensitivity = a_Camera->GetSensitivity();
+                float mouseSensitivity = pCamera->GetSensitivity();
 
                 delta.first *= mouseSensitivity * dt;
                 delta.second *= mouseSensitivity * dt;
 
                 
-                a_Camera->GetTransform()->Rotate(delta.second, delta.first, 0.0f);
+                pCamera->GetTransform()->Rotate(delta.second, delta.first, 0.0f);
                 break;
             }
             }

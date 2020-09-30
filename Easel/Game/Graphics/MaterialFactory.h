@@ -31,7 +31,7 @@ public:
 
     void Init(ID3D11Device* device, ID3D11DeviceContext* context);
 
-    const Material* GetMaterial(std::wstring a_UID) const;
+    const Material* GetMaterial(std::wstring UID) const;
 
 private:
     // Builds materials out of the textures gotten from LoadTextures

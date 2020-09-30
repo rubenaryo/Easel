@@ -28,12 +28,12 @@ namespace Input {
         void GetKeyboardState();
 
         // returns the state of the key in enum form
-        const KeyState GetKeyboardKeyState(const unsigned int a_keyCode) const;
+        const KeyState GetKeyboardKeyState(const unsigned int keyCode) const;
 
         // returns true if the key is down
-        inline const bool isPressed(int a_keyCode) const
+        inline const bool isPressed(int keyCode) const
         {
-            return (GetAsyncKeyState(a_keyCode) & 0x8000) ? 1 : 0;
+            return (GetAsyncKeyState(keyCode) & 0x8000) ? 1 : 0;
         }
 
         void update();

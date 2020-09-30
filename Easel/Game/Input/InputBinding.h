@@ -46,7 +46,7 @@ namespace Input {
 
     public:
         Binding();
-        Binding(const unsigned int a_keyCode, const KeyState a_keyState);
+        Binding(const unsigned int keyCode, const KeyState keyState);
         ~Binding() {};
 
         friend class InputSystem;

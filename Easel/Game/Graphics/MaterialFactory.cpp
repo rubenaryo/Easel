@@ -32,10 +32,10 @@ void MaterialFactory::Init(ID3D11Device* device, ID3D11DeviceContext* context)
     BuildMaterials();
 }
 
-const Material* MaterialFactory::GetMaterial(std::wstring a_UID) const
+const Material* MaterialFactory::GetMaterial(std::wstring UID) const
 {
-    if(mMaterials.find(a_UID) != mMaterials.end())
-        return mMaterials.at(a_UID);
+    if(mMaterials.find(UID) != mMaterials.end())
+        return mMaterials.at(UID);
 
     return nullptr;
 }

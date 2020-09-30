@@ -42,12 +42,12 @@ void Camera::UpdateView()
 }
 
 // Updates the projection matrix (like on screen resize)
-void Camera::UpdateProjection(float a_AspectRatio)
+void Camera::UpdateProjection(float aspectRatio)
 {
     using namespace DirectX;
     XMMATRIX projection = XMMatrixPerspectiveFovLH(
         XM_PIDIV4,      // FOV
-        a_AspectRatio,  // Screen Aspect ratio
+        aspectRatio,  // Screen Aspect ratio
         mNear,         // Near clip plane
         mFar);         // Far clip plane
 
