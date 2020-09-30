@@ -16,7 +16,7 @@ namespace Graphics {
 class Camera
 {
 public:
-    Camera(float x, float y, float z, float a_AspectRatio, float a_Near, float a_Far, float a_Sensitivity);
+    Camera(float x, float y, float z, float aspectRatio, float nearPlane, float farPlane, float sensitivity);
     Camera() = delete;
     ~Camera() = default;
 
@@ -25,7 +25,7 @@ public:
     void UpdateView();
 
     // Updates Camera's Projection Matrix
-    void UpdateProjection(float a_AspectRatio);
+    void UpdateProjection(float aspectRatio);
 
     // Accessors:
     const cbCamera      AsConstantBuffer() const { return cbCamera{mView, mProjection}; }

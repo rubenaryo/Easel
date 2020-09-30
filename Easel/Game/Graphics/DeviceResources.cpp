@@ -469,35 +469,40 @@ void DeviceResources::CreateWindowSizeDependentResources()
         }
 
         // Set the 3D rendering viewport to target the entire window.
+        #if defined(DEBUG)
+        assert(sizeof(FLOAT) == sizeof(backBufferWidth));
+        assert(sizeof(FLOAT) == sizeof(backBufferHeight));
+        #endif
+
         mViewportInfo = CD3D11_VIEWPORT(
-            0.0f,                           // TopLeft X Coord
-            0.0f,                           // TopLeft Y Coord
+            0.0f,                                   // TopLeft X Coord
+            0.0f,                                   // TopLeft Y Coord
             static_cast<FLOAT>(backBufferWidth),    // Width
             static_cast<FLOAT>(backBufferHeight),   // Height
-            0.0f,                           // Min Depth
-            1.0f                            // Max Depth
+            0.0f,                                   // Min Depth
+            1.0f                                    // Max Depth
         );
     }
 
 }
 
 // Setter for member fields that may change depending on window state
-void DeviceResources::SetWindow(HWND a_Window, int a_Width, int a_Height)
+void DeviceResources::SetWindow(HWND window, int width, int height)
 {
-    mWindow = a_Window;
+    mWindow = window;
     mOutputSize.left = 0;
     mOutputSize.top = 0;
-    mOutputSize.right = a_Width;
-    mOutputSize.bottom = a_Height;
+    mOutputSize.right = width;
+    mOutputSize.bottom = height;
 }
 
 // Handle Window Size being changed
-bool DeviceResources::WindowSizeChanged(int a_Width, int a_Height)
+bool DeviceResources::WindowSizeChanged(int width, int height)
 {
     RECT newRc;
     newRc.left = newRc.top = 0;
-    newRc.right = a_Width;
-    newRc.bottom = a_Height;
+    newRc.right = width;
+    newRc.bottom = height;
     if (newRc == mOutputSize)
     {
         // Handle color space settings for HDR
@@ -542,7 +547,7 @@ void DeviceResources::Present()
     }
 }
 
-// Clears the back buffer to a_BackgroundColor, taking into account MSAA
+// Clears the back buffer to backgroundColor, taking into account MSAA
 void DeviceResources::Clear(const FLOAT* backgroundColor)
 {
     auto context = mpContext;
@@ -685,19 +690,18 @@ void DeviceResources::UpdateColorSpace()
 }
 
 #if defined(DEBUG)
-void DeviceResources::UpdateTitleBar(uint32_t a_FPS, uint32_t a_FrameCount)
+void DeviceResources::UpdateTitleBar(uint32_t fps, uint32_t frameCount)
 {
-
     // Update title bar every 120 frames
-    if (a_FrameCount % 120 == 0)
+    if (frameCount % 120 == 0)
         return;
 
     std::wstringstream wss;
 
     // Window Information
-    wss << L"Width: " << mViewportInfo.Width <<
+    wss <<  L"Width: "  << mViewportInfo.Width  <<
         L"    Height: " << mViewportInfo.Height <<
-        L"    FPS: " << a_FPS;
+        L"    FPS: "    << fps;
 
     // Check and Print Feature Level
     switch (mFeatureLevel)

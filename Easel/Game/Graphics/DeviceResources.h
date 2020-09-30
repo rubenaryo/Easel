@@ -50,8 +50,8 @@ public:
 
     void CreateDeviceResources();
     void CreateWindowSizeDependentResources();
-    void SetWindow(HWND, int a_Width, int a_Height);
-    bool WindowSizeChanged(int a_Width, int a_Height);
+    void SetWindow(HWND, int width, int height);
+    bool WindowSizeChanged(int width, int height);
     void HandleDeviceLost();
     void RegisterDeviceNotify(IDeviceNotify* device) { mpDeviceNotify = device; }
     void Present();

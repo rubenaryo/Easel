@@ -9,20 +9,20 @@ Description : Implementation of LightingManager.h
 
 namespace Graphics
 {
-    LightingManager::LightingManager(ID3D11Device* a_pDevice, DirectX::XMFLOAT3 a_CameraPos)
+    LightingManager::LightingManager(ID3D11Device* device, DirectX::XMFLOAT3 cameraPos)
     {
-        InitLights(a_CameraPos);
+        InitLights(cameraPos);
     }
 
-    void LightingManager::Update(ID3D11DeviceContext* a_pContext, float dt, DirectX::XMFLOAT3 a_CameraPos)
+    void LightingManager::Update(ID3D11DeviceContext* context, float dt, DirectX::XMFLOAT3 cameraPos)
     {
-        UpdateLights(dt, a_CameraPos);
+        UpdateLights(dt, cameraPos);
     }
 
 
     // AAA Case: Bring in lights directly from a "world editor" of some sort, which exports light positions, colors, etc for environment artists
     // Me: Hardcode it!
-    void LightingManager::InitLights(DirectX::XMFLOAT3 a_CameraPos)
+    void LightingManager::InitLights(DirectX::XMFLOAT3 cameraPos)
     {
         using DirectX::XMFLOAT3A;
 
@@ -32,12 +32,12 @@ namespace Graphics
         mLightData.directionalLight.toLight        = XMFLOAT3A(-1.0f, +0.5f, -1.3f);
 
         // hold camera position in light data
-        mLightData.cameraWorldPos.x = a_CameraPos.x;
-        mLightData.cameraWorldPos.y = a_CameraPos.y;
-        mLightData.cameraWorldPos.z = a_CameraPos.z;
+        mLightData.cameraWorldPos.x = cameraPos.x;
+        mLightData.cameraWorldPos.y = cameraPos.y;
+        mLightData.cameraWorldPos.z = cameraPos.z;
     }
 
-    void LightingManager::UpdateLights(float dt, DirectX::XMFLOAT3 a_CameraPos)
+    void LightingManager::UpdateLights(float dt, DirectX::XMFLOAT3 cameraPos)
     {
         // Logic to update the light's direction or something
         //DirectionalLight& light = m_LightData.directionalLight;
@@ -46,8 +46,8 @@ namespace Graphics
         //
 
         // Overwrite held camera position
-        mLightData.cameraWorldPos.x = a_CameraPos.x;
-        mLightData.cameraWorldPos.y = a_CameraPos.y;
-        mLightData.cameraWorldPos.z = a_CameraPos.z;
+        mLightData.cameraWorldPos.x = cameraPos.x;
+        mLightData.cameraWorldPos.y = cameraPos.y;
+        mLightData.cameraWorldPos.z = cameraPos.z;
     }
 }

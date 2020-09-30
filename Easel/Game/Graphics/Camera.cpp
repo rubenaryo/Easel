@@ -7,17 +7,17 @@ Description : Implementation of Camera Class
 
 namespace Graphics {
 
-Camera::Camera(float x, float y, float z, float a_AspectRatio, float a_Near, float a_Far, float a_Sensitivity) :
-    mNear(a_Near),
-    mFar(a_Far),
-    mSensitivity(a_Sensitivity)
+Camera::Camera(float x, float y, float z, float aspectRatio, float nearPlane, float farPlane, float sensitivity) :
+    mNear(nearPlane),
+    mFar(farPlane),
+    mSensitivity(sensitivity)
 {
     // Initialize the transform of the camera
     mTransform.SetPosition(x, y, z);
 
     // Create initial matrices
     UpdateView();
-    UpdateProjection(a_AspectRatio);
+    UpdateProjection(aspectRatio);
 }
 
 // Creates a new view matrix based on current position and orientation

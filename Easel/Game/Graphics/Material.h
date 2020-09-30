@@ -25,8 +25,8 @@ namespace Graphics {
 class Material : IBindable
 {
 public:
-    Material(VertexShader* a_pVS, PixelShader* a_pPS, cbMaterialParams* a_pParams);
-    Material(VertexShader* a_pVS, PixelShader* a_pPS, cbMaterialParams* a_pParams, Texture*const* a_Resources, uint32_t numResources);
+    Material(VertexShader* pVS, PixelShader* pPS, cbMaterialParams* pParams);
+    Material(VertexShader* pVS, PixelShader* pPS, cbMaterialParams* pParams, Texture*const* ppResources, uint32_t numResources);
     ~Material();
 
     // Access methods for shaders, material params
