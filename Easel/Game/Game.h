@@ -11,8 +11,6 @@ This class encapsulates all app functionality
 
 #include "Graphics/DeviceResources.h"
 
-#include <memory>
-
 namespace Graphics
 {
 class Camera;
@@ -60,19 +58,19 @@ private:
     void CreateWindowSizeDependentResources(int newWidth, int newHeight);
 
     // Application's Device Resources, such as the necessary buffers/views in video memory
-    std::unique_ptr<Graphics::DeviceResources> mpDeviceResources;
+    Graphics::DeviceResources* mpDeviceResources;
 
     // Renderer for handling smart binding of objects
-    std::unique_ptr<Graphics::Renderer> mpRenderer;
+    Graphics::Renderer* mpRenderer;
 
     // Lights Manager
-    std::unique_ptr<Graphics::LightingManager> mpLightingManager;
+    Graphics::LightingManager* mpLightingManager;
 
     // Input Management
-    std::unique_ptr<Input::GameInput> mpInput;
+    Input::GameInput* mpInput;
 
     // Main Camera
-    std::unique_ptr<Graphics::Camera> mpCamera;
+    Graphics::Camera* mpCamera;
     
     // Timer for the main game loop
     StepTimer mTimer;

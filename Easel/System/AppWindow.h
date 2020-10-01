@@ -7,7 +7,6 @@ Description : Definitions for OO-Window Creation
 #define APPWINDOW_H
 #include "WinApp.h"
 #include "../Game/Game.h"
-#include <memory>
 
 namespace System {
 // A templated base class that other windows will inherit from
@@ -63,8 +62,8 @@ protected:
 class GameWindow : public BaseWindow<GameWindow>
 {
 public:
-    // Default constructor just initializes unique Game pointer
-    GameWindow() : m_pGame(std::make_unique<Game::Game>()) {};
+    // Default constructor just initializes Game pointer
+    GameWindow() : m_pGame(new Game::Game()) {};
 
     // Overriden pure virtual functions from BaseWindow
     PCWSTR ClassName() const final { return L"Game Window Class"; }
@@ -79,8 +78,8 @@ private:
     bool m_Minimized  = false;
     bool m_Fullscreen = false;
 
-    // Unique pointer to game
-    std::unique_ptr<Game::Game> m_pGame;
+    // Heap allocated game
+    Game::Game* m_pGame;
 };
 
 // Definition of templated Create Method

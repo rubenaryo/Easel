@@ -12,7 +12,6 @@ to be used with game objects
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <memory>
 
 namespace Graphics
 {
@@ -49,7 +48,7 @@ private:
     std::unordered_map<std::wstring, const Material*>  mMaterials;
 
     // Unique instance of a ShaderFactory
-    std::unique_ptr<ShaderFactory> mpShaderFactory;
+    ShaderFactory* mpShaderFactory;
 
 public: // Enforce default constructor
     MaterialFactory(MaterialFactory const&) = delete;

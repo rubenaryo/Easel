@@ -26,7 +26,7 @@ namespace Graphics {
 
 void MaterialFactory::Init(ID3D11Device* device, ID3D11DeviceContext* context)
 {
-    mpShaderFactory = std::make_unique<ShaderFactory>();
+    mpShaderFactory = new ShaderFactory();
     mpShaderFactory->Init(device);
     LoadTextures(device, context);
     BuildMaterials();
@@ -190,7 +190,7 @@ MaterialFactory::~MaterialFactory()
     }
 
     // Cleanup shader factory
-    mpShaderFactory.reset();
+    delete mpShaderFactory;
 }
 
 }

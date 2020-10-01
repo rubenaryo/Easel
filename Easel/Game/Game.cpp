@@ -14,14 +14,15 @@ Description : Implementation of Game.h
 
 namespace Game {
 
-// Initialize unique pointer to device resources, and link up this game to be notified of device updates
-Game::Game()
+// Initialize device resources, and link up this game to be notified of device updates
+Game::Game() :
+    mpDeviceResources(new Graphics::DeviceResources()),
+    mpRenderer(new Graphics::Renderer()),
+    mpInput(new Input::GameInput()),
+    mpCamera(nullptr),
+    mpLightingManager(nullptr)
 {
-    mpDeviceResources = std::make_unique<Graphics::DeviceResources>();
     mpDeviceResources->RegisterDeviceNotify(this);
-    
-    mpRenderer = std::make_unique<Graphics::Renderer>();
-    mpInput = std::make_unique<Input::GameInput>();
     mTimer.SetFixedTimeStep(false);
 }
 
@@ -29,7 +30,7 @@ Game::Game()
 bool Game::Init(HWND window, int width, int height)
 {
     // Initialize game camera
-    mpCamera = std::make_unique<Graphics::Camera>(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 0.8f);
+    mpCamera = new Graphics::Camera(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 0.8f);
 
     // Grab Window handle, creates device and context
     mpDeviceResources->SetWindow(window, width, height);
@@ -44,10 +45,10 @@ bool Game::Init(HWND window, int width, int height)
     auto context = mpDeviceResources->GetContext();
 
     // Create Materials, Meshes, Entities
-    mpRenderer->Init(mpDeviceResources.get());
+    mpRenderer->Init(mpDeviceResources);
 
     // Create Lights and respective cbuffers
-    mpLightingManager = std::make_unique<Graphics::LightingManager>(mpDeviceResources->GetDevice(), mpCamera->GetTransform()->GetPosition());
+    mpLightingManager = new Graphics::LightingManager(mpDeviceResources->GetDevice(), mpCamera->GetTransform()->GetPosition());
 
     return true;
 }
@@ -72,7 +73,7 @@ void Game::Update(StepTimer const& timer)
     float elapsedTime = float(timer.GetElapsedSeconds());
 
     // Update the input, passing in the camera so it will update its internal information
-    mpInput->Frame(elapsedTime, mpCamera.get());
+    mpInput->Frame(elapsedTime, mpCamera);
 
     // Update the camera's view matrix
     mpCamera->UpdateView();
@@ -81,7 +82,7 @@ void Game::Update(StepTimer const& timer)
     mpLightingManager->Update(mpDeviceResources->GetContext(), timer.GetTotalSeconds(), mpCamera->GetTransform()->GetPosition());
     
     // Update the renderer's view matrices, lighting information.
-    mpRenderer->Update(mpDeviceResources->GetContext(), elapsedTime, mpCamera.get(), &mpLightingManager->GetLightData());
+    mpRenderer->Update(mpDeviceResources->GetContext(), elapsedTime, mpCamera, &mpLightingManager->GetLightData());
 }
 
 void Game::Render()
@@ -93,7 +94,7 @@ void Game::Render()
     }
 
     // Grab pointer to device resources
-    auto dr = mpDeviceResources.get();
+    auto dr = mpDeviceResources;
 
     // Clear the necessary backbuffer
     dr->Clear(DirectX::Colors::Black);
@@ -121,12 +122,13 @@ void Game::CreateWindowSizeDependentResources(int newWidth, int newHeight)
 
 Game::~Game()
 {
+    OutputDebugStringA("Game dtor\n");
     // Delete all unique ptrs
-    mpLightingManager.reset();
-    mpCamera.reset();
-    mpInput.reset();
-    mpRenderer.reset();
-    mpDeviceResources.reset();
+    delete mpLightingManager;
+    delete mpCamera;
+    delete mpInput;
+    delete mpRenderer;
+    delete mpDeviceResources;
 }
 
 #pragma region Game State Callbacks

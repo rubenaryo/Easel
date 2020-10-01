@@ -9,7 +9,6 @@ Description : Manager-level class for intelligently binding and drawing objects
 #include "CBufferStructs.h"
 #include "DXCore.h"
 
-#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -70,7 +69,7 @@ private:
     ID3D11SamplerState* mpSamplerState;
 
     // Owning pointer to a material factory instance, which creates and distributes materials and textures
-    std::unique_ptr<MaterialFactory> mpMaterialFactory;
+    MaterialFactory* mpMaterialFactory;
 
     const SkyRenderer* mpSkyRenderer;
 

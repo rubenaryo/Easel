@@ -119,7 +119,7 @@ bool GameWindow::InitGame(HWND hwnd, int width, int height)
 }
 
 // Here we invoke the window procedure to handle windows messages
-// if no message is received, we process a frame in our unique internal game pointer
+// if no message is received, we process a frame
 void GameWindow::RunGame()
 {
     MSG msg = {};
@@ -135,8 +135,8 @@ void GameWindow::RunGame()
         m_pGame->Frame();
     }
 
-    // Game is finished running forever. Delete unique ptr
-    m_pGame.reset();
+    // Game is finished running forever. Delete it
+    delete m_pGame;
 }
 
 }

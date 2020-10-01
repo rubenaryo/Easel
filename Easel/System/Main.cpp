@@ -36,6 +36,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     // Run the game
     window.RunGame();
 
+    Sleep(1000);
     // Dump any found memory leaks
     #if defined(DEBUG)
     _CrtDumpMemoryLeaks();

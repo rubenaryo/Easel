@@ -24,7 +24,7 @@ namespace Graphics {
 
 Renderer::Renderer()
 {
-    mpMaterialFactory = std::make_unique<MaterialFactory>();
+    mpMaterialFactory = new MaterialFactory();
 }
 
 void Renderer::Init(DeviceResources* dr)
@@ -161,7 +161,7 @@ Renderer::~Renderer()
 
     mpSamplerState->Release();
     
-    mpMaterialFactory.reset();
+    delete mpMaterialFactory;
     delete mpSkyRenderer;
 }
 }
