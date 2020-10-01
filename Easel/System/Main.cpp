@@ -28,7 +28,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     DWORD style = CS_HREDRAW | CS_VREDRAW;
     DWORD ExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
     if (!window.Create(L"Easel", hInstance, style, ExStyle, 0L, 0L, 1280L, 800L, 0, 0))
-        return 1;
+        exit(EXIT_FAILURE);
 
     // Show the window
     ShowWindow(window.Window(), nCmdShow);
@@ -41,5 +41,5 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     _CrtDumpMemoryLeaks();
     #endif
 
-    return 0;
+    exit(EXIT_SUCCESS);
 }

@@ -100,7 +100,8 @@ BOOL BaseWindow<WindowType>::Create(PCWSTR lpWindowName, HINSTANCE hInstance, DW
     wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
     wc.lpszClassName = ClassName();
 
-    if (!RegisterClassExW(&wc)) return FALSE;
+    if (!RegisterClassExW(&wc))
+        return FALSE;
     
     RECT rc = { x, y, x + nWidth, y + nHeight};
     AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
@@ -108,8 +109,8 @@ BOOL BaseWindow<WindowType>::Create(PCWSTR lpWindowName, HINSTANCE hInstance, DW
     m_hwnd = CreateWindowExW(dwExStyle, ClassName(), lpWindowName, dwStyle, x, y, rc.right - rc.left, rc.bottom - rc.top, hWndParent, hMenu, hInstance, this);
 
     // Initialize Windows Imaging Component (WIC)
-    HRESULT hr = CoInitializeEx(nullptr, COINITBASE_MULTITHREADED);
-    if (FAILED(hr)) return FALSE;
+    if (FAILED(CoInitializeEx(nullptr, COINITBASE_MULTITHREADED)))
+        return FALSE;
 
     if (m_hwnd)
     {
@@ -119,7 +120,6 @@ BOOL BaseWindow<WindowType>::Create(PCWSTR lpWindowName, HINSTANCE hInstance, DW
     {
         return FALSE;
     }
-
 }
 
 }
