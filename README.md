@@ -2,13 +2,12 @@
 This is a rendering framework built to help in the initial setup of simulations.
 
 ## Details
-This project is built using the C++17 standard, and is dynamically linking to the CRT.
+This project is built using MSVC with the Visual Studio 2019 toolset (v142) for the C++17 standard.
 
 ## Dependencies
 Part of the point of making this project was to attempt to create a basic rendering system while using as few libraries as possible. While I'm still committed to this goal, certain features I would like to implement are too impractical to try to learn and create myself while still focusing my own growth in graphics programming specifically, such as Audio or Online Play. The following is a list of the external libraries I'll be making use of and for what purpose.
 * [DirectX Toolkit 2017](https://github.com/microsoft/DirectXTK) (NuGet)
   * Reading image files for texture generation
-  * Audio (future)
 * [Assimp 3.0.0](http://www.assimp.org/) (NuGet)
   * Loading 3D Models
   
@@ -28,6 +27,9 @@ which the IDE internally sorts into Headers and Source Files in the Solution Exp
 These configuration settings were set by using the Solution Properties GUI (Alt + Enter) and stored in the included '.vcxproj' and '.vcxproj.filters' files, so feel free to change them as you like!
 
 This config was heavily inspired by one used by a professor of mine, which I thought was good enough to use for all my projects.
+
+## Performance Analysis
+A performance analysis for this engine is ongoing, the first section of which will be added to the repository on October 14, 2020.
 
 ## Character Set
 This was built to support the Unicode character set, meaning it is based on using wstrings rather than strings.
