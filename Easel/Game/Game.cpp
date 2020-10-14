@@ -30,7 +30,7 @@ Game::Game() :
 bool Game::Init(HWND window, int width, int height)
 {
     // Initialize game camera
-    mpCamera = new Graphics::Camera(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 0.8f);
+    mpCamera = new Graphics::Camera(0.0f, 0.0f, -50.0f, width / (float)height, 0.1f, 100.0f, 1.5f);
 
     // Grab Window handle, creates device and context
     mpDeviceResources->SetWindow(window, width, height);
@@ -48,7 +48,9 @@ bool Game::Init(HWND window, int width, int height)
     mpRenderer->Init(mpDeviceResources);
 
     // Create Lights and respective cbuffers
-    mpLightingManager = new Graphics::LightingManager(mpDeviceResources->GetDevice(), mpCamera->GetTransform()->GetPosition());
+    DirectX::XMFLOAT3A camPos;
+    mpCamera->GetPosition3A(&camPos);
+    mpLightingManager = new Graphics::LightingManager(mpDeviceResources->GetDevice(), camPos);
 
     return true;
 }
@@ -63,9 +65,7 @@ void Game::Frame()
 
     Render();
 
-    #if defined(DEBUG)
-        mpDeviceResources->UpdateTitleBar(mTimer.GetFramesPerSecond(), mTimer.GetFrameCount());
-    #endif
+    mpDeviceResources->UpdateTitleBar(mTimer.GetFramesPerSecond(), mTimer.GetFrameCount());
 }
 
 void Game::Update(StepTimer const& timer)
@@ -79,7 +79,9 @@ void Game::Update(StepTimer const& timer)
     mpCamera->UpdateView();
 
     // Update the lights (if needed)
-    mpLightingManager->Update(mpDeviceResources->GetContext(), timer.GetTotalSeconds(), mpCamera->GetTransform()->GetPosition());
+    DirectX::XMFLOAT3A camPos;
+    mpCamera->GetPosition3A(&camPos);
+    mpLightingManager->Update(mpDeviceResources->GetContext(), timer.GetTotalSeconds(), camPos);
     
     // Update the renderer's view matrices, lighting information.
     mpRenderer->Update(mpDeviceResources->GetContext(), elapsedTime, mpCamera, &mpLightingManager->GetLightData());
@@ -122,7 +124,6 @@ void Game::CreateWindowSizeDependentResources(int newWidth, int newHeight)
 
 Game::~Game()
 {
-    OutputDebugStringA("Game dtor\n");
     // Delete all unique ptrs
     delete mpLightingManager;
     delete mpCamera;

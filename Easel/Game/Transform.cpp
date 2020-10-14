@@ -7,102 +7,97 @@ Description : Transform class implementation
 
 namespace Game {
 
+using namespace DirectX;
+
 Transform::Transform() :
-    mPosition(0.0f, 0.0f, 0.0f),
-    mScale(1.0f, 1.0f, 1.0f),
-    mPitchYawRoll(0.0f, 0.0f, 0.0f),
-    mMatrixDirty(false)
+    mPosition       (XMVectorZero()),
+    mScale          (XMVectorReplicate(1.0f)),
+    mQuatRotation   (XMQuaternionIdentity())
 {
     XMStoreFloat4x4(&mWorld, DirectX::XMMatrixIdentity());
 }
 
-void Transform::MoveAbsolute(float x, float y, float z)
+Transform::Transform(DirectX::XMVECTOR pos, DirectX::XMVECTOR scale, DirectX::XMVECTOR rotQuat) :
+    mPosition(pos),
+    mScale(scale),
+    mQuatRotation(rotQuat)
 {
-    mPosition.x += x;
-    mPosition.y += y;
-    mPosition.z += z;
-    mMatrixDirty = true;
+    // Generate proper world matrix for given parameters
+    this->Recompute();
 }
 
-void Transform::MoveRelative(float x, float y, float z)
+DirectX::XMFLOAT4X4 Transform::Recompute()
 {
-    using namespace DirectX;
-    XMVECTOR movement = XMVectorSet(x, y, z, 0);
-    XMVECTOR rotation = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&mPitchYawRoll));
+    // Recompute the world matrix
+    XMMATRIX tempWorld = XMMatrixAffineTransformation(mScale, XMVectorZero(), mQuatRotation, mPosition);
+    XMStoreFloat4x4(&mWorld, tempWorld);
 
-    // Rotate by the quaternion
-    XMVECTOR dir = DirectX::XMVector3Rotate(movement, rotation);
-
-    // Store as member field
-    XMStoreFloat3(&mPosition, XMLoadFloat3(&mPosition) + dir);
+    // Return it.
+    return mWorld;
 }
+
+
+void Transform::Translate(float x, float y, float z)
+{
+    this->Translate(XMVectorSet(x, y, z, 0));
+}
+void Transform::Translate(XMVECTOR translation)
+{
+    mPosition = XMVectorAdd(mPosition, translation);
+}
+
 
 void Transform::Rotate(float p, float y, float r)
 {
-    mPitchYawRoll.x += p;
-    mPitchYawRoll.y += y;
-    mPitchYawRoll.z += r;
-    mMatrixDirty = true;
+    this->Rotate(XMVectorSet(p,y,r,0));
 }
+
+void Transform::Rotate(XMVECTOR quatRotation)
+{
+    mQuatRotation = XMQuaternionMultiply(mQuatRotation, XMQuaternionRotationRollPitchYawFromVector(quatRotation));
+}
+
 
 void Transform::Scale(float x, float y, float z)
 {
-    mScale.x *= x;
-    mScale.y *= y;
-    mScale.z *= z;
-    mMatrixDirty = true;
+    this->Scale(XMVectorSet(x, y, z, 0));
 }
 
-void Transform::SetPosition(float x, float y, float z)
+void Transform::Scale(XMVECTOR scales)
 {
-    mPosition.x = x;
-    mPosition.y = y;
-    mPosition.z = z;
-    mMatrixDirty = true;
+    mScale = XMVectorAdd(mScale, scales);
 }
 
-void Transform::SetRotation(float p, float y, float r)
+void Transform::SetTranslation(float x, float y, float z)
 {
-    mPitchYawRoll.x = p;
-    mPitchYawRoll.y = y;
-    mPitchYawRoll.z = r;
-    mMatrixDirty = true;
+    SetTranslation(XMVectorSet(x, y, z, 0));
 }
+
+void Transform::SetTranslation(DirectX::XMVECTOR translation)
+{
+    mPosition = translation;
+}
+
+
+void Transform::SetRotation(float pitch, float yaw, float roll)
+{
+    this->SetRotation(XMQuaternionRotationRollPitchYaw(pitch, yaw, roll));
+}
+
+void Transform::SetRotation(DirectX::XMVECTOR quatRotation)
+{
+    mQuatRotation = quatRotation;
+}
+
 
 void Transform::SetScale(float x, float y, float z)
 {
-    mScale.x = x;
-    mScale.y = y;
-    mScale.z = z;
-    mMatrixDirty = true;
+    SetScale(XMVectorSet(x, y, z, 0));
 }
 
-DirectX::XMFLOAT3 Transform::GetPosition() const { return mPosition; }
-
-DirectX::XMFLOAT3 Transform::GetPitchYawRoll() const { return mPitchYawRoll; }
-
-DirectX::XMFLOAT3 Transform::GetScale() const { return mScale; }
-
-DirectX::XMFLOAT4X4 Transform::GetWorldMatrix()
+void Transform::SetScale(DirectX::XMVECTOR scales)
 {
-    using namespace DirectX;
-    
-    if (mMatrixDirty) // Recalculate World Matrix?
-    {
-        
-        // Calculate individual pieces
-        XMMATRIX translation = XMMatrixTranslationFromVector(XMLoadFloat3(&mPosition));
-        XMMATRIX rotation    = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&mPitchYawRoll));
-        XMMATRIX scaling     = XMMatrixScalingFromVector(XMLoadFloat3(&mScale));
-
-        // Calculate world matrix
-        XMMATRIX worldmat = scaling * rotation * translation;
-        XMStoreFloat4x4(&mWorld, worldmat);
-
-        // Switch flag
-        mMatrixDirty = false;
-    }
-
-    return mWorld;
+    mScale = scales;
 }
+
 }

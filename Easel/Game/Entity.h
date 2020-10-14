@@ -12,7 +12,7 @@ Description : Entity is an instance of a mesh with a unique transform and materi
 namespace Game
 {
 class Mesh;
-class Transform;
+struct Transform;
 }
 
 namespace Game
@@ -20,25 +20,21 @@ namespace Game
 class Entity
 {
 public:
-    Entity(const Mesh* pMesh);
-    Entity(const Mesh* pMesh, Transform transform);
+    explicit Entity(const Mesh* pMesh);
+    explicit Entity(const Mesh* pMesh, Transform transform);
     ~Entity() = default;
 
     // Call Mesh's draw, passing in the world matrix is done by the Renderer class
-    void Draw(ID3D11DeviceContext* pContext);
+    void Draw(ID3D11DeviceContext* pContext) const;
 
-    // Accessors
-    inline const Mesh* GetMesh() const { return mpMesh; }
-    Transform*         GetTransform();
+    Transform mTransform;
+
 private:
     // Entity information
     const Mesh* mpMesh;
-    Transform   mTransform;
 
 public:
-    Entity()                            = delete;
-    Entity(Entity const&)               = delete;
-    Entity& operator=(Entity const&)    = delete;
+    Entity() = delete;
 };
 
 }

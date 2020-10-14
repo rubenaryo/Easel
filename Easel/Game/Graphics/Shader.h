@@ -79,12 +79,16 @@ public:
     // Sets the data for a constant buffer by index
     bool SetBufferData(ID3D11DeviceContext* context, UINT slot, UINT dataSize, const void* pData)
     {
-        if(slot > (UINT)ReservedRegisters::RR_MAX_INDEX) return false;
+        #if defined(DEBUG)
+            if(slot > (UINT)ReservedRegisters::RR_MAX_INDEX) return false;
+        #endif
 
         ID3D11Buffer* buffer = mConstantBuffers[slot];
         
+        #if defined(DEBUG)
         if(!buffer)
             return false;
+        #endif
 
         // --Map/Memcpy/Unmap--
         D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
@@ -92,7 +96,10 @@ public:
         memcpy(mappedBuffer.pData, pData, dataSize);
         context->Unmap(buffer, 0);
 
+        #if defined(DEBUG)
         if(FAILED(hr)) return false;
+        #endif
+        
         return true;
     }
 

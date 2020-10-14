@@ -41,15 +41,9 @@ Material::Material(VertexShader* pVS, PixelShader* pPS, cbMaterialParams* pParam
     mResourceCount = numResources;
 }
 
+// This should be superceded by a call to SetMaterialParams unless this material has none.
 inline void Material::Bind(ID3D11DeviceContext* context) const
 {
-    // Set material parameters
-    mpPixelShader->SetBufferData(
-        context, 
-        (UINT)ReservedRegisters::RR_PS_MATERIAL, 
-        sizeof(mParams),
-        reinterpret_cast<const void*>(&mParams));
-
     // Bind all the associated textures
     for (uint32_t t = 0; t < mResourceCount; ++t)
     {
@@ -59,6 +53,16 @@ inline void Material::Bind(ID3D11DeviceContext* context) const
     // Bind this material's VS,PS to the pipeline
     mpVertexShader->Bind(context);
     mpPixelShader->Bind(context);
+}
+
+void Material::SetMaterialParams(ID3D11DeviceContext* context) const
+{
+    // Set material parameters into the designated buffer
+    mpPixelShader->SetBufferData(
+        context,
+        (UINT)ReservedRegisters::RR_PS_MATERIAL,
+        sizeof(mParams),
+        reinterpret_cast<const void*>(&mParams));
 }
 
 Material::~Material()

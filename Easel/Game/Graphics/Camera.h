@@ -11,10 +11,17 @@ Description : Interface for Quaternion-Based Camera functionality
 
 #include "../Transform.h"
 
+namespace Input
+{
+class GameInput;
+}
+
 namespace Graphics {
 
 class Camera
 {
+friend class Input::GameInput;
+
 public:
     Camera(float x, float y, float z, float aspectRatio, float nearPlane, float farPlane, float sensitivity);
     Camera() = delete;
@@ -28,19 +35,25 @@ public:
     void UpdateProjection(float aspectRatio);
 
     // Accessors:
-    const cbCamera      AsConstantBuffer() const { return cbCamera{mView, mProjection}; }
-    Game::Transform*    GetTransform()           { return &mTransform;   }
-    DirectX::XMFLOAT4X4 GetView() const          { return mView;         }
-    DirectX::XMFLOAT4X4 GetProjection() const    { return mProjection;   }
-    float               GetSensitivity() const   { return mSensitivity;  }
+    const cbCamera      AsConstantBuffer()  const  { return cbCamera{mView, mProjection}; }
+
+    DirectX::XMFLOAT4X4 GetView()           const  { return mView;         }
+    DirectX::XMFLOAT4X4 GetProjection()     const  { return mProjection;   }
+    float               GetSensitivity()    const  { return mSensitivity;  }
+    
+    void GetPosition3A(DirectX::XMFLOAT3A* out_pos) const;
+    DirectX::XMVECTOR   GetPosition() const;
 
 private:
-    // Information about camera position and rotation
-    Game::Transform mTransform;
-
     // View and Projection Matrices
     DirectX::XMFLOAT4X4 mView;
     DirectX::XMFLOAT4X4 mProjection;
+
+    // Camera's local axis and position
+    DirectX::XMVECTOR   mForward;
+    DirectX::XMVECTOR   mRight;
+    DirectX::XMVECTOR   mUp;
+    DirectX::XMVECTOR   mPosition;
 
     // Position of near and far planes along forward axis
     float mNear;
@@ -48,6 +61,13 @@ private:
 
     // Look Sensitivity
     float mSensitivity;
+
+private: // For GameInput only
+    void MoveForward(float dist);
+    void MoveRight(float dist);
+    void MoveUp(float dist);
+    void MoveAlongAxis(float dist, DirectX::XMVECTOR axis); // Assumes normalized axis
+    void Rotate(DirectX::XMVECTOR quatRotation);
 };
 }
 

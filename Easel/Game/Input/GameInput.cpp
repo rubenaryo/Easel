@@ -19,13 +19,15 @@ namespace Input {
 
     void GameInput::Frame(float dt, Graphics::Camera* pCamera)
     {
-        float speed = 5 * dt;
+        using namespace DirectX;
+
+        static const float kSpeed = 5.0f;
 
         // Act on user input:
         // - Iterate through all active keys
         // - Check for commands corresponding to activated chords
         // - Do something based on those commands
-        for (auto pair : mActiveKeyMap)
+        for (auto const& pair : mActiveKeyMap)
         {
             switch (pair.first)
             {
@@ -33,28 +35,39 @@ namespace Input {
                 PostQuitMessage(0);
                 break;
             case GameCommands::MoveForward:
-                pCamera->GetTransform()->MoveRelative(0.0f, 0.0f, speed);
+                pCamera->MoveForward(kSpeed * dt);
                 break;
             case GameCommands::MoveBackward:
-                pCamera->GetTransform()->MoveRelative(0.0f, 0.0f, -speed);
+                pCamera->MoveForward(-kSpeed * dt);
                 break;
             case GameCommands::MoveLeft:
-                pCamera->GetTransform()->MoveRelative(-speed, 0.0f, 0.0f);
+                pCamera->MoveRight(-kSpeed * dt);
                 break;
             case GameCommands::MoveRight:
-                pCamera->GetTransform()->MoveRelative(speed, 0.0f, 0.0f);
+                pCamera->MoveRight(kSpeed * dt);
+                break;
+            case GameCommands::MoveUp:
+                pCamera->MoveUp(kSpeed * dt);
+                break;
+            case GameCommands::RollLeft:
+                pCamera->Rotate(XMQuaternionRotationAxis(pCamera->mForward, kSpeed*dt));
+                break;
+            case GameCommands::RollRight:
+                pCamera->Rotate(XMQuaternionRotationAxis(pCamera->mForward, -kSpeed * dt));
                 break;
             case GameCommands::CameraRotation:
             {
                 std::pair<float, float> delta = this->GetMouseDelta();
 
-                float mouseSensitivity = pCamera->GetSensitivity();
+                const float mouseSensitivity = pCamera->GetSensitivity();
 
-                delta.first *= mouseSensitivity * dt;
-                delta.second *= mouseSensitivity * dt;
+                const float yaw  = delta.first * mouseSensitivity * dt;
+                const float pitch = delta.second * mouseSensitivity * dt;
 
+                XMVECTOR horizontalQuat = XMQuaternionRotationAxis(pCamera->mUp, yaw);
+                XMVECTOR verticalQuat   = XMQuaternionRotationAxis(pCamera->mRight, pitch);
                 
-                pCamera->GetTransform()->Rotate(delta.second, delta.first, 0.0f);
+                pCamera->Rotate(XMQuaternionMultiply(horizontalQuat, verticalQuat));
                 break;
             }
             }
@@ -71,6 +84,9 @@ namespace Input {
         mKeyMap[GameCommands::MoveBackward] = new Chord(L"Move Backward", 'S', KeyState::StillPressed);
         mKeyMap[GameCommands::MoveLeft]     = new Chord(L"Move Left", 'A', KeyState::StillPressed);
         mKeyMap[GameCommands::MoveRight]    = new Chord(L"Move Right", 'D', KeyState::StillPressed);
+        mKeyMap[GameCommands::MoveUp]       = new Chord(L"Move Up", VK_SPACE, KeyState::StillPressed);
+        mKeyMap[GameCommands::RollLeft]     = new Chord(L"Roll Left", 'Q', KeyState::StillPressed);
+        mKeyMap[GameCommands::RollRight]    = new Chord(L"Roll Right", 'E', KeyState::StillPressed);
 
         mKeyMap[GameCommands::CameraRotation] = new Chord(L"Camera Rotation", VK_RBUTTON, KeyState::StillPressed);
     }

@@ -53,12 +53,12 @@ private:
 
 private:
     // Maps a material to a list of entities that utilize it
-    std::unordered_map<const Material*, std::vector<Game::Entity*>> mEntityMap;
+    std::unordered_map<const Material*, std::vector<Game::Entity>> mEntityMap;
 
     // Dictionary of all loaded meshes (Eventually this may be handled by a mesh manager, who takes them in/out of memory
     // Key is a hardcoded :( identifying id
     std::unordered_map<std::string, const Game::Mesh*> mMeshes;
-
+    
     // Sample all textures the same way,
     // TODO: DON'T Sample all textures the same way
     // A possible solution to this is to set sampler options as material params, then

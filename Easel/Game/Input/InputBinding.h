@@ -25,6 +25,9 @@ namespace Input {
         MoveBackward,
         MoveLeft,
         MoveRight,
+        MoveUp,
+        RollLeft,
+        RollRight,
         CameraRotation
     };
 

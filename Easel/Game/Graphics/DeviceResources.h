@@ -75,9 +75,7 @@ public:
     RECT                     GetOutputSize()        const { return mOutputSize;          }
     HWND                     GetWindow()            const { return mWindow;              }
 
-#if defined(DEBUG)
     void UpdateTitleBar(uint32_t fps, uint32_t frameCount);
-#endif
 
 private:
     void CreateFactory();

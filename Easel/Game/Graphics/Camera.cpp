@@ -7,13 +7,18 @@ Description : Implementation of Camera Class
 
 namespace Graphics {
 
+using namespace DirectX;
+
 Camera::Camera(float x, float y, float z, float aspectRatio, float nearPlane, float farPlane, float sensitivity) :
     mNear(nearPlane),
     mFar(farPlane),
-    mSensitivity(sensitivity)
+    mSensitivity(sensitivity),
+    mForward(DirectX::XMVectorSet(0.f, 0.f, 1.f, 0.f)),
+    mUp(DirectX::XMVectorSet(0.f, 1.f, 0.f, 0.f)),
+    mRight(DirectX::XMVectorSet(1.f, 0.f, 0.f, 0.f))
 {
     // Initialize the transform of the camera
-    mTransform.SetPosition(x, y, z);
+    mPosition = XMVectorSet(x, y, z, 0);
 
     // Create initial matrices
     UpdateView();
@@ -23,19 +28,11 @@ Camera::Camera(float x, float y, float z, float aspectRatio, float nearPlane, fl
 // Creates a new view matrix based on current position and orientation
 void Camera::UpdateView()
 {
-    using namespace DirectX;
-    // Grab rotation quaternion
-    XMVECTOR rotation = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&mTransform.GetPitchYawRoll()));
-
-    // Calculate Forward vector
-    XMVECTOR zDir = XMVectorSet(0, 0, 1, 0);
-    XMVECTOR forward = XMVector3Rotate(zDir, rotation);
-
     // Create view matrix
     XMMATRIX view = XMMatrixLookToLH(
-        XMLoadFloat3(&mTransform.GetPosition()),
-        forward,
-        XMVectorSet(0, 1, 0, 0));
+        mPosition,
+        mForward,
+        mUp);
 
     // Store as a member field
     XMStoreFloat4x4(&mView, view);
@@ -44,14 +41,51 @@ void Camera::UpdateView()
 // Updates the projection matrix (like on screen resize)
 void Camera::UpdateProjection(float aspectRatio)
 {
-    using namespace DirectX;
     XMMATRIX projection = XMMatrixPerspectiveFovLH(
         XM_PIDIV4,      // FOV
-        aspectRatio,  // Screen Aspect ratio
-        mNear,         // Near clip plane
-        mFar);         // Far clip plane
+        aspectRatio,    // Screen Aspect ratio
+        mNear,          // Near clip plane
+        mFar);          // Far clip plane
 
     XMStoreFloat4x4(&mProjection, projection);
+}
+
+void Camera::GetPosition3A(XMFLOAT3A* out_pos) const
+{
+    XMStoreFloat3A(out_pos, mPosition);
+}
+
+XMVECTOR Camera::GetPosition() const
+{
+    return mPosition;
+}
+
+void Camera::MoveForward(float dist)
+{
+    MoveAlongAxis(dist, mForward);
+}
+
+void Camera::MoveRight(float dist)
+{
+    MoveAlongAxis(dist, mRight);
+}
+
+void Camera::MoveUp(float dist)
+{
+    MoveAlongAxis(dist, mUp);
+}
+
+void Camera::MoveAlongAxis(float dist, XMVECTOR axis)
+{
+    mPosition = XMVectorAdd(mPosition, XMVectorScale(axis, dist));
+}
+
+void Camera::Rotate(XMVECTOR quatRotation)
+{
+    // Calculate Forward vector
+    mForward    = XMVector3Rotate(mForward, quatRotation);
+    mUp         = XMVector3Rotate(mUp, quatRotation);
+    mRight      = XMVector3Rotate(mRight, quatRotation);
 }
 
 }

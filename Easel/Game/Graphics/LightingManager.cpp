@@ -9,12 +9,12 @@ Description : Implementation of LightingManager.h
 
 namespace Graphics
 {
-    LightingManager::LightingManager(ID3D11Device* device, DirectX::XMFLOAT3 cameraPos)
+    LightingManager::LightingManager(ID3D11Device* device, DirectX::XMFLOAT3A cameraPos)
     {
         InitLights(cameraPos);
     }
 
-    void LightingManager::Update(ID3D11DeviceContext* context, float dt, DirectX::XMFLOAT3 cameraPos)
+    void LightingManager::Update(ID3D11DeviceContext* context, float dt, DirectX::XMFLOAT3A cameraPos)
     {
         UpdateLights(dt, cameraPos);
     }
@@ -22,7 +22,7 @@ namespace Graphics
 
     // AAA Case: Bring in lights directly from a "world editor" of some sort, which exports light positions, colors, etc for environment artists
     // Me: Hardcode it!
-    void LightingManager::InitLights(DirectX::XMFLOAT3 cameraPos)
+    void LightingManager::InitLights(DirectX::XMFLOAT3A cameraPos)
     {
         using DirectX::XMFLOAT3A;
 
@@ -37,17 +37,16 @@ namespace Graphics
         mLightData.cameraWorldPos.z = cameraPos.z;
     }
 
-    void LightingManager::UpdateLights(float dt, DirectX::XMFLOAT3 cameraPos)
+    void LightingManager::UpdateLights(float dt, DirectX::XMFLOAT3A cameraPos)
     {
         // Logic to update the light's direction or something
-        //DirectionalLight& light = m_LightData.directionalLight;
-        //light.toLight.x = cosf(dt);
-        //light.toLight.z = sinf(dt);
-        //
+        //const float lightSpeed = 2.0f;
+        //DirectionalLight& light = mLightData.directionalLight;
+        //light.toLight.x = cosf(lightSpeed * dt);
+        //light.toLight.z = sinf(lightSpeed * dt);
+        
 
         // Overwrite held camera position
-        mLightData.cameraWorldPos.x = cameraPos.x;
-        mLightData.cameraWorldPos.y = cameraPos.y;
-        mLightData.cameraWorldPos.z = cameraPos.z;
+        mLightData.cameraWorldPos = cameraPos;
     }
 }

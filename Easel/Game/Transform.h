@@ -10,36 +10,41 @@ Description : Transform class for game objects
 
 namespace Game {
 
-class Transform
+struct Transform
 {
-public:
-    Transform();
+    explicit Transform();
+    explicit Transform(DirectX::XMVECTOR pos, DirectX::XMVECTOR scale, DirectX::XMVECTOR rotQuat);
 
-    DirectX::XMFLOAT4X4 GetWorldMatrix();
-    DirectX::XMFLOAT3   GetPosition()       const;
-    DirectX::XMFLOAT3   GetScale()          const;
-    DirectX::XMFLOAT3   GetPitchYawRoll()   const;
+    // Returns World matrix from internal pos, scale, rot and stores it in mWorld
+    DirectX::XMFLOAT4X4 Recompute();
 
-    // Setters
-    void SetPosition(float x, float y, float z);
-    void SetScale(float x, float y, float z);
-    void SetRotation(float pitch, float yaw, float roll);
-
-    // Transformers
-    void MoveAbsolute(float x, float y, float z);
+    // Relative Transformers
+    void Translate(float x, float y, float z);
+    void Translate(DirectX::XMVECTOR translation);
+    
     void Rotate(float pitch, float yaw, float roll);
+    void Rotate(DirectX::XMVECTOR pitchYawRoll);
+    
     void Scale(float x, float y, float z);
-    void MoveRelative(float x, float y, float z);
+    void Scale(DirectX::XMVECTOR scales);
+
+    // Absolute Transformers
+    void SetTranslation(float x, float y, float z);
+    void SetTranslation(DirectX::XMVECTOR translation);
+
+    void SetRotation(float pitch, float yaw, float roll);
+    void SetRotation(DirectX::XMVECTOR pitchYawRoll);
+
+    void SetScale(float x, float y, float z);
+    void SetScale(DirectX::XMVECTOR scales);
+
+    DirectX::XMFLOAT4X4  mWorld;
 
 private:
-
-    bool mMatrixDirty = true;
-
-    // Information about world position
-    DirectX::XMFLOAT4X4  mWorld;
-    DirectX::XMFLOAT3    mPosition;
-    DirectX::XMFLOAT3    mScale;
-    DirectX::XMFLOAT3    mPitchYawRoll;
+    // Transformation Info
+    DirectX::XMVECTOR mPosition;
+    DirectX::XMVECTOR mQuatRotation;
+    DirectX::XMVECTOR mScale;
 };
 }
 #endif

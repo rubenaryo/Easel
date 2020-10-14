@@ -18,16 +18,11 @@ Entity::Entity(const Mesh* pMesh, Transform transform) :
 {}
 
 
-void Entity::Draw(ID3D11DeviceContext* context)
+void Entity::Draw(ID3D11DeviceContext* context) const
 {
     // Draw the mesh
     // TODO: Instanced Rendering
     mpMesh->Draw(context);
-}
-
-Transform* Entity::GetTransform()
-{
-    return &mTransform;
 }
 
 }

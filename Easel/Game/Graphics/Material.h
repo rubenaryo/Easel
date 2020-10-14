@@ -36,6 +36,7 @@ public:
 
     // Bind override from IBindable
     inline void Bind(ID3D11DeviceContext* context) const override;
+    void SetMaterialParams(ID3D11DeviceContext* context) const;
 
 private:
     VertexShader*       mpVertexShader;

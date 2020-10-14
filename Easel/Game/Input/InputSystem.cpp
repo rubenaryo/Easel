@@ -26,8 +26,6 @@ namespace Input {
             delete pair.second;
         mKeyMap.clear();
 
-        OutputDebugStringA("inputsys dtor\n");
-
         // No need to delete dynamic memory from activeKeyMap, it's already deleted in keymap*
         mActiveKeyMap.clear();
     }

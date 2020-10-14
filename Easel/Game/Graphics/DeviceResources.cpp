@@ -447,7 +447,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
                 );
 
                 // fill temporary texture
-                ID3D11Texture2D* MsaaDepthStencil;
+                ID3D11Texture2D* MsaaDepthStencil = nullptr;
                 hr = mpDevice->CreateTexture2D(
                     &MsaaDSD,
                     nullptr,
@@ -720,6 +720,21 @@ void DeviceResources::UpdateTitleBar(uint32_t fps, uint32_t frameCount)
     wss << L"    " << mMSAASampleCount << L"xMSAA";
 
     SetWindowText(GetWindow(), wss.str().c_str());
+}
+#else // This is temporary code for debugging
+void DeviceResources::UpdateTitleBar(uint32_t fps, uint32_t frameCount)
+{
+    // Update title bar every 60 frames
+    if (frameCount % 60 == 0)
+        return;
+
+    // Small static buffer just for displaying the FPS
+    static char buf[16];
+    sprintf_s(buf, "FPS: %d", fps);
+
+    SetWindowTextA(GetWindow(), buf);
+    
+    SecureZeroMemory(buf, 16);
 }
 #endif
 

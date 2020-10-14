@@ -19,6 +19,8 @@ Description : Implementation of Renderer class
 #include "../Mesh.h"
 #include "../Transform.h"
 
+#include <random>
+#include <time.h>
 
 namespace Graphics {
 
@@ -67,12 +69,12 @@ void Renderer::InitMeshes(DeviceResources* dr)
     mMeshes["cube"]   = new Mesh("cube.obj"  , device);
     mMeshes["sphere"] = new Mesh("sphere.obj", device);
     mMeshes["torus"]  = new Mesh("torus.obj" , device);
+    mMeshes["cylinder"] = new Mesh("cylinder.obj" , device);
 }
 
 void Renderer::InitEntities()
 {
     using Game::Entity;
-    using Game::Transform;
 
     // Grab material pointer from factory instance
     const Material* mat1 = mpMaterialFactory->GetMaterial(L"Lunar");
@@ -80,35 +82,89 @@ void Renderer::InitEntities()
     assert(mat1);
     assert(mat2);
 
-    // Teapot and sphere using material1
-    Transform teapotTransform;
-    teapotTransform.SetRotation(-DirectX::XM_PIDIV2, 0, 0);
-    teapotTransform.SetScale(0.1f, 0.1f, 0.1f);
-    teapotTransform.SetPosition(0.0f, +0.2f, 0.0f);
+    #define NUMENTITIES 75000
+    Game::Transform xform;
+    xform.Scale(0.5, 0.5, 0.5);
+    
+    // Entities are split about evenly per material, but not exactly
+    mEntityMap[mat1].reserve(NUMENTITIES/2 + 50);
+    mEntityMap[mat2].reserve(NUMENTITIES/2 + 50);
+    
+    std::default_random_engine gen;
+    std::uniform_real_distribution dist(-40.f, 40.f);
+    gen.seed(gen.default_seed);
 
-    Entity* entity1 = new Entity(mMeshes["teapot"], teapotTransform);
-    Entity* entity2 = new Entity(mMeshes["sphere"]);
-    entity2->GetTransform()->Scale(1.5f, 1.5f, 1.5f);
+    // Profiling test
+    for (int i = 0; i < NUMENTITIES; ++i)
+    {
+        float d = dist(gen);
+        float r = dist(gen);
+        float r2 = dist(gen);
+        float r3 = dist(gen);
 
-    // Move the sphere downwards
-    entity2->GetTransform()->SetPosition(0.0f, -1.0f, 0.0f);
+        xform.SetTranslation(r, r2, r3);
+        xform.SetRotation(r, r2, r3);
 
-    // Add them all to the hash table
-    mEntityMap[mat1].push_back(entity1);
-    mEntityMap[mat2].push_back(entity2);
+        // put entity into one of two buckets
+        const Material* mat = d > 0 ? mat1 : mat2;
+        const Game::Mesh* mesh;
+
+        if (d < 0)
+        {
+            if (d > -5)
+                mesh = mMeshes["sphere"];
+            else
+                mesh = mMeshes["cube"];
+        }
+        else
+        {
+            if (d > 5)
+                mesh = mMeshes["torus"];
+            else
+                mesh = mMeshes["cylinder"];
+        }
+
+        mEntityMap[mat].push_back(Entity(mesh, xform));
+    }
+    #undef NUMENTITIES
 }
 
 void Renderer::Update(ID3D11DeviceContext* context, float dt, const Camera* camera, const cbLighting* lightData)
 {
+    using namespace DirectX;
+    using Game::Transform;
+    
     // Hold camera, lighting data locally for rendering
     mCameraBuffer = camera->AsConstantBuffer();
     memcpy(&mLightingBuffer, lightData, sizeof(cbLighting));
+
+    const float rotSpeed = 1.25f;
+
+    static const XMVECTOR rot1 = DirectX::XMQuaternionRotationRollPitchYaw(rotSpeed, -rotSpeed, rotSpeed);
+    static const XMVECTOR rot2 = -rot1;
+
+    std::vector<Game::Entity>* mat1List = &mEntityMap[mpMaterialFactory->GetMaterial(L"Lunar")];
+    std::vector<Game::Entity>::iterator it = mat1List->begin();
+    for (;it != mat1List->end(); ++it)
+    {
+        it->mTransform.Rotate(rot1*dt);
+    }
+
+    std::vector<Game::Entity>* mat2List = &mEntityMap[mpMaterialFactory->GetMaterial(L"Earth")];
+    it = mat2List->begin();
+    for (;it != mat2List->end(); ++it)
+    {
+        it->mTransform.Rotate(rot2*dt);
+    }
 }
 
 void Renderer::Draw(ID3D11DeviceContext* context)
 {
     using Game::Entity;
-    for (std::pair<const Material* const, std::vector<Entity*>> element : mEntityMap)
+    using Game::Transform;
+
+    // For every material<->entityList association
+    for (std::pair<const Material* const, std::vector<Entity>>& element : mEntityMap)
     {
         // Set material data, then bind 
         // "Binding" a material means binding its internal VS/PS
@@ -118,41 +174,27 @@ void Renderer::Draw(ID3D11DeviceContext* context)
         material->GetPixelShader()->SetBufferData(context, (UINT)ReservedRegisters::RR_PS_LIGHTS, sizeof(cbLighting), &mLightingBuffer);
         material->GetVertexShader()->SetBufferData(context, (UINT)ReservedRegisters::RR_VS_CAMERA, sizeof(cbCamera), &mCameraBuffer);
 
-        // Bind() sets the contents of material params constant buffer automatically before PSSetConstantBuffers
+        material->SetMaterialParams(context);
         material->Bind(context);
-
-        for (Entity* entity : element.second)
+        
+        // For every entity using this material
+        std::vector<Entity>::iterator it = element.second.begin();
+        for(;it != element.second.end(); ++it)
         {
             // Set Per Entity world matrix in the associated material's vertex shader.
-            DirectX::XMFLOAT4X4 world = entity->GetTransform()->GetWorldMatrix();
-            cbPerEntity perEntityCB = {};
-            perEntityCB.world = world;
-
-            // @todo: Should the material own the vertexshader? by extension, should the materialFactory own the shaderFactory?
-            material->GetVertexShader()->SetBufferData(context, (UINT)ReservedRegisters::RR_VS_WORLDMATRIX, sizeof(cbPerEntity), &perEntityCB);
-            // draw entity
-            entity->Draw(context);
+            DirectX::XMFLOAT4X4 world = it->mTransform.Recompute();
+            material->GetVertexShader()->SetBufferData(context, (UINT)ReservedRegisters::RR_VS_WORLDMATRIX, sizeof(world), &world);
+            it->Draw(context);
         }
     }
 
+    // TODO: Should not have to rebind camera VP matrix twice. This will be fixed once constant buffers are overhauled.
     mpSkyRenderer->GetMaterial()->GetVertexShader()->SetBufferData(context, (UINT)ReservedRegisters::RR_VS_CAMERA, sizeof(cbCamera), &mCameraBuffer);
-    mpSkyRenderer->Render(context);
+    mpSkyRenderer->Render(context); // Render binds the material internally
 }
 
 Renderer::~Renderer()
 {
-    using Game::Entity;
-
-    // Cleanup entities
-    for (std::pair<const Material* const, std::vector<Entity*>> element : mEntityMap)
-    {
-        // Free every entity
-        for (Entity* entity : element.second)
-        {
-            delete entity;
-        }
-    }
-
     // Cleanup meshes
     for (std::pair<std::string, const Game::Mesh*> element : mMeshes)
     {
