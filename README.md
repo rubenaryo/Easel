@@ -29,7 +29,7 @@ These configuration settings were set by using the Solution Properties GUI (Alt 
 This config was heavily inspired by one used by a professor of mine, which I thought was good enough to use for all my projects.
 
 ## Performance Analysis
-A performance analysis for this engine is ongoing, the first section of which will be added to the repository on October 14, 2020.
+A performance analysis for this engine is ongoing, the first section has been uploaded as Easel_PerformanceAnalysis.pdf. Section 2 will be uploaded on October 28, 2020.
 
 ## Character Set
 This was built to support the Unicode character set, meaning it is based on using wstrings rather than strings.
