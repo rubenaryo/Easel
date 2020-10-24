@@ -43,9 +43,7 @@ Mesh::Mesh(const std::string& fileName, ID3D11Device* pDevice)
         throw std::exception(buf);
         return;
     }
-    #endif
 
-    #if defined(DEBUG)
     static const char vbDebug[] = "_VertexBuffer";
     static const char ibDebug[] = "_IndexBuffer";
     std::string debugName = fileName + vbDebug;
@@ -61,41 +59,61 @@ Mesh::Mesh(const std::string& fileName, ID3D11Device* pDevice)
 // Easel's Mesh interface, which can be worked with
 void Mesh::LoadSceneInfo(const aiScene* pScene, ID3D11Device* pDevice)
 {
+    using namespace DirectX;
+
     // temporary vectors to hold vertex/index information
     std::vector<Graphics::Vertex> vertices;
     std::vector<unsigned int> indices;
+
+    XMVECTOR maxPos = XMVectorReplicate(-FLT_MAX);
+    XMVECTOR minPos = XMVectorReplicate(FLT_MAX);
 
     // aiScenes may be composed of multiple submeshes,
     // we want to coagulate this into a single vertex/index buffer
     for (unsigned int i = 0; i < pScene->mNumMeshes; ++i)
     {
         const aiMesh* pMesh = pScene->mMeshes[i];
-        const aiVector3D cZero(0.0f, 0.0f, 0.0f);
+        const aiVector3D c_Zero(0.0f, 0.0f, 0.0f);
 
         // Process Vertices for this mesh
         for (unsigned int j = 0; j < pMesh->mNumVertices; ++j)
         {
             // Every vertex has a position
             const aiVector3D position = pMesh->mVertices[j];
+            
+            XMVECTOR XMposition = XMVectorSet(position.x, position.y, position.z, 0);
+            if (XMVector3Greater(XMposition, maxPos))
+            {
+                maxPos = XMposition;
+            }
+            else if (XMVector3Less(XMposition, minPos))
+            {
+                minPos = XMposition;
+            }
 
             // Check for normals
-            const aiVector3D normal   = pMesh->HasNormals() ? pMesh->mNormals[j] : cZero;
+            const aiVector3D normal   = pMesh->HasNormals() ? pMesh->mNormals[j] : c_Zero;
             
             // Assume every vertex holds only one set of uv coords
-            const aiVector3D texCoord = pMesh->HasTextureCoords(0) ? pMesh->mTextureCoords[0][j] : cZero;
+            const aiVector3D texCoord = pMesh->HasTextureCoords(0) ? pMesh->mTextureCoords[0][j] : c_Zero;
 
             // Check for tangents and bitangents
-            bool tangentsGenerated = pMesh->HasTangentsAndBitangents();
-            const aiVector3D tangent   = tangentsGenerated ? pMesh->mTangents[j]   : cZero;
-            const aiVector3D bitangent = tangentsGenerated ? pMesh->mBitangents[j] : cZero;
+            aiVector3D tangent = c_Zero;
+            aiVector3D bitangent = c_Zero;
+
+            if (pMesh->HasTangentsAndBitangents())
+            {
+                tangent = pMesh->mTangents[j];
+                bitangent = pMesh->mBitangents[j];
+            }
 
             // Create one of our vertices with this information
             Graphics::Vertex v;
-            v.position  = DirectX::XMFLOAT3(position.x, position.y, position.z);
-            v.normal    = DirectX::XMFLOAT3(normal.x, normal.y, normal.z);
-            v.uv        = DirectX::XMFLOAT2(texCoord.x, texCoord.y);
-            v.tangent   = DirectX::XMFLOAT3(tangent.x, tangent.y, tangent.z);
-            v.binormal  = DirectX::XMFLOAT3(bitangent.x, bitangent.y, bitangent.z);
+            v.position  = XMFLOAT3(position.x, position.y, position.z);
+            v.normal    = XMFLOAT3(normal.x, normal.y, normal.z);
+            v.uv        = XMFLOAT2(texCoord.x, texCoord.y);
+            v.tangent   = XMFLOAT3(tangent.x, tangent.y, tangent.z);
+            v.binormal  = XMFLOAT3(bitangent.x, bitangent.y, bitangent.z);
 
             vertices.push_back(v);
         }
@@ -113,7 +131,6 @@ void Mesh::LoadSceneInfo(const aiScene* pScene, ID3D11Device* pDevice)
             indices.push_back(face.mIndices[1]);
             indices.push_back(face.mIndices[2]);
         }
-
     }
 
     // Now, we have the vertices and indices for every mesh in the scene, so we make the buffers.

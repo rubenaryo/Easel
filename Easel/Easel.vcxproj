@@ -24,6 +24,7 @@
     <ClInclude Include="Game\Graphics\LightStructs.h" />
     <ClInclude Include="Game\Graphics\Material.h" />
     <ClInclude Include="Game\Graphics\MaterialFactory.h" />
+    <ClInclude Include="Game\Graphics\Renderable.h" />
     <ClInclude Include="Game\Graphics\Renderer.h" />
     <ClInclude Include="Game\Graphics\Shader.h" />
     <ClInclude Include="Game\Graphics\ShaderFactory.h" />
@@ -42,6 +43,7 @@
     <ClInclude Include="System\WinApp.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ea_new_overload.cpp" />
     <ClCompile Include="Game\Entity.cpp" />
     <ClCompile Include="Game\Game.cpp" />
     <ClCompile Include="Game\Graphics\Camera.cpp" />
@@ -86,6 +88,9 @@
   <ItemGroup>
     <None Include="Game\Graphics\Shaders\PhongCommon.hlsli" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="C:\dev\EASTL\doc\EASTL.natvis" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -133,14 +138,16 @@
     <CustomBuildAfterTargets>
     </CustomBuildAfterTargets>
   </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <VcpkgUseStatic>false</VcpkgUseStatic>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level2</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>
-      </AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(EASTL_ROOT_DIR)/include;$(EASTL_ROOT_DIR)/test/packages/EAAssert/include;$(EASTL_ROOT_DIR)/test/packages/EABase/include/Common;$(EASTL_ROOT_DIR)/test/packages/EAMain/include;$(EASTL_ROOT_DIR)/test/packages/EAStdC/include;$(EASTL_ROOT_DIR)/test/packages/EATest/include;$(EASTL_ROOT_DIR)/test/packages/EAThread/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_UNICODE;UNICODE;NOMINMAX;STRICT;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>26451;26812;26495;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -149,6 +156,10 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <SuppressStartupBanner>false</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>$(EASTL_ROOT_DIR)/build/$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(EASTL_ROOT_DIR)/build/Debug/EASTL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)_Binary\"
@@ -180,8 +191,7 @@ copy "$(SolutionDir)packages\Assimp.redist.3.0.0\build\native\bin\x64\Assimp64.d
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>
-      </AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(EASTL_ROOT_DIR)/include;$(EASTL_ROOT_DIR)/test/packages/EAAssert/include;$(EASTL_ROOT_DIR)/test/packages/EABase/include/Common;$(EASTL_ROOT_DIR)/test/packages/EAMain/include;$(EASTL_ROOT_DIR)/test/packages/EAStdC/include;$(EASTL_ROOT_DIR)/test/packages/EATest/include;$(EASTL_ROOT_DIR)/test/packages/EAThread/include;</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>6387;26451;26812;26495;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <PreprocessorDefinitions>_UNICODE;UNICODE;NOMINMAX;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -193,6 +203,8 @@ copy "$(SolutionDir)packages\Assimp.redist.3.0.0\build\native\bin\x64\Assimp64.d
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <Profile>true</Profile>
+      <AdditionalDependencies>$(EASTL_ROOT_DIR)/build/Release/EASTL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(EASTL_ROOT_DIR)/build/$(Configuration)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)_Binary\"

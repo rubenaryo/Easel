@@ -30,7 +30,7 @@ Game::Game() :
 bool Game::Init(HWND window, int width, int height)
 {
     // Initialize game camera
-    mpCamera = new Graphics::Camera(0.0f, 0.0f, -50.0f, width / (float)height, 0.1f, 100.0f, 1.5f);
+    mpCamera = new Graphics::Camera(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 1.5f);
 
     // Grab Window handle, creates device and context
     mpDeviceResources->SetWindow(window, width, height);

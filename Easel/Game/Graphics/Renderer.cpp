@@ -19,6 +19,8 @@ Description : Implementation of Renderer class
 #include "../Mesh.h"
 #include "../Transform.h"
 
+#include <typeinfo>
+
 #include <random>
 #include <time.h>
 
@@ -57,6 +59,15 @@ void Renderer::Init(DeviceResources* dr)
     
     // For now, assume we're only using trianglelist
     dr->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    #if defined(DEBUG)
+    #define TTYPE Game::Entity
+    char buf[64];
+    SecureZeroMemory(buf, 64);
+    sprintf_s(buf, "Size of %s: %zu\n", typeid(TTYPE).name(), sizeof(TTYPE));
+    OutputDebugStringA(buf);
+    #undef TTYPE
+    #endif
 }
 
 void Renderer::InitMeshes(DeviceResources* dr)
@@ -65,10 +76,10 @@ void Renderer::InitMeshes(DeviceResources* dr)
     auto device = dr->GetDevice();
 
     // Load some models from memory
-    mMeshes["teapot"] = new Mesh("teapot.obj", device);
-    mMeshes["cube"]   = new Mesh("cube.obj"  , device);
-    mMeshes["sphere"] = new Mesh("sphere.obj", device);
-    mMeshes["torus"]  = new Mesh("torus.obj" , device);
+    mMeshes["teapot"]   = new Mesh("teapot.obj", device);
+    mMeshes["cube"]     = new Mesh("cube.obj"  , device);
+    mMeshes["sphere"]   = new Mesh("sphere.obj", device);
+    mMeshes["torus"]    = new Mesh("torus.obj" , device);
     mMeshes["cylinder"] = new Mesh("cylinder.obj" , device);
 }
 
@@ -82,17 +93,18 @@ void Renderer::InitEntities()
     assert(mat1);
     assert(mat2);
 
-    #define NUMENTITIES 75000
+    #define NUMENTITIES 5
     Game::Transform xform;
     xform.Scale(0.5, 0.5, 0.5);
     
     // Entities are split about evenly per material, but not exactly
-    mEntityMap[mat1].reserve(NUMENTITIES/2 + 50);
-    mEntityMap[mat2].reserve(NUMENTITIES/2 + 50);
+    mEntityMap[mat1].reserve(NUMENTITIES/2);
+    mEntityMap[mat2].reserve(NUMENTITIES/2);
     
     std::default_random_engine gen;
-    std::uniform_real_distribution dist(-40.f, 40.f);
     gen.seed(gen.default_seed);
+    std::uniform_real_distribution dist(-4.f, 4.f);
+    
 
     // Profiling test
     for (int i = 0; i < NUMENTITIES; ++i)
@@ -111,14 +123,14 @@ void Renderer::InitEntities()
 
         if (d < 0)
         {
-            if (d > -5)
+            if (d > dist.min()/2)
                 mesh = mMeshes["sphere"];
             else
                 mesh = mMeshes["cube"];
         }
         else
         {
-            if (d > 5)
+            if (d > dist.max()/2)
                 mesh = mMeshes["torus"];
             else
                 mesh = mMeshes["cylinder"];

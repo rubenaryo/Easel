@@ -105,6 +105,9 @@
     <ClInclude Include="Game\Graphics\SkyRenderer.h">
       <Filter>Game\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Graphics\Renderable.h">
+      <Filter>Game\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="System\GameWindow.cpp">
@@ -161,6 +164,9 @@
     <ClCompile Include="Game\Graphics\SkyRenderer.cpp">
       <Filter>Game\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="ea_new_overload.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Game\Graphics\Shaders\PhongVS.hlsl">
@@ -184,5 +190,8 @@
     <None Include="Game\Graphics\Shaders\PhongCommon.hlsli">
       <Filter>Game\Graphics\Shaders</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="C:\dev\EASTL\doc\EASTL.natvis" />
   </ItemGroup>
 </Project>
