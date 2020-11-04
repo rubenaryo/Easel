@@ -8,15 +8,16 @@ Description : Interface for management of lights in the scene
 
 #include "DXCore.h"
 #include "CBufferStructs.h"
+#include "ConstantBuffer.h"
 
 namespace Rendering {
 
 class LightingManager
 {
 public:
-    LightingManager(ID3D11Device* device, DirectX::XMFLOAT3A cameraPos);
+    LightingManager(ID3D11Device* device, ID3D11DeviceContext* context, DirectX::XMFLOAT3A cameraPos);
     LightingManager()  = delete;
-    ~LightingManager() = default;
+    ~LightingManager();
 
     void Update(ID3D11DeviceContext* context, float dt, DirectX::XMFLOAT3A cameraPos);
     
@@ -26,19 +27,16 @@ public:
         mLightData.ambientColor = ambientColor;
     }
 
-    inline cbLighting const& GetLightData() const
-    {
-        return mLightData;
-    }
-
 private:
     // Initializes the data for each directional light
     void InitLights(DirectX::XMFLOAT3A cameraPos);
 
     // Updates the data in each directional light
-    void UpdateLights(float dt, DirectX::XMFLOAT3A cameraPos);
+    void UpdateLights(float dt, DirectX::XMFLOAT3A cameraPos, ID3D11DeviceContext* context);
 
 private:
+    ConstantBufferBindPacket mBindPacket;
+
     // Constant buffer struct
     cbLighting mLightData;
 };

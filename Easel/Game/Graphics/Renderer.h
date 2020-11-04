@@ -17,6 +17,7 @@ namespace Rendering
 {
     class DeviceResources;
     class Camera;
+    struct ConstantBuffer;
 }
 
 namespace Rendering {
@@ -37,20 +38,6 @@ struct InstancedDrawContext
     UINT                    InstanceCount;
 };
 
-struct CameraBuffer
-{
-    ID3D11Buffer* ConstantBuffer;
-    cbCamera      CameraData;
-    uint8_t       BindSlot;
-};
-
-struct LightBuffer
-{
-    ID3D11Buffer* ConstantBuffer;
-    cbLighting    LightData;
-    uint8_t       BindSlot;
-};
-
 class Renderer
 {
 public:
@@ -61,7 +48,7 @@ public:
 
     // For now, the renderer will handle updating the entities, 
     // In the future, perhaps a Physics Manager or AI Manager would be a good solution?
-    void Update(ID3D11DeviceContext* context, float dt, const Camera* camera, const cbLighting* lightData);
+    void Update(ID3D11DeviceContext* context, float dt);
 
     // Binds the fields necessary in the material, then draws every entity in m_EntityMap
     void Draw(ID3D11DeviceContext* context);
@@ -85,12 +72,7 @@ private:
     TEntity* Entities;
     UINT     EntityCount;
 
-    // Maps a material ID to the information needed for drawing all the associated instanced entities
     InstancedDrawContext* instancingPasses;
-
-    // Cached constant buffer structs for camera and lighting
-    CameraBuffer mCameraBuffer;
-    LightBuffer  mLightingBuffer;
 
     TSkyRenderer mSkyRenderer;
 

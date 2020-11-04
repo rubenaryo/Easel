@@ -29,20 +29,21 @@ Game::Game() :
 // Initialize device resource holder by creating all necessary resources
 bool Game::Init(HWND window, int width, int height)
 {
-    // Initialize game camera
-    mpCamera = new Rendering::Camera(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 1.5f);
 
     // Grab Window handle, creates device and context
     mpDeviceResources->SetWindow(window, width, height);
     mpDeviceResources->CreateDeviceResources();
     CreateDeviceDependentResources();
     
+    auto device = mpDeviceResources->GetDevice();
+    auto context = mpDeviceResources->GetContext();
+    
+    // Initialize game camera
+    mpCamera = new Rendering::Camera(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 1.5f, device, context);
+
     // Create Devices dependent on window size
     mpDeviceResources->CreateWindowSizeDependentResources();
     CreateWindowSizeDependentResources(width, height);
-
-    auto device = mpDeviceResources->GetDevice();
-    auto context = mpDeviceResources->GetContext();
 
     // Create Materials, Meshes, Entities
     mpRenderer->Init(mpDeviceResources);
@@ -50,7 +51,7 @@ bool Game::Init(HWND window, int width, int height)
     // Create Lights and respective cbuffers
     DirectX::XMFLOAT3A camPos;
     mpCamera->GetPosition3A(&camPos);
-    mpLightingManager = new Rendering::LightingManager(mpDeviceResources->GetDevice(), camPos);
+    mpLightingManager = new Rendering::LightingManager(mpDeviceResources->GetDevice(), context, camPos);
 
     return true;
 }
@@ -75,16 +76,18 @@ void Game::Update(StepTimer const& timer)
     // Update the input, passing in the camera so it will update its internal information
     mpInput->Frame(elapsedTime, mpCamera);
 
+    auto context = mpDeviceResources->GetContext();
+
     // Update the camera's view matrix
-    mpCamera->UpdateView();
+    mpCamera->UpdateView(context);
 
     // Update the lights (if needed)
     DirectX::XMFLOAT3A camPos;
     mpCamera->GetPosition3A(&camPos);
-    mpLightingManager->Update(mpDeviceResources->GetContext(), timer.GetTotalSeconds(), camPos);
+    mpLightingManager->Update(context, timer.GetTotalSeconds(), camPos);
     
     // Update the renderer's view matrices, lighting information.
-    mpRenderer->Update(mpDeviceResources->GetContext(), elapsedTime, mpCamera, &mpLightingManager->GetLightData());
+    mpRenderer->Update(context, elapsedTime);
 }
 
 void Game::Render()
@@ -119,7 +122,7 @@ void Game::CreateWindowSizeDependentResources(int newWidth, int newHeight)
 {
     mpDeviceResources->WindowSizeChanged(newWidth, newHeight);
     float aspectRatio = (float)newWidth / (float)newHeight;
-    mpCamera->UpdateProjection(aspectRatio);
+    mpCamera->UpdateProjection(aspectRatio, mpDeviceResources->GetContext());
 }
 
 Game::~Game()

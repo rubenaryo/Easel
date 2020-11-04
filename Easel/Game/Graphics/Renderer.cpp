@@ -7,6 +7,7 @@ Description : Implementation of Renderer class
 
 #include "Camera.h"
 #include "CBufferStructs.h"
+#include "ConstantBuffer.h"
 #include "DeviceResources.h"
 #include "hash_util.h"
 #include "Material.h"
@@ -26,8 +27,7 @@ Description : Implementation of Renderer class
 namespace Rendering {
 
 Renderer::Renderer()
-{
-}
+{}
 
 void Renderer::Init(DeviceResources* dr)
 {
@@ -43,12 +43,6 @@ void Renderer::Init(DeviceResources* dr)
     
     // For now, assume we're only using trianglelist
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    // The camera buffer is never unbound again, so just set it now
-    context->VSSetConstantBuffers(mCameraBuffer.BindSlot, 1, &mCameraBuffer.ConstantBuffer);
-
-    // Same with the lighting
-    context->PSSetConstantBuffers(mLightingBuffer.BindSlot, 1, &mLightingBuffer.ConstantBuffer);
 
     #if defined(DEBUG)
         #define TTYPE VertexShader
@@ -90,17 +84,6 @@ void Renderer::InitMeshes(DeviceResources* dr)
 
 void Renderer::InitDrawContexts(ID3D11Device* device)
 {
-    // Description for dynamic vertex buffer
-    D3D11_BUFFER_DESC dynamicDesc = {0};
-    dynamicDesc.Usage = D3D11_USAGE_DYNAMIC;
-    dynamicDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    dynamicDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    dynamicDesc.MiscFlags = 0;
-    dynamicDesc.StructureByteStride = 0;
-    dynamicDesc.ByteWidth = -1; // This must be changed per new buffer
-    
-    ResourceCodex* sg_Codex = ResourceCodex::GetSingleton();
-    
     const UINT kNumEntities = 100;
     EntityCount = kNumEntities;
 
@@ -126,43 +109,21 @@ void Renderer::InitDrawContexts(ID3D11Device* device)
     lunarDraw.InstancedMeshID = Entities[0].mMeshID;
     lunarDraw.MaterialIndex   = 0;
 
-    // Create the dynamic buffer
+    // Create the dynamic vertex buffer
+    D3D11_BUFFER_DESC dynamicDesc = {0};
+    dynamicDesc.Usage = D3D11_USAGE_DYNAMIC;
+    dynamicDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    dynamicDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    dynamicDesc.MiscFlags = 0;
+    dynamicDesc.StructureByteStride = 0;
     dynamicDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * lunarDraw.InstanceCount;
-    HRESULT hr = device->CreateBuffer(&dynamicDesc, nullptr, &lunarDraw.DynamicBuffer);
-    COM_EXCEPT(hr);
-
-    // Reuse the desc to make the camera cbuffer;
-    dynamicDesc.ByteWidth = sizeof(cbCamera);
-    dynamicDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    hr = device->CreateBuffer(&dynamicDesc, nullptr, &mCameraBuffer.ConstantBuffer);
-    COM_EXCEPT(hr);
-    mCameraBuffer.BindSlot = 10;
-
-    // Make the lighting buffer now
-    dynamicDesc.ByteWidth = sizeof(cbLighting);
-    hr = device->CreateBuffer(&dynamicDesc, nullptr, &mLightingBuffer.ConstantBuffer);
-    COM_EXCEPT(hr);
-    mLightingBuffer.BindSlot = 10;
+    COM_EXCEPT(device->CreateBuffer(&dynamicDesc, nullptr, &lunarDraw.DynamicBuffer));
 }
 
-void Renderer::Update(ID3D11DeviceContext* context, float dt, const Camera* camera, const cbLighting* lightData)
+void Renderer::Update(ID3D11DeviceContext* context, float dt)
 {
     using namespace DirectX;
     using Game::Transform;
-    
-    // Hold camera, lighting data locally for rendering
-    cbCamera camData = camera->AsConstantBuffer();
-    
-    // Prepare the camera buffer
-    D3D11_MAPPED_SUBRESOURCE mappedBuffer = {0};
-    HRESULT hr = context->Map(mCameraBuffer.ConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
-    memcpy(mappedBuffer.pData, &camData, sizeof(camData));
-    context->Unmap(mCameraBuffer.ConstantBuffer, 0);
-
-    // Prepare Lighting buffer
-    hr = context->Map(mLightingBuffer.ConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
-    memcpy(mappedBuffer.pData, lightData, sizeof(cbLighting));
-    context->Unmap(mLightingBuffer.ConstantBuffer, 0);
 
     const float rotSpeed = 1.25f;
 
@@ -179,7 +140,8 @@ void Renderer::Update(ID3D11DeviceContext* context, float dt, const Camera* came
     }
 
     // Rewrite the dynamic vertex buffer
-    hr = context->Map(lunarDraw.DynamicBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
+    D3D11_MAPPED_SUBRESOURCE mappedBuffer;
+    COM_EXCEPT(context->Map(lunarDraw.DynamicBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer));
     memcpy(mappedBuffer.pData, lunarDraw.WorldMatrices, sizeof(DirectX::XMFLOAT4X4) * instancingPasses[0].InstanceCount);
     context->Unmap(lunarDraw.DynamicBuffer, 0);
 }
@@ -278,9 +240,6 @@ Renderer::~Renderer()
     free(instancingPasses);
 
     free(Entities);
-
-    mCameraBuffer.ConstantBuffer->Release();
-    mLightingBuffer.ConstantBuffer->Release();
 
     mSkyRenderer.RasterState->Release();
     mSkyRenderer.DepthState->Release();

@@ -7,6 +7,7 @@ Description : Interface for Quaternion-Based Camera functionality
 #define CAMERA_H
 
 #include "CBufferStructs.h"
+#include "ConstantBuffer.h"
 #include "DXCore.h"
 
 namespace Input
@@ -21,19 +22,16 @@ class Camera
 friend class Input::GameInput;
 
 public:
-    Camera(float x, float y, float z, float aspectRatio, float nearPlane, float farPlane, float sensitivity);
+    Camera(float x, float y, float z, float aspectRatio, float nearPlane, float farPlane, float sensitivity, ID3D11Device* device, ID3D11DeviceContext* context);
     Camera() = delete;
-    ~Camera() = default;
+    ~Camera();
 
 public:
     // Updates Camera's View Matrix
-    void UpdateView();
+    void UpdateView(ID3D11DeviceContext* context);
 
     // Updates Camera's Projection Matrix
-    void UpdateProjection(float aspectRatio);
-
-    // Accessors:
-    const cbCamera      AsConstantBuffer()  const;
+    void UpdateProjection(float aspectRatio, ID3D11DeviceContext* context);
 
     DirectX::XMMATRIX   GetView()           const  { return mView;         }
     DirectX::XMMATRIX   GetProjection()     const  { return mProjection;   }
@@ -61,12 +59,17 @@ private:
     // Look Sensitivity
     float mSensitivity;
 
+    // Bindable
+    ConstantBufferBindPacket mBindPacket;
+
 private: // For GameInput only
     void MoveForward(float dist);
     void MoveRight(float dist);
     void MoveUp(float dist);
     void MoveAlongAxis(float dist, DirectX::XMVECTOR axis); // Assumes normalized axis
     void Rotate(DirectX::XMVECTOR quatRotation);
+    
+    void UpdateConstantBuffer(ID3D11DeviceContext* context);
 };
 }
 
