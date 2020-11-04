@@ -8,26 +8,48 @@ Description : Manager-level class for intelligently binding and drawing objects
 
 #include "CBufferStructs.h"
 #include "DXCore.h"
+#include "SkyRenderer.h"
+#include "../Transform.h"
 
-#include <string>
-#include <unordered_map>
+#include <EASTL/hash_map.h>
 
-namespace Graphics
+namespace Rendering
 {
     class DeviceResources;
     class Camera;
-    class Material;
-    class MaterialFactory;
-    class SkyRenderer;
 }
 
-namespace Game
+namespace Rendering {
+
+struct TEntity
 {
-    class Entity;
-    class Mesh;
-}
+    Game::Transform mTransform;
+    MeshID          mMeshID;
+    uint32_t        MaterialIndex;
+};
 
-namespace Graphics {
+struct InstancedDrawContext
+{
+    DirectX::XMFLOAT4X4*    WorldMatrices;
+    ID3D11Buffer*           DynamicBuffer;
+    uint32_t                MaterialIndex;
+    uint32_t                InstancedMeshID;
+    UINT                    InstanceCount;
+};
+
+struct CameraBuffer
+{
+    ID3D11Buffer* ConstantBuffer;
+    cbCamera      CameraData;
+    uint8_t       BindSlot;
+};
+
+struct LightBuffer
+{
+    ID3D11Buffer* ConstantBuffer;
+    cbLighting    LightData;
+    uint8_t       BindSlot;
+};
 
 class Renderer
 {
@@ -45,37 +67,32 @@ public:
     void Draw(ID3D11DeviceContext* context);
 
 private:
+    // Performs all the instanced draw steps
+    void InstancedDraw(InstancedDrawContext* drawContexts, UINT drawCallCount, ID3D11DeviceContext* context);
+    
     // Loads the necessary models into a collection
     void InitMeshes(DeviceResources* dr);
 
     // Creates the necessary material keys within m_Map, 
-    void InitEntities();
+    void InitDrawContexts(ID3D11Device* device);
+
+    // Self Contained DX Calls to Render the skybox
+    void RenderSky(ID3D11DeviceContext* context);
 
 private:
-    // Maps a material to a list of entities that utilize it
-    std::unordered_map<const Material*, std::vector<Game::Entity>> mEntityMap;
 
-    // Dictionary of all loaded meshes (Eventually this may be handled by a mesh manager, who takes them in/out of memory
-    // Key is a hardcoded :( identifying id
-    std::unordered_map<std::string, const Game::Mesh*> mMeshes;
-    
-    // Sample all textures the same way,
-    // TODO: DON'T Sample all textures the same way
-    // A possible solution to this is to set sampler options as material params, then
-    // generate a sampler state on the fly whenever is needed 
-    // This begs the question: Perhaps drawing should be organized in separate piles, a table for
-    // textured objects, and another for non-textured. Do real games even use non-textured objects?
-    // This requires more thought.
-    ID3D11SamplerState* mpSamplerState;
+    // All the Entities
+    TEntity* Entities;
+    UINT     EntityCount;
 
-    // Owning pointer to a material factory instance, which creates and distributes materials and textures
-    MaterialFactory* mpMaterialFactory;
-
-    const SkyRenderer* mpSkyRenderer;
+    // Maps a material ID to the information needed for drawing all the associated instanced entities
+    InstancedDrawContext* instancingPasses;
 
     // Cached constant buffer structs for camera and lighting
-    cbCamera    mCameraBuffer;
-    cbLighting  mLightingBuffer;
+    CameraBuffer mCameraBuffer;
+    LightBuffer  mLightingBuffer;
+
+    TSkyRenderer mSkyRenderer;
 
 public: // Enforce use of the default constructor
     Renderer(Renderer const&)               = delete;

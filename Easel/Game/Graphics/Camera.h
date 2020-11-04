@@ -9,14 +9,12 @@ Description : Interface for Quaternion-Based Camera functionality
 #include "CBufferStructs.h"
 #include "DXCore.h"
 
-#include "../Transform.h"
-
 namespace Input
 {
 class GameInput;
 }
 
-namespace Graphics {
+namespace Rendering {
 
 class Camera
 {
@@ -35,10 +33,10 @@ public:
     void UpdateProjection(float aspectRatio);
 
     // Accessors:
-    const cbCamera      AsConstantBuffer()  const  { return cbCamera{mView, mProjection}; }
+    const cbCamera      AsConstantBuffer()  const;
 
-    DirectX::XMFLOAT4X4 GetView()           const  { return mView;         }
-    DirectX::XMFLOAT4X4 GetProjection()     const  { return mProjection;   }
+    DirectX::XMMATRIX   GetView()           const  { return mView;         }
+    DirectX::XMMATRIX   GetProjection()     const  { return mProjection;   }
     float               GetSensitivity()    const  { return mSensitivity;  }
     
     void GetPosition3A(DirectX::XMFLOAT3A* out_pos) const;
@@ -46,8 +44,9 @@ public:
 
 private:
     // View and Projection Matrices
-    DirectX::XMFLOAT4X4 mView;
-    DirectX::XMFLOAT4X4 mProjection;
+    DirectX::XMMATRIX   mView;
+    DirectX::XMMATRIX   mProjection;
+    DirectX::XMFLOAT4X4 mViewProjection;
 
     // Camera's local axis and position
     DirectX::XMVECTOR   mForward;

@@ -3,42 +3,31 @@ Ruben Young (rubenaryo@gmail.com)
 Date : 2020/9
 Description : Handles the rendering of the sky backdrop
 ----------------------------------------------*/
+#ifndef SKYRENDERER_H
+#define SKYRENDERER_H
+
 #include "DXCore.h"
+#include "ResourceCodex.h"
 
-namespace Game
+namespace Rendering
 {
-class Mesh;
+struct VertexShader;
+struct PixelShader;
 }
 
-namespace Graphics
+namespace Rendering {
+
+struct TSkyRenderer
 {
-class Material;
-class Texture;
-}
+    ID3D11RasterizerState*   RasterState;
+    ID3D11DepthStencilState* DepthState;
+    const VertexShader*     SkyVS;
+    const PixelShader*      SkyPS;
+    MeshID                   CubeMeshID;
+    TextureID                SkyTextureID;
 
-namespace Graphics {
-
-class SkyRenderer
-{
-public:
-    SkyRenderer(const Game::Mesh* pCubeMesh, const Material* pSkyMaterial, ID3D11Device* device);
-    ~SkyRenderer();
-
-    void Render(ID3D11DeviceContext* context) const;
-    const Material* GetMaterial() const { return mpSkyMaterial; }
-
-private:
-    ID3D11RasterizerState*      mpRSState;
-    ID3D11DepthStencilState*    mpDSState;
-    
-    const Game::Mesh* mpCubeMesh;
-    const Material*   mpSkyMaterial;
-
-// Delete auto generated constructors
-public:
-    SkyRenderer()                               = delete;
-    SkyRenderer(SkyRenderer const&)             = delete;
-    SkyRenderer& operator=(SkyRenderer const&)  = delete;
+    void Init(const VertexShader* vs, const PixelShader* ps, MeshID cubeMeshID, TextureID skyTextureID, ID3D11Device* device);
 };
 
 }
+#endif

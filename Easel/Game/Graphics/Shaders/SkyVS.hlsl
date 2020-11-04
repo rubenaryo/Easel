@@ -12,22 +12,19 @@ struct VertexOut
 // Basic camera matrix passed in every frame
 cbuffer VSPerPass : register(b10)
 {
-    matrix view;
-    matrix projection;
+    float4x4 VP;
 }
 
 VertexOut main( VertexIn input )
 {
     VertexOut output;
 
-    matrix lockedView = view;
-    // Remove translation from the view matrix:
-    lockedView._14 = 0;
-    lockedView._24 = 0;
-    lockedView._34 = 0;
+    // Remove translation from the view projection matrix:
+    float4x4 vp = VP;
+    vp._14 = 0;
+    vp._24 = 0;
+    vp._34 = 0;
 
-    // Transform position by VP matrix
-    matrix vp = mul(projection, lockedView);
     output.position = mul(vp, float4(input.position, 1.0f));
 
     // Prepare for perspective divide = 1

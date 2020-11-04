@@ -48,18 +48,6 @@
     <ClInclude Include="Game\Transform.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="Game\Graphics\Material.h">
-      <Filter>Game\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Game\Mesh.h">
-      <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="Game\Graphics\Vertex.h">
-      <Filter>Game\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Game\Entity.h">
-      <Filter>Game</Filter>
-    </ClInclude>
     <ClInclude Include="Game\Graphics\CBufferStructs.h">
       <Filter>Game\Graphics</Filter>
     </ClInclude>
@@ -84,28 +72,25 @@
     <ClInclude Include="Game\Graphics\ThrowMacros.h">
       <Filter>Game\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Game\Graphics\ShaderFactory.h">
-      <Filter>Game\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Game\Graphics\Shader.h">
-      <Filter>Game\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Game\Graphics\IBindable.h">
-      <Filter>Game\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Game\Graphics\ConstantBuffer.h">
-      <Filter>Game\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Game\Graphics\MaterialFactory.h">
-      <Filter>Game\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Game\Graphics\Texture.h">
       <Filter>Game\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Game\Graphics\SkyRenderer.h">
       <Filter>Game\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Game\Graphics\Renderable.h">
+    <ClInclude Include="Game\Graphics\ResourceCodex.h">
+      <Filter>Game\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Graphics\hash_util.h">
+      <Filter>Game\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Graphics\Mesh.h">
+      <Filter>Game\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Graphics\Factories.h">
+      <Filter>Game\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Graphics\Material.h">
       <Filter>Game\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
@@ -137,28 +122,10 @@
     <ClCompile Include="Game\Transform.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="Game\Graphics\Material.cpp">
-      <Filter>Game\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Game\Mesh.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Game\Entity.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="Game\Graphics\LightingManager.cpp">
       <Filter>Game\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Game\Graphics\Shader.cpp">
-      <Filter>Game\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Game\Graphics\Renderer.cpp">
-      <Filter>Game\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Game\Graphics\ShaderFactory.cpp">
-      <Filter>Game\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Game\Graphics\MaterialFactory.cpp">
       <Filter>Game\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Game\Graphics\SkyRenderer.cpp">
@@ -166,6 +133,12 @@
     </ClCompile>
     <ClCompile Include="ea_new_overload.cpp">
       <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Graphics\ResourceCodex.cpp">
+      <Filter>Game\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Graphics\Factories.cpp">
+      <Filter>Game\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -182,6 +155,15 @@
       <Filter>Game\Graphics\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Game\Graphics\Shaders\SkyPS.hlsl">
+      <Filter>Game\Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Game\Graphics\Shaders\SimpleInstancedVS.hlsl">
+      <Filter>Game\Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Game\Graphics\Shaders\SimplePS.hlsl">
+      <Filter>Game\Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Game\Graphics\Shaders\InstancedPhongVS.hlsl">
       <Filter>Game\Graphics\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

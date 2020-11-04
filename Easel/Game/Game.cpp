@@ -16,8 +16,8 @@ namespace Game {
 
 // Initialize device resources, and link up this game to be notified of device updates
 Game::Game() :
-    mpDeviceResources(new Graphics::DeviceResources()),
-    mpRenderer(new Graphics::Renderer()),
+    mpDeviceResources(new Rendering::DeviceResources()),
+    mpRenderer(new Rendering::Renderer()),
     mpInput(new Input::GameInput()),
     mpCamera(nullptr),
     mpLightingManager(nullptr)
@@ -30,7 +30,7 @@ Game::Game() :
 bool Game::Init(HWND window, int width, int height)
 {
     // Initialize game camera
-    mpCamera = new Graphics::Camera(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 1.5f);
+    mpCamera = new Rendering::Camera(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 1.5f);
 
     // Grab Window handle, creates device and context
     mpDeviceResources->SetWindow(window, width, height);
@@ -50,7 +50,7 @@ bool Game::Init(HWND window, int width, int height)
     // Create Lights and respective cbuffers
     DirectX::XMFLOAT3A camPos;
     mpCamera->GetPosition3A(&camPos);
-    mpLightingManager = new Graphics::LightingManager(mpDeviceResources->GetDevice(), camPos);
+    mpLightingManager = new Rendering::LightingManager(mpDeviceResources->GetDevice(), camPos);
 
     return true;
 }

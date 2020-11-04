@@ -9,7 +9,7 @@ Description : Interface for management of lights in the scene
 #include "DXCore.h"
 #include "CBufferStructs.h"
 
-namespace Graphics {
+namespace Rendering {
 
 class LightingManager
 {

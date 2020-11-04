@@ -17,7 +17,7 @@ namespace Input {
     GameInput::~GameInput()
     {}
 
-    void GameInput::Frame(float dt, Graphics::Camera* pCamera)
+    void GameInput::Frame(float dt, Rendering::Camera* pCamera)
     {
         using namespace DirectX;
 

@@ -7,45 +7,40 @@ Description : Material class for shader information
 #define MATERIAL_H
 
 #include "DXCore.h"
-#include "ConstantBuffer.h"
 #include "CBufferStructs.h"
-#include "IBindable.h"
 
-#include <vector>
-
-namespace Graphics
+namespace Rendering
 {
-class VertexShader;
-class PixelShader;
-class Texture;
+struct VertexShader;
+struct PixelShader;
 }
 
-namespace Graphics {
+namespace Rendering {
 
-class Material : IBindable
+enum class TextureSlots : UINT
 {
-public:
-    Material(VertexShader* pVS, PixelShader* pPS, cbMaterialParams* pParams);
-    Material(VertexShader* pVS, PixelShader* pPS, cbMaterialParams* pParams, Texture*const* ppResources, uint32_t numResources);
-    ~Material();
-
-    // Access methods for shaders, material params
-    VertexShader*       GetVertexShader() const { return mpVertexShader; }
-    PixelShader*        GetPixelShader()  const { return mpPixelShader;  }
-    cbMaterialParams&   GetMaterialInfo()       { return mParams;        }
-
-    // Bind override from IBindable
-    inline void Bind(ID3D11DeviceContext* context) const override;
-    void SetMaterialParams(ID3D11DeviceContext* context) const;
-
-private:
-    VertexShader*       mpVertexShader;
-    PixelShader*        mpPixelShader;
-    cbMaterialParams    mParams;
-    Texture**           mResources;
-    uint32_t            mResourceCount;
+    DIFFUSE   = 0U,
+    NORMAL    = 1U,
+    SPECULAR  = 2U,
+    ROUGHNESS = 3U,
+    CUBE      = 4U,
+    COUNT
 };
 
-}
+struct ResourceBindChord
+{
+    ID3D11ShaderResourceView*  SRVs[(UINT)TextureSlots::COUNT];
+};
 
+// Materials own both VS and PS because they must match in the pipeline
+struct TMaterial
+{
+    const VertexShader*        VS;
+    const PixelShader*         PS;
+    const ResourceBindChord*    Resources;
+    cbMaterialParams            Description;
+};
+    
+
+}
 #endif

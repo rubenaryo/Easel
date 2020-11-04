@@ -11,7 +11,7 @@ Description : Mesh holds the internal vertex/index buffers for a particular obje
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
-namespace Graphics
+namespace Rendering
 {
 struct Vertex;
 }
@@ -21,7 +21,7 @@ namespace Game {
 class Mesh
 {
 public:
-    Mesh(Graphics::Vertex* vertexArray, unsigned int numVertices, unsigned int* indexArray, unsigned int numIndices, ID3D11Device* pDevice);
+    Mesh(Rendering::Vertex* vertexArray, unsigned int numVertices, unsigned int* indexArray, unsigned int numIndices, ID3D11Device* pDevice);
     //@architecture: Require input layout description. That way mesh only stores the data it needs
     Mesh(const std::string& pFile, ID3D11Device* pDevice);
     ~Mesh();
@@ -46,7 +46,7 @@ protected:
     int mIndexCount;
 
     // Creates the internally held vertex/index buffers
-    void CreateBuffers(Graphics::Vertex* vertexArray, unsigned int numVertices, unsigned int* indexArray, unsigned int numIndices, ID3D11Device* pDevice);
+    void CreateBuffers(Rendering::Vertex* vertexArray, unsigned int numVertices, unsigned int* indexArray, unsigned int numIndices, ID3D11Device* pDevice);
 
 public:
     Mesh()                          = delete;

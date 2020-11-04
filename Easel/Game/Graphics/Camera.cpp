@@ -5,7 +5,7 @@ Description : Implementation of Camera Class
 ----------------------------------------------*/
 #include "Camera.h"
 
-namespace Graphics {
+namespace Rendering {
 
 using namespace DirectX;
 
@@ -29,25 +29,28 @@ Camera::Camera(float x, float y, float z, float aspectRatio, float nearPlane, fl
 void Camera::UpdateView()
 {
     // Create view matrix
-    XMMATRIX view = XMMatrixLookToLH(
+    mView = XMMatrixLookToLH(
         mPosition,
         mForward,
         mUp);
-
-    // Store as a member field
-    XMStoreFloat4x4(&mView, view);
 }
 
 // Updates the projection matrix (like on screen resize)
 void Camera::UpdateProjection(float aspectRatio)
 {
-    XMMATRIX projection = XMMatrixPerspectiveFovLH(
+    mProjection = XMMatrixPerspectiveFovLH(
         XM_PIDIV4,      // FOV
         aspectRatio,    // Screen Aspect ratio
         mNear,          // Near clip plane
         mFar);          // Far clip plane
+}
 
-    XMStoreFloat4x4(&mProjection, projection);
+const cbCamera Camera::AsConstantBuffer() const
+{
+    XMMATRIX vp = XMMatrixMultiply(mView, mProjection);
+    cbCamera cb;
+    XMStoreFloat4x4(&cb.VP, vp);
+    return cb;
 }
 
 void Camera::GetPosition3A(XMFLOAT3A* out_pos) const

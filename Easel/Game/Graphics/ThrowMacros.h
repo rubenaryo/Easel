@@ -14,7 +14,7 @@ helper macros for reaching certain paths
 #if defined(DEBUG)
     #define COM_EXCEPT(hr) \
         if (FAILED(hr)) \
-            throw Graphics::COMException(__LINE__,__FILE__, hr);
+            throw Rendering::COMException(__LINE__,__FILE__, hr);
 #else
     #define COM_EXCEPT(hr)
 #endif

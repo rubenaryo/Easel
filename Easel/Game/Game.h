@@ -11,7 +11,7 @@ This class encapsulates all app functionality
 
 #include "Graphics/DeviceResources.h"
 
-namespace Graphics
+namespace Rendering
 {
 class Camera;
 class LightingManager;
@@ -24,7 +24,7 @@ class GameInput;
 }
 
 namespace Game {
-class Game final : public Graphics::IDeviceNotify
+class Game final : public Rendering::IDeviceNotify
 {
 public:
     Game();
@@ -58,19 +58,19 @@ private:
     void CreateWindowSizeDependentResources(int newWidth, int newHeight);
 
     // Application's Device Resources, such as the necessary buffers/views in video memory
-    Graphics::DeviceResources* mpDeviceResources;
+    Rendering::DeviceResources* mpDeviceResources;
 
     // Renderer for handling smart binding of objects
-    Graphics::Renderer* mpRenderer;
+    Rendering::Renderer* mpRenderer;
 
     // Lights Manager
-    Graphics::LightingManager* mpLightingManager;
+    Rendering::LightingManager* mpLightingManager;
 
     // Input Management
     Input::GameInput* mpInput;
 
     // Main Camera
-    Graphics::Camera* mpCamera;
+    Rendering::Camera* mpCamera;
     
     // Timer for the main game loop
     StepTimer mTimer;

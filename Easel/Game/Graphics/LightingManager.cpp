@@ -7,7 +7,7 @@ Description : Implementation of LightingManager.h
 
 #include "LightStructs.h"
 
-namespace Graphics
+namespace Rendering
 {
     LightingManager::LightingManager(ID3D11Device* device, DirectX::XMFLOAT3A cameraPos)
     {

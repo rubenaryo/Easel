@@ -9,13 +9,12 @@ Description : Declation of structs used as constant buffers by various shaders
 #include <DirectXMath.h>
 #include "LightStructs.h"
 
-namespace Graphics
+namespace Rendering
 {
 
 struct alignas(16) cbCamera
 {
-    DirectX::XMFLOAT4X4 view;
-    DirectX::XMFLOAT4X4 projection;
+    DirectX::XMFLOAT4X4 VP;
 };
 
 struct alignas(16) cbPerEntity

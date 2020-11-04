@@ -33,7 +33,7 @@ Description : Standard includes/ macros for a DirectX 11 app
     #include <dxgidebug.h>
 #endif
 
-namespace Graphics {
+namespace Rendering {
 
 // Array of Possible feature levels
 static const D3D_FEATURE_LEVEL s_featureLevels[] =

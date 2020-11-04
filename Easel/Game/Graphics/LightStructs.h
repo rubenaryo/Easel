@@ -7,7 +7,7 @@ Description : Defines the structures of different lights in the scene.
 #define LIGHTS_H
 
 #include <DirectXMath.h>
-namespace Graphics {
+namespace Rendering {
 
 // A Directional Light is just a color and a direction
 // alignas(16) is required, since every element needs to be on a 16 byte boundary for the cbuffer

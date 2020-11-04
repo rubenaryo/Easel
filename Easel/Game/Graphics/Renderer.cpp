@@ -8,137 +8,141 @@ Description : Implementation of Renderer class
 #include "Camera.h"
 #include "CBufferStructs.h"
 #include "DeviceResources.h"
+#include "hash_util.h"
 #include "Material.h"
-#include "MaterialFactory.h"
+#include "Mesh.h"
+#include "ResourceCodex.h"
 #include "Shader.h"
-#include "ShaderFactory.h"
 #include "SkyRenderer.h"
 #include "ThrowMacros.h"
 
-#include "../Entity.h"
-#include "../Mesh.h"
-#include "../Transform.h"
-
+#if defined(DEBUG)
 #include <typeinfo>
+#endif
 
 #include <random>
 #include <time.h>
 
-namespace Graphics {
+namespace Rendering {
 
 Renderer::Renderer()
 {
-    mpMaterialFactory = new MaterialFactory();
 }
 
 void Renderer::Init(DeviceResources* dr)
 {
     // Grab reference to ID3D11Device
     auto device = dr->GetDevice();
+    auto context = dr->GetContext();
 
-    // Create a generic sampler state
-    D3D11_SAMPLER_DESC samplerDesc;
-    SecureZeroMemory(&samplerDesc, sizeof(D3D11_SAMPLER_DESC));
-    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.Filter   = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    samplerDesc.MaxLOD   = D3D11_FLOAT32_MAX;
-
-    HRESULT hr = device->CreateSamplerState(&samplerDesc, &mpSamplerState);
-    COM_EXCEPT(hr);
-
-    // TODO: In the future, sample textures differently! See note in Renderer.h
-    dr->GetContext()->PSSetSamplers(0, 1, &mpSamplerState);
+    ResourceCodex::Init(device, context);
 
     // Initialize meshes, materials, entities
     InitMeshes(dr);
-    mpMaterialFactory->Init(device, dr->GetContext());
-    mpSkyRenderer = new SkyRenderer(mMeshes["cube"], mpMaterialFactory->GetMaterial(L"Sky"), device);
-    InitEntities();
+    InitDrawContexts(device);
     
     // For now, assume we're only using trianglelist
-    dr->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    // The camera buffer is never unbound again, so just set it now
+    context->VSSetConstantBuffers(mCameraBuffer.BindSlot, 1, &mCameraBuffer.ConstantBuffer);
+
+    // Same with the lighting
+    context->PSSetConstantBuffers(mLightingBuffer.BindSlot, 1, &mLightingBuffer.ConstantBuffer);
 
     #if defined(DEBUG)
-    #define TTYPE Game::Entity
-    char buf[64];
-    SecureZeroMemory(buf, 64);
-    sprintf_s(buf, "Size of %s: %zu\n", typeid(TTYPE).name(), sizeof(TTYPE));
-    OutputDebugStringA(buf);
-    #undef TTYPE
+        #define TTYPE VertexShader
+        char buf[64];
+        SecureZeroMemory(buf, 64);
+        sprintf_s(buf, "Size of %s: %zu\n", typeid(TTYPE).name(), sizeof(TTYPE));
+        OutputDebugStringA(buf);
+        #undef TTYPE
     #endif
 }
 
 void Renderer::InitMeshes(DeviceResources* dr)
 {
-    using Game::Mesh;
     auto device = dr->GetDevice();
 
-    // Load some models from memory
-    mMeshes["teapot"]   = new Mesh("teapot.obj", device);
-    mMeshes["cube"]     = new Mesh("cube.obj"  , device);
-    mMeshes["sphere"]   = new Mesh("sphere.obj", device);
-    mMeshes["torus"]    = new Mesh("torus.obj" , device);
-    mMeshes["cylinder"] = new Mesh("cylinder.obj" , device);
+    ResourceCodex* sg_Codex = ResourceCodex::GetSingleton();
+
+    const ShaderID vsId = ResourceCodex::AddVertexShader(L"InstancedPhongVS.cso", device);
+    const ShaderID psId = ResourceCodex::AddPixelShader(L"PhongPS.cso", device);
+
+    const ShaderID kInstancedPhongVSID = 0xc8a366aa; // FNV1A of L"InstancedPhongVS.cso"
+    const ShaderID kPhongPSID = 0x4dc6e249;          // FNV1A of L"PhongPS.cso"
+
+    const VertexShader* instancedPhongVS = sg_Codex->GetVertexShader(kInstancedPhongVSID);
+    const PixelShader*  PhongPS = sg_Codex->GetPixelShader(psId);
+
+    const VertexShader* skyVS = sg_Codex->GetVertexShader(ResourceCodex::AddVertexShader(L"SkyVS.cso", device));
+    const PixelShader*  skyPS = sg_Codex->GetPixelShader(ResourceCodex::AddPixelShader(L"SkyPS.cso", device));
+
+    const VertexBufferDescription* phongVertDesc = &instancedPhongVS->VertexDesc;
+    const MeshID sphereID = ResourceCodex::AddMeshFromFile("sphere.obj", phongVertDesc, device);
+    
+    dr->GetContext()->PSSetSamplers(0, 1, &PhongPS->SamplerState);
+
+    sg_Codex->BuildAllMaterials();
+    
+    mSkyRenderer.Init(skyVS, skyPS, ResourceCodex::AddMeshFromFile("cube.obj", phongVertDesc, device), 0x2fb626d6, device);
 }
 
-void Renderer::InitEntities()
+void Renderer::InitDrawContexts(ID3D11Device* device)
 {
-    using Game::Entity;
-
-    // Grab material pointer from factory instance
-    const Material* mat1 = mpMaterialFactory->GetMaterial(L"Lunar");
-    const Material* mat2 = mpMaterialFactory->GetMaterial(L"Earth");
-    assert(mat1);
-    assert(mat2);
-
-    #define NUMENTITIES 5
-    Game::Transform xform;
-    xform.Scale(0.5, 0.5, 0.5);
+    // Description for dynamic vertex buffer
+    D3D11_BUFFER_DESC dynamicDesc = {0};
+    dynamicDesc.Usage = D3D11_USAGE_DYNAMIC;
+    dynamicDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    dynamicDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    dynamicDesc.MiscFlags = 0;
+    dynamicDesc.StructureByteStride = 0;
+    dynamicDesc.ByteWidth = -1; // This must be changed per new buffer
     
-    // Entities are split about evenly per material, but not exactly
-    mEntityMap[mat1].reserve(NUMENTITIES/2);
-    mEntityMap[mat2].reserve(NUMENTITIES/2);
+    ResourceCodex* sg_Codex = ResourceCodex::GetSingleton();
     
-    std::default_random_engine gen;
-    gen.seed(gen.default_seed);
-    std::uniform_real_distribution dist(-4.f, 4.f);
-    
+    const UINT kNumEntities = 100;
+    EntityCount = kNumEntities;
 
-    // Profiling test
-    for (int i = 0; i < NUMENTITIES; ++i)
-    {
-        float d = dist(gen);
-        float r = dist(gen);
-        float r2 = dist(gen);
-        float r3 = dist(gen);
+    Entities = (TEntity*)malloc(sizeof(TEntity) * kNumEntities);
+    for(UINT i = 0; i != kNumEntities; ++i)
+    { 
+        Game::Transform tfm;
+        tfm.SetTranslation(i * 5.f, 0.0f, 0.0f);
 
-        xform.SetTranslation(r, r2, r3);
-        xform.SetRotation(r, r2, r3);
+        TEntity test;
+        test.MaterialIndex = 0;
+        test.mMeshID = 0x4fd8281f;
+        test.mTransform = tfm;
 
-        // put entity into one of two buckets
-        const Material* mat = d > 0 ? mat1 : mat2;
-        const Game::Mesh* mesh;
-
-        if (d < 0)
-        {
-            if (d > dist.min()/2)
-                mesh = mMeshes["sphere"];
-            else
-                mesh = mMeshes["cube"];
-        }
-        else
-        {
-            if (d > dist.max()/2)
-                mesh = mMeshes["torus"];
-            else
-                mesh = mMeshes["cylinder"];
-        }
-
-        mEntityMap[mat].push_back(Entity(mesh, xform));
+        Entities[i] = test;
     }
-    #undef NUMENTITIES
+
+    instancingPasses = (InstancedDrawContext*)malloc(sizeof(InstancedDrawContext) * 1);
+
+    InstancedDrawContext& lunarDraw = instancingPasses[0];
+    lunarDraw.InstanceCount   = kNumEntities;
+    lunarDraw.WorldMatrices   = (DirectX::XMFLOAT4X4*)malloc(sizeof(DirectX::XMFLOAT4X4) * lunarDraw.InstanceCount);
+    lunarDraw.InstancedMeshID = Entities[0].mMeshID;
+    lunarDraw.MaterialIndex   = 0;
+
+    // Create the dynamic buffer
+    dynamicDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * lunarDraw.InstanceCount;
+    HRESULT hr = device->CreateBuffer(&dynamicDesc, nullptr, &lunarDraw.DynamicBuffer);
+    COM_EXCEPT(hr);
+
+    // Reuse the desc to make the camera cbuffer;
+    dynamicDesc.ByteWidth = sizeof(cbCamera);
+    dynamicDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    hr = device->CreateBuffer(&dynamicDesc, nullptr, &mCameraBuffer.ConstantBuffer);
+    COM_EXCEPT(hr);
+    mCameraBuffer.BindSlot = 10;
+
+    // Make the lighting buffer now
+    dynamicDesc.ByteWidth = sizeof(cbLighting);
+    hr = device->CreateBuffer(&dynamicDesc, nullptr, &mLightingBuffer.ConstantBuffer);
+    COM_EXCEPT(hr);
+    mLightingBuffer.BindSlot = 10;
 }
 
 void Renderer::Update(ID3D11DeviceContext* context, float dt, const Camera* camera, const cbLighting* lightData)
@@ -147,75 +151,140 @@ void Renderer::Update(ID3D11DeviceContext* context, float dt, const Camera* came
     using Game::Transform;
     
     // Hold camera, lighting data locally for rendering
-    mCameraBuffer = camera->AsConstantBuffer();
-    memcpy(&mLightingBuffer, lightData, sizeof(cbLighting));
+    cbCamera camData = camera->AsConstantBuffer();
+    
+    // Prepare the camera buffer
+    D3D11_MAPPED_SUBRESOURCE mappedBuffer = {0};
+    HRESULT hr = context->Map(mCameraBuffer.ConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
+    memcpy(mappedBuffer.pData, &camData, sizeof(camData));
+    context->Unmap(mCameraBuffer.ConstantBuffer, 0);
+
+    // Prepare Lighting buffer
+    hr = context->Map(mLightingBuffer.ConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
+    memcpy(mappedBuffer.pData, lightData, sizeof(cbLighting));
+    context->Unmap(mLightingBuffer.ConstantBuffer, 0);
 
     const float rotSpeed = 1.25f;
 
     static const XMVECTOR rot1 = DirectX::XMQuaternionRotationRollPitchYaw(rotSpeed, -rotSpeed, rotSpeed);
     static const XMVECTOR rot2 = -rot1;
 
-    std::vector<Game::Entity>* mat1List = &mEntityMap[mpMaterialFactory->GetMaterial(L"Lunar")];
-    std::vector<Game::Entity>::iterator it = mat1List->begin();
-    for (;it != mat1List->end(); ++it)
+    InstancedDrawContext& lunarDraw = instancingPasses[0];
+
+    for (UINT i = 0; i != EntityCount; ++i)
     {
-        it->mTransform.Rotate(rot1*dt);
+        Transform* tfm = &Entities[i].mTransform;
+        tfm->Rotate(rot1*dt);
+        lunarDraw.WorldMatrices[i] = tfm->Recompute();
     }
 
-    std::vector<Game::Entity>* mat2List = &mEntityMap[mpMaterialFactory->GetMaterial(L"Earth")];
-    it = mat2List->begin();
-    for (;it != mat2List->end(); ++it)
-    {
-        it->mTransform.Rotate(rot2*dt);
-    }
+    // Rewrite the dynamic vertex buffer
+    hr = context->Map(lunarDraw.DynamicBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
+    memcpy(mappedBuffer.pData, lunarDraw.WorldMatrices, sizeof(DirectX::XMFLOAT4X4) * instancingPasses[0].InstanceCount);
+    context->Unmap(lunarDraw.DynamicBuffer, 0);
 }
 
 void Renderer::Draw(ID3D11DeviceContext* context)
 {
-    using Game::Entity;
-    using Game::Transform;
+    this->InstancedDraw(instancingPasses, 1, context);
+    this->RenderSky(context);
+}
 
-    // For every material<->entityList association
-    for (std::pair<const Material* const, std::vector<Entity>>& element : mEntityMap)
+void Renderer::InstancedDraw(InstancedDrawContext* drawContexts, UINT drawCallCount, ID3D11DeviceContext* context)
+{
+    ResourceCodex* sg_Codex = ResourceCodex::GetSingleton();
+
+    InstancedDrawContext* drawCtx = drawContexts; 
+    InstancedDrawContext* const drawCtxItEnd = drawContexts + drawCallCount;
+    for (; drawCtx != drawCtxItEnd; ++drawCtx)
     {
-        // Set material data, then bind 
-        // "Binding" a material means binding its internal VS/PS
-        const Material* material = element.first;
+        UINT instanceCount = drawCtx->InstanceCount;
+        const Mesh* mesh = sg_Codex->GetMesh(drawCtx->InstancedMeshID);
 
-        // Set data for lighting, camera buffers
-        material->GetPixelShader()->SetBufferData(context, (UINT)ReservedRegisters::RR_PS_LIGHTS, sizeof(cbLighting), &mLightingBuffer);
-        material->GetVertexShader()->SetBufferData(context, (UINT)ReservedRegisters::RR_VS_CAMERA, sizeof(cbCamera), &mCameraBuffer);
+        ID3D11Buffer* vertBuffers[2];
+        vertBuffers[0] = mesh->VertexBuffer; // Vertices
+        vertBuffers[1] = drawCtx->DynamicBuffer;  // Instanced World Matrices
 
-        material->SetMaterialParams(context);
-        material->Bind(context);
-        
-        // For every entity using this material
-        std::vector<Entity>::iterator it = element.second.begin();
-        for(;it != element.second.end(); ++it)
+        UINT strides[2] = 
         {
-            // Set Per Entity world matrix in the associated material's vertex shader.
-            DirectX::XMFLOAT4X4 world = it->mTransform.Recompute();
-            material->GetVertexShader()->SetBufferData(context, (UINT)ReservedRegisters::RR_VS_WORLDMATRIX, sizeof(world), &world);
-            it->Draw(context);
-        }
-    }
+            mesh->Stride,
+            sizeof(DirectX::XMFLOAT4X4)
+        };
 
-    // TODO: Should not have to rebind camera VP matrix twice. This will be fixed once constant buffers are overhauled.
-    mpSkyRenderer->GetMaterial()->GetVertexShader()->SetBufferData(context, (UINT)ReservedRegisters::RR_VS_CAMERA, sizeof(cbCamera), &mCameraBuffer);
-    mpSkyRenderer->Render(context); // Render binds the material internally
+        UINT offsets[2] = 
+        {
+            0, 
+            0
+        };
+
+        context->IASetVertexBuffers(0, 2, &vertBuffers[0], &strides[0], &offsets[0]);
+        context->IASetIndexBuffer(mesh->IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+        // Setup VS,PS
+        const TMaterial* mat = sg_Codex->GetMaterial(drawCtx->MaterialIndex);
+        const VertexShader VS = *mat->VS;
+        const PixelShader  PS = *mat->PS;
+
+        context->IASetInputLayout(VS.InputLayout);
+        context->VSSetShader(VS.Shader, nullptr, 0);
+        context->PSSetShader(PS.Shader, nullptr, 0);
+
+        // Binding Textures
+        context->PSSetShaderResources(0, (UINT)TextureSlots::COUNT, mat->Resources->SRVs);
+
+        context->DrawIndexedInstanced(mesh->IndexCount, drawCtx->InstanceCount, 0, 0, 0);
+    }
+}
+
+void Renderer::RenderSky(ID3D11DeviceContext* context)
+{
+    ResourceCodex* sg_Codex = ResourceCodex::GetSingleton();
+    const Mesh* mesh = sg_Codex->GetMesh(mSkyRenderer.CubeMeshID);
+
+    // Sst backface culling
+    context->OMSetDepthStencilState(mSkyRenderer.DepthState, 0);
+    context->RSSetState(mSkyRenderer.RasterState);
+
+    UINT offsets = 0;
+
+    // Bind the Cube Mesh
+    context->IASetVertexBuffers(0, 1, &mesh->VertexBuffer, &mesh->Stride, &offsets);
+    context->IASetIndexBuffer(mesh->IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+    // Set Vertex Shader and Input
+    context->IASetInputLayout(mSkyRenderer.SkyVS->InputLayout);
+    context->VSSetShader(mSkyRenderer.SkyVS->Shader, 0, 0);
+
+    // Set Pixel Shader and Bind Textures
+    const ResourceBindChord* chord = sg_Codex->GetTexture(mSkyRenderer.SkyTextureID);
+    ID3D11ShaderResourceView* const* srvs = chord->SRVs;
+    context->PSSetShaderResources(0, (UINT)TextureSlots::COUNT, srvs);
+    context->PSSetShader(mSkyRenderer.SkyPS->Shader, 0, 0);
+
+    context->DrawIndexed(mesh->IndexCount, 0, 0);
+
+    // Reset states back to default
+    context->OMSetDepthStencilState(0,0);
+    context->RSSetState(0);
 }
 
 Renderer::~Renderer()
 {
-    // Cleanup meshes
-    for (std::pair<std::string, const Game::Mesh*> element : mMeshes)
+    for (uint8_t i = 0; i != 1; ++i)
     {
-        delete element.second;
+        free(instancingPasses->WorldMatrices);
+        instancingPasses->DynamicBuffer->Release();
     }
+    free(instancingPasses);
 
-    mpSamplerState->Release();
+    free(Entities);
+
+    mCameraBuffer.ConstantBuffer->Release();
+    mLightingBuffer.ConstantBuffer->Release();
+
+    mSkyRenderer.RasterState->Release();
+    mSkyRenderer.DepthState->Release();
     
-    delete mpMaterialFactory;
-    delete mpSkyRenderer;
+    ResourceCodex::Destroy();
 }
 }

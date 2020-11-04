@@ -9,15 +9,14 @@ Description : Implementation of DeviceResources.h
 #include "DeviceResources.h"
 
 #include "ThrowMacros.h"
-
-#include <stdexcept> // std::exception, std::out_of_range
-#include <algorithm> // std::min, std::max
+#include <EASTL/algorithm.h>
 
 #if defined(DEBUG)
 #include <sstream>   // wstringstream
+#include <stdexcept> // std::exception
 #endif
 
-namespace Graphics {
+namespace Rendering {
 
 // Initializer List for Member Fields
 DeviceResources::DeviceResources(
@@ -38,7 +37,7 @@ DeviceResources::DeviceResources(
     mOutputSize        ({0,0,1,1}),
     mColorSpaceType    (DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709),
     mDeviceOptions     (options),
-    mMSAASampleCount   (4),
+    mMSAASampleCount   (1),
     mpDeviceNotify     (nullptr)
     #if defined(DEBUG)
     ,mpDebugInterface   (nullptr)
@@ -151,6 +150,11 @@ void DeviceResources::CreateDeviceResources()
         // Ensure Consistency of sample count
         mMSAASampleCount = 1;
     }
+    else
+    {
+        // Ensure MSAA flag is on
+        mDeviceOptions |= (uint8_t)DR_OPTIONS::DR_ENABLE_MSAA;
+    }
     
 #if defined(DEBUG) // Create annotation and debug interface
     // Populate User Defined Annotation Member
@@ -259,13 +263,15 @@ void DeviceResources::CreateWindowSizeDependentResources()
     #pragma endregion
 
     // Find the height of the render target, using std::max to ensure neither dimension is 0
-    UINT backBufferWidth  = std::max<UINT>(static_cast<UINT>((mOutputSize.right - mOutputSize.left)), 1U);
-    UINT backBufferHeight = std::max<UINT>(static_cast<UINT>((mOutputSize.bottom - mOutputSize.top)), 1U);
+    UINT backBufferWidth  = eastl::max<UINT>(static_cast<UINT>((mOutputSize.right - mOutputSize.left)), 1U);
+    UINT backBufferHeight = eastl::max<UINT>(static_cast<UINT>((mOutputSize.bottom - mOutputSize.top)), 1U);
     DXGI_FORMAT backBufferFormat = mBackBufferFormat;
 
     HRESULT hr;
     if (mpSwapChain)
     {
+        bool vsyncOff = OptionEnabled(DR_OPTIONS::DR_ALLOW_TEARING);
+
         // Resize an existing swap chain
         hr = mpSwapChain->ResizeBuffers(
             mBackBufferCount,
@@ -306,7 +312,6 @@ void DeviceResources::CreateWindowSizeDependentResources()
         swapDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
         swapDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
         swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        swapDesc.Flags = 0;
         swapDesc.OutputWindow = mWindow;
         swapDesc.SwapEffect = OptionEnabled(DR_OPTIONS::DR_FLIP_PRESENT) ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_DISCARD;
         swapDesc.SampleDesc.Count = 1;

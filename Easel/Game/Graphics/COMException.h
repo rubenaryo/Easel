@@ -14,7 +14,7 @@ Description : Interface for custom COM Exception reporting
 #include <exception>
 
 // Putting this in the graphics namespace, since it's primarily meant to interface with DeviceResources
-namespace Graphics {
+namespace Rendering {
 
 
 class COMException : public std::exception

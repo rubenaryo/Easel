@@ -19,7 +19,7 @@ namespace Input {
         ~GameInput();
 
         // Actions run by the input system each frame
-        void Frame(float dt, Graphics::Camera* pCamera);
+        void Frame(float dt, Rendering::Camera* pCamera);
     
     protected:
         // Override implementation for setting default key mappings
