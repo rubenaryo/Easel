@@ -46,10 +46,10 @@ public:
             return nullptr;
     }
     
-    inline TMaterial* GetMaterial(uint8_t materialIndex)
+    inline Material* GetMaterial(uint8_t materialIndex)
     {
         assert(materialIndex < MaterialCount);
-        return &mMaterials[materialIndex];
+        return &Materials[materialIndex];
     }
 
     inline const ResourceBindChord* GetTexture(TextureID UID);
@@ -62,12 +62,15 @@ public:
 
 private:
 
-    eastl::hash_map<ShaderID,  const VertexShader>     mVertexShaders;
-    eastl::hash_map<ShaderID,  const PixelShader>      mPixelShaders;
+    eastl::hash_map<ShaderID,  const VertexShader>      mVertexShaders;
+    eastl::hash_map<ShaderID,  const PixelShader>       mPixelShaders;
     eastl::hash_map<MeshID,    const Mesh>              mMeshMap;
     eastl::hash_map<TextureID, const ResourceBindChord> mTextureMap;
 
-    TMaterial* mMaterials;
+    // Materials are queried by index rather than by ID since it's done at runtime 
+    // TODO: Need to do this for meshes as well.
+    // TODO: Use fixed_vector?
+    Material* Materials;
     uint8_t MaterialCount;
 
     // Singleton stuff
@@ -75,6 +78,8 @@ private:
 
 private:
     void BuildAllTextures(ID3D11Device* device, ID3D11DeviceContext* context);
+
+    void BuildAllShaders(ID3D11Device* device);
     
 };
 }

@@ -13,8 +13,8 @@ struct ConstantBufferBindPacket
     ID3D11Buffer* Buffer;
     UINT          ByteSize;
     UINT          BindSlot;
+    UINT          ShaderStage; // EASEL_SHADER_STAGE type
     BOOL          Stale;
-    UINT          ShaderStage; // EASEL_SHADER_STAGE
 };
 
 typedef void (*BindFunction)(ID3D11DeviceContext* context, UINT slot, ID3D11Buffer*const* cbuffer);

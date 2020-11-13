@@ -7,6 +7,7 @@ Description : Manager-level class for intelligently binding and drawing objects
 #define RENDERER_H
 
 #include "CBufferStructs.h"
+#include "ConstantBuffer.h"
 #include "DXCore.h"
 #include "SkyRenderer.h"
 #include "../Transform.h"
@@ -53,8 +54,7 @@ private:
     // Loads the necessary models into a collection
     void InitMeshes(DeviceResources const& dr);
 
-    void LoadShaders();
-
+    // Populates the Entity List
     void InitEntities();
 
     // Creates the necessary material keys within m_Map, 
@@ -69,10 +69,15 @@ private:
     Entity* Entities;
     UINT     EntityCount;
 
+    // Array of Instancing Information
     InstancedDrawContext* InstancingPasses;
     UINT                  InstancingPassCount;
 
+    // Sky that knows how to bind itself
     SkyRenderer mSkyRenderer;
+
+    // Constant Buffer that holds material parameters
+    ConstantBufferBindPacket MaterialParams;
 
 public: // Enforce use of the default constructor
     Renderer(Renderer const&)               = delete;

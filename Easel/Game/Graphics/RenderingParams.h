@@ -21,6 +21,23 @@ enum class EASEL_SHADER_STAGE : UINT
     ESS_COUNT
 };
 
+// Reserved Constant Buffer Registers for Vertex Shader Stage
+enum class VS_REGISTERS : UINT
+{
+    // ESS_VS
+    CAMERA = 10,
+    WORLD  = 11,
+};
+
+// Reserved Constant Buffer Registers for Pixel Shader Stage
+enum class PS_REGISTERS : UINT
+{
+    // ESS_PS
+    LIGHTS   = 10,
+    MATERIAL = 11
+};
+
+
 }
 
 #endif

@@ -33,7 +33,7 @@ struct ResourceBindChord
 };
 
 // Materials own both VS and PS because they must match in the pipeline
-struct TMaterial
+struct Material
 {
     const VertexShader*        VS;
     const PixelShader*         PS;

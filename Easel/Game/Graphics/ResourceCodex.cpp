@@ -74,7 +74,7 @@ void ResourceCodex::Destroy()
     {
         //CodexInstance->mMaterials[i].VS->Shader->Release();
     }
-    free(CodexInstance->mMaterials);
+    free(CodexInstance->Materials);
     
     delete CodexInstance;
 }
@@ -141,20 +141,21 @@ void ResourceCodex::BuildAllMaterials()
     
     const ShaderID kInstancedPhongVSID = 0xc8a366aa; // FNV1A of L"InstancedPhongVS.cso"
     const ShaderID kPhongPSID = 0x4dc6e249;          // FNV1A of L"PhongPS.cso"
+    const ShaderID kPhongPSNormalMapID = 0x928ff72d; // FNV1A of L"PhongPS_NormalMap.cso"
 
     // Malloc the array
     uint8_t kMaterialCount = 1;
     MaterialCount = kMaterialCount;
-    mMaterials = (TMaterial*)malloc(sizeof(TMaterial) * kMaterialCount);
+    Materials = (Material*)malloc(sizeof(Material) * kMaterialCount);
 
-    TMaterial lunarMaterial;
+    Material lunarMaterial;
     lunarMaterial.VS = GetVertexShader(kInstancedPhongVSID);
-    lunarMaterial.PS = GetPixelShader(kPhongPSID);
+    lunarMaterial.PS = GetPixelShader(kPhongPSNormalMapID);
     lunarMaterial.Description.colorTint = DirectX::XMFLOAT4(DirectX::Colors::White);
     lunarMaterial.Description.specularExp = 128.0f;
     lunarMaterial.Resources = GetTexture(kLunarId);
     
-    mMaterials[0] = lunarMaterial;
+    Materials[0] = lunarMaterial;
 }
 
 }
