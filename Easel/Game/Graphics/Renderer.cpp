@@ -30,11 +30,11 @@ namespace Rendering {
 Renderer::Renderer()
 {}
 
-void Renderer::Init(DeviceResources* dr)
+void Renderer::Init(DeviceResources const& dr)
 {
     // Grab reference to ID3D11Device
-    auto device = dr->GetDevice();
-    auto context = dr->GetContext();
+    auto device = dr.GetDevice();
+    auto context = dr.GetContext();
 
     ResourceCodex::Init(device, context);
 
@@ -55,9 +55,9 @@ void Renderer::Init(DeviceResources* dr)
     #endif
 }
 
-void Renderer::InitMeshes(DeviceResources* dr)
+void Renderer::InitMeshes(DeviceResources const& dr)
 {
-    auto device = dr->GetDevice();
+    auto device = dr.GetDevice();
 
     ResourceCodex* sg_Codex = ResourceCodex::GetSingleton();
 
@@ -76,7 +76,7 @@ void Renderer::InitMeshes(DeviceResources* dr)
     const VertexBufferDescription* phongVertDesc = &instancedPhongVS->VertexDesc;
     const MeshID sphereID = ResourceCodex::AddMeshFromFile("sphere.obj", phongVertDesc, device);
     
-    dr->GetContext()->PSSetSamplers(0, 1, &PhongPS->SamplerState);
+    dr.GetContext()->PSSetSamplers(0, 1, &PhongPS->SamplerState);
 
     sg_Codex->BuildAllMaterials();
     

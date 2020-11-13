@@ -333,7 +333,7 @@ void TShaderFactory::BuildInputLayout(ID3D11ShaderReflection* pReflection, ID3D1
     {
         // Regular vertex buffer
         UINT numVertexInputs = numInputs - numInstanceInputs;
-        vbDesc.ByteOffsets = (uint16_t*)malloc(sizeof(uint16_t) * numVertexInputs);
+        vbDesc.ByteOffsets = (uint16_t*)malloc(sizeof(uint16_t) * numInputs);
         AssignDXGIFormatsAndByteOffsets(D3D11_INPUT_PER_VERTEX_DATA, &paramDescs[0], numVertexInputs, &allInputParams[0], vbDesc.ByteOffsets, &vbDesc.ByteSize);
         vbDesc.SemanticsArr = tempSemanticsArr;
         vbDesc.AttrCount = numVertexInputs;
@@ -341,7 +341,7 @@ void TShaderFactory::BuildInputLayout(ID3D11ShaderReflection* pReflection, ID3D1
         
         // Instance buffer
         VertexBufferDescription instDesc;
-        instDesc.ByteOffsets = (uint16_t*)malloc(sizeof(uint16_t) * numInstanceInputs);
+        instDesc.ByteOffsets = &vbDesc.ByteOffsets[instanceStartIdx];
         AssignDXGIFormatsAndByteOffsets(D3D11_INPUT_PER_INSTANCE_DATA, &paramDescs[instanceStartIdx], numInstanceInputs, &allInputParams[instanceStartIdx], instDesc.ByteOffsets, &instDesc.ByteSize);
         instDesc.SemanticsArr = &tempSemanticsArr[instanceStartIdx];
         instDesc.AttrCount = numInstanceInputs;

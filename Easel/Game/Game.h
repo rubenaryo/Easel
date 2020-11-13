@@ -58,7 +58,7 @@ private:
     void CreateWindowSizeDependentResources(int newWidth, int newHeight);
 
     // Application's Device Resources, such as the necessary buffers/views in video memory
-    Rendering::DeviceResources* mpDeviceResources;
+    Rendering::DeviceResources mDeviceResources;
 
     // Renderer for handling smart binding of objects
     Rendering::Renderer mRenderer;

@@ -37,7 +37,7 @@ public:
     Renderer();
     ~Renderer();
 
-    void Init(DeviceResources* dr);
+    void Init(DeviceResources const& dr);
 
     // For now, the renderer will handle updating the entities, 
     // In the future, perhaps a Physics Manager or AI Manager would be a good solution?
@@ -51,7 +51,7 @@ private:
     void InstancedDraw(InstancedDrawContext* drawContexts, UINT drawCallCount, ID3D11DeviceContext* context);
     
     // Loads the necessary models into a collection
-    void InitMeshes(DeviceResources* dr);
+    void InitMeshes(DeviceResources const& dr);
 
     void LoadShaders();
 
