@@ -185,13 +185,43 @@ MeshID MeshFactory::CreateMesh(const char* fileName, const VertexBufferDescripti
     return meshId;
 }
 
-void TShaderFactory::CreateVertexShader(const wchar_t* fileName, VertexShader* out_shader, ID3D11Device* device)
+void ShaderFactory::LoadAllShaders(ID3D11Device* device, ResourceCodex* codex)
+{
+    namespace fs = std::filesystem;
+    std::string shaderPath = SHADERPATH;
+
+    #if defined(DEBUG)
+    if(!fs::exists(shaderPath))
+        throw std::exception("Textures folder doesn't exist!");
+    #endif
+
+    // Iterate through folder and load shaders
+    for (const auto& entry : fs::directory_iterator(shaderPath))
+    {
+        std::wstring path = entry.path();
+        std::wstring name = entry.path().filename();
+
+        ShaderID hash = fnv1a(name.c_str());
+
+        // Parse file name to decide how to create this resource
+        if (name.find(L"VS") != std::wstring::npos)
+        {
+            codex->AddVertexShader(hash, path.c_str(), device);
+        }
+        else if (name.find(L"PS") != std::wstring::npos)
+        {
+            codex->AddPixelShader(hash, path.c_str(), device);
+        }
+    }
+}
+
+void ShaderFactory::CreateVertexShader(const wchar_t* path, VertexShader* out_shader, ID3D11Device* device)
 {
     HRESULT hr = E_FAIL;
 
     // Read bytecode from file to blob
     ID3D10Blob* pBlob;
-    hr = D3DReadFileToBlob(fileName, &pBlob);
+    hr = D3DReadFileToBlob(path, &pBlob);
 
     COM_EXCEPT(hr);
 
@@ -218,13 +248,13 @@ void TShaderFactory::CreateVertexShader(const wchar_t* fileName, VertexShader* o
     BuildInputLayout(pReflection, pBlob, out_shader, device);
 }
 
-void TShaderFactory::CreatePixelShader(const wchar_t* fileName, PixelShader* out_shader, ID3D11Device* device)
+void ShaderFactory::CreatePixelShader(const wchar_t* path, PixelShader* out_shader, ID3D11Device* device)
 {
     HRESULT hr = E_FAIL;
 
     // Read bytecode from file to blob
     ID3D10Blob* pBlob;
-    hr = D3DReadFileToBlob(fileName, &pBlob);
+    hr = D3DReadFileToBlob(path, &pBlob);
 
     COM_EXCEPT(hr);
 
@@ -280,7 +310,7 @@ const char* kInstancedSemanticNames[] =
     "INSTANCE_WORLDMATRIX"
 };
 
-void TShaderFactory::BuildInputLayout(ID3D11ShaderReflection* pReflection, ID3D10Blob* pBlob, VertexShader* out_shader, ID3D11Device* device)
+void ShaderFactory::BuildInputLayout(ID3D11ShaderReflection* pReflection, ID3D10Blob* pBlob, VertexShader* out_shader, ID3D11Device* device)
 {
     // Get a shader description
     D3D11_SHADER_DESC shaderDesc;
@@ -371,7 +401,7 @@ void TShaderFactory::BuildInputLayout(ID3D11ShaderReflection* pReflection, ID3D1
     free(paramDescs);
 }
 
-void TShaderFactory::AssignDXGIFormatsAndByteOffsets(D3D11_INPUT_CLASSIFICATION slotClass, D3D11_SIGNATURE_PARAMETER_DESC* paramDescs, UINT numInputs, D3D11_INPUT_ELEMENT_DESC* out_inputParams, uint16_t* out_byteOffsets, uint16_t* out_byteSize)
+void ShaderFactory::AssignDXGIFormatsAndByteOffsets(D3D11_INPUT_CLASSIFICATION slotClass, D3D11_SIGNATURE_PARAMETER_DESC* paramDescs, UINT numInputs, D3D11_INPUT_ELEMENT_DESC* out_inputParams, uint16_t* out_byteOffsets, uint16_t* out_byteSize)
 {
     uint16_t totalByteSize = 0;
     for (uint8_t i = 0; i != numInputs; ++i)
@@ -435,7 +465,7 @@ void TShaderFactory::AssignDXGIFormatsAndByteOffsets(D3D11_INPUT_CLASSIFICATION 
 }
 
 // Loads all the textures from the directory and returns them as out params to the ResourceCodex
-void TTextureFactory::LoadAllTextures(ID3D11Device* device, ID3D11DeviceContext* context, eastl::hash_map<TextureID, const ResourceBindChord>& out_texMap)
+void TextureFactory::LoadAllTextures(ID3D11Device* device, ID3D11DeviceContext* context, eastl::hash_map<TextureID, const ResourceBindChord>& out_texMap)
 {
     namespace fs = std::filesystem;
     std::string texturePath = TEXTUREPATH;

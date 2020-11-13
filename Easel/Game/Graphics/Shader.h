@@ -42,7 +42,7 @@ struct VertexShader
     ID3D11VertexShader* Shader;
     VertexBufferDescription VertexDesc;
     VertexBufferDescription InstanceDesc; // Note: The allocated memory inside this one is contiguous with VertexDesc, so no additional free's are required.
-    bool8_t Instanced;
+    BOOL Instanced;
 };
 
 struct PixelShader

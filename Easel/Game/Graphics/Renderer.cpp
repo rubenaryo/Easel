@@ -37,9 +37,11 @@ void Renderer::Init(DeviceResources const& dr)
     auto context = dr.GetContext();
 
     ResourceCodex::Init(device, context);
+    ResourceCodex* sg_Codex = ResourceCodex::GetSingleton();
 
     // Initialize meshes, materials, entities
     InitMeshes(dr);
+    InitEntities();
     InitDrawContexts(device);
     
     // For now, assume we're only using trianglelist
@@ -47,6 +49,17 @@ void Renderer::Init(DeviceResources const& dr)
 
     ConstantBufferUpdateManager::Populate(sizeof(cbMaterialParams), (UINT)PS_REGISTERS::MATERIAL, EASEL_SHADER_STAGE::ESS_PS, device, &MaterialParams);
     ConstantBufferUpdateManager::Bind(&MaterialParams, context);
+    
+    const ShaderID kSkyVSID = fnv1a(L"SkyVS.cso");
+    const ShaderID kSkyPSID = fnv1a(L"SkyPS.cso");
+    const VertexShader* skyVS = sg_Codex->GetVertexShader(kSkyVSID);
+    const PixelShader*  skyPS = sg_Codex->GetPixelShader(kSkyPSID);
+
+    const UINT meshIdx = 0x4a986f37;
+    const TextureID texID = 0x2fb626d6;
+
+    mSkyRenderer.Init(skyVS, skyPS, meshIdx, texID, device);
+
 
     #if defined(DEBUG)
         #define TTYPE VertexShader
@@ -65,27 +78,18 @@ void Renderer::InitMeshes(DeviceResources const& dr)
 
     ResourceCodex* sg_Codex = ResourceCodex::GetSingleton();
 
-    const ShaderID vsId = ResourceCodex::AddVertexShader(L"InstancedPhongVS.cso", device);
-    const ShaderID psId = ResourceCodex::AddPixelShader(L"PhongPS_NormalMap.cso", device);
-
     const ShaderID kInstancedPhongVSID = 0xc8a366aa; // FNV1A of L"InstancedPhongVS.cso"
     const ShaderID kPhongPSID = 0x4dc6e249;          // FNV1A of L"PhongPS.cso"
     const ShaderID kPhongPSNormalMapID = 0x928ff72d; // FNV1A of L"PhongPS_NormalMap.cso"
 
     const VertexShader* instancedPhongVS = sg_Codex->GetVertexShader(kInstancedPhongVSID);
-    const PixelShader*  PhongPS = sg_Codex->GetPixelShader(psId);
-
-    const VertexShader* skyVS = sg_Codex->GetVertexShader(ResourceCodex::AddVertexShader(L"SkyVS.cso", device));
-    const PixelShader*  skyPS = sg_Codex->GetPixelShader(ResourceCodex::AddPixelShader(L"SkyPS.cso", device));
+    const PixelShader*  PhongPS = sg_Codex->GetPixelShader(kPhongPSID);
 
     const VertexBufferDescription* phongVertDesc = &instancedPhongVS->VertexDesc;
     const MeshID sphereID = ResourceCodex::AddMeshFromFile("sphere.obj", phongVertDesc, device);
+    const MeshID cubeID = ResourceCodex::AddMeshFromFile("cube.obj", phongVertDesc, device);
     
     dr.GetContext()->PSSetSamplers(0, 1, &PhongPS->SamplerState);
-
-    sg_Codex->BuildAllMaterials();
-    
-    mSkyRenderer.Init(skyVS, skyPS, ResourceCodex::AddMeshFromFile("cube.obj", phongVertDesc, device), 0x2fb626d6, device);
 }
 
 void Renderer::InitEntities()
@@ -97,7 +101,7 @@ void Renderer::InitEntities()
     for(UINT i = 0; i != kNumEntities; ++i)
     { 
         Game::Transform tfm;
-        tfm.SetTranslation(i * 5.f, 0.0f, 0.0f);
+        tfm.SetTranslation(i * 2.f, 0.0f, 0.0f);
 
         Entity test;
         test.MaterialIndex = 0; // Lunar
@@ -116,7 +120,7 @@ void Renderer::InitDrawContexts(ID3D11Device* device)
     InstancingPasses = (InstancedDrawContext*)malloc(sizeof(InstancedDrawContext) * kInstancingPassCount);
 
     InstancedDrawContext& lunarDraw = InstancingPasses[0];
-    lunarDraw.InstanceCount   = kNumEntities;
+    lunarDraw.InstanceCount   = EntityCount;
     lunarDraw.WorldMatrices   = (DirectX::XMFLOAT4X4*)malloc(sizeof(DirectX::XMFLOAT4X4) * lunarDraw.InstanceCount);
     lunarDraw.InstancedMeshID = Entities[0].mMeshID;
     lunarDraw.MaterialIndex   = 0;

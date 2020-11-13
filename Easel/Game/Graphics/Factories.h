@@ -9,21 +9,24 @@
 
 namespace Rendering {
 
-struct TShaderFactory final
+struct ShaderFactory final
 {
-    static void CreateVertexShader(const wchar_t* fileName, VertexShader* out_shader, ID3D11Device* device);
-    static void CreatePixelShader(const wchar_t* fileName, PixelShader* out_shader, ID3D11Device* device);
+    friend class ResourceCodex;
+
+    // Main initialization function: Takes a codex, which then calls the static functions from ShaderFactory to populate its own hashtables
+    static void LoadAllShaders(ID3D11Device* device, ResourceCodex* codex);
 
 private: // For VertexShader
+    static void CreateVertexShader(const wchar_t* fileName, VertexShader* out_shader, ID3D11Device* device);
     static void BuildInputLayout(ID3D11ShaderReflection* pReflection, ID3D10Blob* pBlob, VertexShader* out_shader, ID3D11Device* device);
     static void AssignDXGIFormatsAndByteOffsets(D3D11_INPUT_CLASSIFICATION slotClass, D3D11_SIGNATURE_PARAMETER_DESC* paramDescs, UINT numInputs, D3D11_INPUT_ELEMENT_DESC* out_inputParams, uint16_t* out_byteOffsets, uint16_t* out_byteSize);
 
 private: // For PixelShader
+    static void CreatePixelShader(const wchar_t* fileName, PixelShader* out_shader, ID3D11Device* device);
 };
 
-struct TTextureFactory final
+struct TextureFactory final
 {
-    typedef uint32_t TextureID;
     typedef eastl::pair<TextureID, const ResourceBindChord> TexturePair;
     static void LoadAllTextures(ID3D11Device* device, ID3D11DeviceContext* context, eastl::hash_map<TextureID, const ResourceBindChord>& out_texMap);
 };
@@ -31,9 +34,6 @@ struct TTextureFactory final
 struct MeshFactory final
 {
     static MeshID CreateMesh(const char* fileName, const VertexBufferDescription* vertAttr, ID3D11Device* pDevice, Mesh* out_mesh);
-
-private:
-    
 };
 
 }

@@ -38,6 +38,8 @@ void ResourceCodex::Init(ID3D11Device* device, ID3D11DeviceContext* context)
     CodexInstance = new ResourceCodex();
 
     CodexInstance->BuildAllTextures(device, context);
+    ShaderFactory::LoadAllShaders(device, CodexInstance);
+    CodexInstance->BuildAllMaterials();
 }
 
 void ResourceCodex::Destroy()
@@ -70,39 +72,25 @@ void ResourceCodex::Destroy()
         for(ID3D11ShaderResourceView* srv : t.second.SRVs)
             if(srv) srv->Release();
 
-    for (uint8_t i = 0; i != CodexInstance->MaterialCount; ++i)
-    {
-        //CodexInstance->mMaterials[i].VS->Shader->Release();
-    }
     free(CodexInstance->Materials);
     
     delete CodexInstance;
 }
 
-ShaderID ResourceCodex::AddVertexShader(const wchar_t* fileName, ID3D11Device* pDevice)
+void ResourceCodex::AddVertexShader(ShaderID hash, const wchar_t* path, ID3D11Device* pDevice)
 {
-    ShaderID shaderId = fnv1a(fileName);
     VertexShader shader;
-    TShaderFactory::CreateVertexShader(System::GetShaderPathFromFile_W(fileName).c_str(), &shader, pDevice);
-
+    ShaderFactory::CreateVertexShader(path, &shader, pDevice);
     const VertexShader cShader = shader;
-    CodexInstance->mVertexShaders.insert(eastl::pair<ShaderID, const VertexShader>(shaderId, cShader));
-    
-    const VertexShader* test = CodexInstance->GetVertexShader(shaderId);
-
-    return shaderId;
+    CodexInstance->mVertexShaders.insert(eastl::pair<ShaderID, const VertexShader>(hash, cShader));
 }
 
-ShaderID ResourceCodex::AddPixelShader(const wchar_t* fileName, ID3D11Device* pDevice)
-{
-    ShaderID shaderId = fnv1a(fileName);
+void ResourceCodex::AddPixelShader(ShaderID hash, const wchar_t* path, ID3D11Device* pDevice)
+{   
     PixelShader shader;
-
-    TShaderFactory::CreatePixelShader(System::GetShaderPathFromFile_W(fileName).c_str(), &shader, pDevice);
+    ShaderFactory::CreatePixelShader(path, &shader, pDevice);
     const PixelShader cShader = shader;
-    CodexInstance->mPixelShaders.insert(eastl::pair<ShaderID, const PixelShader>(shaderId, cShader));
-    assert(CodexInstance->mPixelShaders.size() < 3);
-    return shaderId;
+    CodexInstance->mPixelShaders.insert(eastl::pair<ShaderID, const PixelShader>(hash, cShader));
 }
 
 const ResourceBindChord* ResourceCodex::GetTexture(TextureID UID)
@@ -131,7 +119,7 @@ const PixelShader* ResourceCodex::GetPixelShader(ShaderID UID)
 
 void ResourceCodex::BuildAllTextures(ID3D11Device* device, ID3D11DeviceContext* context)
 {
-    TTextureFactory::LoadAllTextures(device, context, mTextureMap);
+    TextureFactory::LoadAllTextures(device, context, mTextureMap);
 }
 
 void ResourceCodex::BuildAllMaterials()

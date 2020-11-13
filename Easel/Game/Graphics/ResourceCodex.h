@@ -13,8 +13,11 @@ Description : Loads and distributes all static resources (materials, textures, e
 #include "Mesh.h"
 #include "Shader.h"
 
-namespace Rendering
-{
+namespace Rendering {
+
+struct MeshFactory;
+struct ShaderFactory;
+struct TextureFactory;
 }
 
 namespace Rendering {
@@ -34,9 +37,6 @@ public:
     static void Destroy();
     inline static ResourceCodex* GetSingleton()
         { return CodexInstance; }
-
-    static ShaderID AddVertexShader(const wchar_t* fileName, ID3D11Device* pDevice);
-    static ShaderID AddPixelShader(const wchar_t* fileName, ID3D11Device* pDevice);
 
     inline const Mesh* GetMesh(MeshID UID)
     {
@@ -60,6 +60,10 @@ public:
         
     void BuildAllMaterials();
 
+
+    void AddVertexShader(ShaderID hash, const wchar_t* path, ID3D11Device* pDevice);
+    void AddPixelShader(ShaderID hash, const wchar_t* path, ID3D11Device* pDevice);
+
 private:
 
     eastl::hash_map<ShaderID,  const VertexShader>      mVertexShaders;
@@ -77,10 +81,8 @@ private:
     static ResourceCodex* CodexInstance;
 
 private:
-    void BuildAllTextures(ID3D11Device* device, ID3D11DeviceContext* context);
 
-    void BuildAllShaders(ID3D11Device* device);
-    
+    void BuildAllTextures(ID3D11Device* device, ID3D11DeviceContext* context);
 };
 }
 #endif
