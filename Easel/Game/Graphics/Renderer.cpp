@@ -9,6 +9,7 @@ Description : Implementation of Renderer class
 #include "CBufferStructs.h"
 #include "ConstantBuffer.h"
 #include "DeviceResources.h"
+#include "DrawContext.h"
 #include "hash_util.h"
 #include "Material.h"
 #include "Mesh.h"
@@ -87,13 +88,13 @@ void Renderer::InitDrawContexts(ID3D11Device* device)
     const UINT kNumEntities = 100;
     EntityCount = kNumEntities;
 
-    Entities = (TEntity*)malloc(sizeof(TEntity) * kNumEntities);
+    Entities = (Entity*)malloc(sizeof(Entity) * kNumEntities);
     for(UINT i = 0; i != kNumEntities; ++i)
     { 
         Game::Transform tfm;
         tfm.SetTranslation(i * 5.f, 0.0f, 0.0f);
 
-        TEntity test;
+        Entity test;
         test.MaterialIndex = 0;
         test.mMeshID = 0x4fd8281f;
         test.mTransform = tfm;
@@ -101,9 +102,12 @@ void Renderer::InitDrawContexts(ID3D11Device* device)
         Entities[i] = test;
     }
 
-    instancingPasses = (InstancedDrawContext*)malloc(sizeof(InstancedDrawContext) * 1);
+    const UINT kInstancingPassCount = 1;
 
-    InstancedDrawContext& lunarDraw = instancingPasses[0];
+    InstancingPassCount = kInstancingPassCount;
+    InstancingPasses = (InstancedDrawContext*)malloc(sizeof(InstancedDrawContext) * kInstancingPassCount);
+
+    InstancedDrawContext& lunarDraw = InstancingPasses[0];
     lunarDraw.InstanceCount   = kNumEntities;
     lunarDraw.WorldMatrices   = (DirectX::XMFLOAT4X4*)malloc(sizeof(DirectX::XMFLOAT4X4) * lunarDraw.InstanceCount);
     lunarDraw.InstancedMeshID = Entities[0].mMeshID;
@@ -130,7 +134,7 @@ void Renderer::Update(ID3D11DeviceContext* context, float dt)
     static const XMVECTOR rot1 = DirectX::XMQuaternionRotationRollPitchYaw(rotSpeed, -rotSpeed, rotSpeed);
     static const XMVECTOR rot2 = -rot1;
 
-    InstancedDrawContext& lunarDraw = instancingPasses[0];
+    InstancedDrawContext& lunarDraw = InstancingPasses[0];
 
     for (UINT i = 0; i != EntityCount; ++i)
     {
@@ -142,13 +146,13 @@ void Renderer::Update(ID3D11DeviceContext* context, float dt)
     // Rewrite the dynamic vertex buffer
     D3D11_MAPPED_SUBRESOURCE mappedBuffer;
     COM_EXCEPT(context->Map(lunarDraw.DynamicBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer));
-    memcpy(mappedBuffer.pData, lunarDraw.WorldMatrices, sizeof(DirectX::XMFLOAT4X4) * instancingPasses[0].InstanceCount);
+    memcpy(mappedBuffer.pData, lunarDraw.WorldMatrices, sizeof(DirectX::XMFLOAT4X4) * InstancingPasses[0].InstanceCount);
     context->Unmap(lunarDraw.DynamicBuffer, 0);
 }
 
 void Renderer::Draw(ID3D11DeviceContext* context)
 {
-    this->InstancedDraw(instancingPasses, 1, context);
+    this->InstancedDraw(InstancingPasses, InstancingPassCount, context);
     this->RenderSky(context);
 }
 
@@ -234,10 +238,10 @@ Renderer::~Renderer()
 {
     for (uint8_t i = 0; i != 1; ++i)
     {
-        free(instancingPasses->WorldMatrices);
-        instancingPasses->DynamicBuffer->Release();
+        free(InstancingPasses->WorldMatrices);
+        InstancingPasses->DynamicBuffer->Release();
     }
-    free(instancingPasses);
+    free(InstancingPasses);
 
     free(Entities);
 

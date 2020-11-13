@@ -17,7 +17,7 @@ struct PixelShader;
 
 namespace Rendering {
 
-struct TSkyRenderer
+struct SkyRenderer
 {
     ID3D11RasterizerState*   RasterState;
     ID3D11DepthStencilState* DepthState;

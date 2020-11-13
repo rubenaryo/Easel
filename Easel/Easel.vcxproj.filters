@@ -99,6 +99,9 @@
     <ClInclude Include="Game\Graphics\RenderingParams.h">
       <Filter>Game\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Graphics\DrawContext.h">
+      <Filter>Game\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="System\GameWindow.cpp">

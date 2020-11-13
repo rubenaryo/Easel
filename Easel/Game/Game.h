@@ -10,12 +10,12 @@ This class encapsulates all app functionality
 #include "StepTimer.h"
 
 #include "Graphics/DeviceResources.h"
+#include "Graphics/Renderer.h"
 
 namespace Rendering
 {
 class Camera;
 class LightingManager;
-class Renderer;
 }
 
 namespace Input
@@ -61,7 +61,7 @@ private:
     Rendering::DeviceResources* mpDeviceResources;
 
     // Renderer for handling smart binding of objects
-    Rendering::Renderer* mpRenderer;
+    Rendering::Renderer mRenderer;
 
     // Lights Manager
     Rendering::LightingManager* mpLightingManager;

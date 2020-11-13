@@ -38,8 +38,6 @@ void ResourceCodex::Init(ID3D11Device* device, ID3D11DeviceContext* context)
     CodexInstance = new ResourceCodex();
 
     CodexInstance->BuildAllTextures(device, context);
-
-    assert(CodexInstance->mPixelShaders.empty());
 }
 
 void ResourceCodex::Destroy()
@@ -59,7 +57,6 @@ void ResourceCodex::Destroy()
         vs.Shader->Release();
     }
 
-    size_t size = CodexInstance->mPixelShaders.size();
     eastl::hash_map<ShaderID, const PixelShader>::iterator it = CodexInstance->mPixelShaders.begin();
 
     while (it != CodexInstance->mPixelShaders.end())
@@ -73,6 +70,10 @@ void ResourceCodex::Destroy()
         for(ID3D11ShaderResourceView* srv : t.second.SRVs)
             if(srv) srv->Release();
 
+    for (uint8_t i = 0; i != CodexInstance->MaterialCount; ++i)
+    {
+        //CodexInstance->mMaterials[i].VS->Shader->Release();
+    }
     free(CodexInstance->mMaterials);
     
     delete CodexInstance;

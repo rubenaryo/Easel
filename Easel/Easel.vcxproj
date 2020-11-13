@@ -16,6 +16,7 @@
     <ClInclude Include="Game\Graphics\CBufferStructs.h" />
     <ClInclude Include="Game\Graphics\COMException.h" />
     <ClInclude Include="Game\Graphics\ConstantBuffer.h" />
+    <ClInclude Include="Game\Graphics\DrawContext.h" />
     <ClInclude Include="Game\Graphics\DXCore.h" />
     <ClInclude Include="Game\Graphics\DeviceResources.h" />
     <ClInclude Include="Game\Graphics\Factories.h" />

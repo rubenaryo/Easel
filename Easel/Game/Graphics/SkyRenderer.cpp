@@ -13,7 +13,7 @@ Description : Handles the rendering of the sky backdrop
 
 namespace Rendering {
 
-void TSkyRenderer::Init(const VertexShader* vs, const PixelShader* ps, MeshID cubeMeshID, TextureID skyTextureID, ID3D11Device* device)
+void SkyRenderer::Init(const VertexShader* vs, const PixelShader* ps, MeshID cubeMeshID, TextureID skyTextureID, ID3D11Device* device)
 {
     this->SkyVS = vs;
     this->SkyPS = ps;

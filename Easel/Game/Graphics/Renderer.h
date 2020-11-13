@@ -17,25 +17,18 @@ namespace Rendering
 {
     class DeviceResources;
     class Camera;
+
     struct ConstantBuffer;
+    struct InstancedDrawContext;
 }
 
 namespace Rendering {
 
-struct TEntity
+struct Entity
 {
     Game::Transform mTransform;
     MeshID          mMeshID;
     uint32_t        MaterialIndex;
-};
-
-struct InstancedDrawContext
-{
-    DirectX::XMFLOAT4X4*    WorldMatrices;
-    ID3D11Buffer*           DynamicBuffer;
-    uint32_t                MaterialIndex;
-    uint32_t                InstancedMeshID;
-    UINT                    InstanceCount;
 };
 
 class Renderer
@@ -60,6 +53,10 @@ private:
     // Loads the necessary models into a collection
     void InitMeshes(DeviceResources* dr);
 
+    void LoadShaders();
+
+    void InitEntities();
+
     // Creates the necessary material keys within m_Map, 
     void InitDrawContexts(ID3D11Device* device);
 
@@ -69,12 +66,13 @@ private:
 private:
 
     // All the Entities
-    TEntity* Entities;
+    Entity* Entities;
     UINT     EntityCount;
 
-    InstancedDrawContext* instancingPasses;
+    InstancedDrawContext* InstancingPasses;
+    UINT                  InstancingPassCount;
 
-    TSkyRenderer mSkyRenderer;
+    SkyRenderer mSkyRenderer;
 
 public: // Enforce use of the default constructor
     Renderer(Renderer const&)               = delete;

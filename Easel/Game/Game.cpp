@@ -17,7 +17,6 @@ namespace Game {
 // Initialize device resources, and link up this game to be notified of device updates
 Game::Game() :
     mpDeviceResources(new Rendering::DeviceResources()),
-    mpRenderer(new Rendering::Renderer()),
     mpInput(new Input::GameInput()),
     mpCamera(nullptr),
     mpLightingManager(nullptr)
@@ -46,7 +45,7 @@ bool Game::Init(HWND window, int width, int height)
     CreateWindowSizeDependentResources(width, height);
 
     // Create Materials, Meshes, Entities
-    mpRenderer->Init(mpDeviceResources);
+    mRenderer.Init(mpDeviceResources);
 
     // Create Lights and respective cbuffers
     DirectX::XMFLOAT3A camPos;
@@ -87,7 +86,7 @@ void Game::Update(StepTimer const& timer)
     mpLightingManager->Update(context, timer.GetTotalSeconds(), camPos);
     
     // Update the renderer's view matrices, lighting information.
-    mpRenderer->Update(context, elapsedTime);
+    mRenderer.Update(context, elapsedTime);
 }
 
 void Game::Render()
@@ -108,7 +107,7 @@ void Game::Render()
     auto context = dr->GetContext();
 
     // Draw all geometries
-    mpRenderer->Draw(context);
+    mRenderer.Draw(context);
 
     // Show the new frame
     dr->Present();
@@ -131,7 +130,6 @@ Game::~Game()
     delete mpLightingManager;
     delete mpCamera;
     delete mpInput;
-    delete mpRenderer;
     delete mpDeviceResources;
 }
 
