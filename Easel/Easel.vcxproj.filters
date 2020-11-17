@@ -57,9 +57,6 @@
     <ClInclude Include="Game\Graphics\LightingManager.h">
       <Filter>Game\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Game\Graphics\Renderer.h">
-      <Filter>Game\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="System\PathMacros.h">
       <Filter>System</Filter>
     </ClInclude>
@@ -102,6 +99,9 @@
     <ClInclude Include="Game\Graphics\DrawContext.h">
       <Filter>Game\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Graphics\EntityRenderer.h">
+      <Filter>Game\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="System\GameWindow.cpp">
@@ -134,9 +134,6 @@
     <ClCompile Include="Game\Graphics\LightingManager.cpp">
       <Filter>Game\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Game\Graphics\Renderer.cpp">
-      <Filter>Game\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Game\Graphics\SkyRenderer.cpp">
       <Filter>Game\Graphics</Filter>
     </ClCompile>
@@ -147,6 +144,9 @@
       <Filter>Game\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Game\Graphics\Factories.cpp">
+      <Filter>Game\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Graphics\EntityRenderer.cpp">
       <Filter>Game\Graphics</Filter>
     </ClCompile>
   </ItemGroup>

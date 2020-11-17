@@ -13,13 +13,13 @@ Description : Manager-level class for intelligently binding and drawing objects
 #include "../Transform.h"
 
 #include <EASTL/hash_map.h>
+#include <EASTL/internal/thread_support.h>
 
 namespace Rendering
 {
     class DeviceResources;
     class Camera;
 
-    struct ConstantBuffer;
     struct InstancedDrawContext;
 }
 
@@ -80,5 +80,6 @@ public: // Enforce use of the default constructor
     EntityRenderer(EntityRenderer const&)               = delete;
     EntityRenderer& operator=(EntityRenderer const&)    = delete;
 };
+
 }
 #endif

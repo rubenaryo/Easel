@@ -10,7 +10,7 @@ This class encapsulates all app functionality
 #include "StepTimer.h"
 
 #include "Graphics/DeviceResources.h"
-#include "Graphics/Renderer.h"
+#include "Graphics/EntityRenderer.h"
 #include "Graphics/SkyRenderer.h"
 
 namespace Rendering

@@ -660,7 +660,7 @@ void DeviceResources::ReleaseAllComAndDumpLiveObjects()
 DeviceResources::~DeviceResources()
 {
     #if defined(DEBUG)
-    OutputDebugStringA("INFO: Shutting Down Rendering System...\n");
+    OutputDebugStringA("ENGINE: Shutting Down Rendering System...\n");
     #endif
     ReleaseAllComAndDumpLiveObjects();
 }

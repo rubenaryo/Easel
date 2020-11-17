@@ -25,7 +25,7 @@
     <ClInclude Include="Game\Graphics\LightStructs.h" />
     <ClInclude Include="Game\Graphics\Material.h" />
     <ClInclude Include="Game\Graphics\Mesh.h" />
-    <ClInclude Include="Game\Graphics\Renderer.h" />
+    <ClInclude Include="Game\Graphics\EntityRenderer.h" />
     <ClInclude Include="Game\Graphics\RenderingParams.h" />
     <ClInclude Include="Game\Graphics\ResourceCodex.h" />
     <ClInclude Include="Game\Graphics\Shader.h" />
@@ -47,7 +47,7 @@
     <ClCompile Include="Game\Graphics\DeviceResources.cpp" />
     <ClCompile Include="Game\Graphics\Factories.cpp" />
     <ClCompile Include="Game\Graphics\LightingManager.cpp" />
-    <ClCompile Include="Game\Graphics\Renderer.cpp" />
+    <ClCompile Include="Game\Graphics\EntityRenderer.cpp" />
     <ClCompile Include="Game\Graphics\ResourceCodex.cpp" />
     <ClCompile Include="Game\Graphics\SkyRenderer.cpp" />
     <ClCompile Include="Game\Input\GameInput.cpp" />

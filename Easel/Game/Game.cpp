@@ -8,7 +8,6 @@ Description : Implementation of Game.h
 #include "Graphics/Camera.h"
 #include "Graphics/COMException.h"
 #include "Graphics/LightingManager.h"
-#include "Graphics/Renderer.h"
 
 #include "Graphics/ResourceCodex.h"
 

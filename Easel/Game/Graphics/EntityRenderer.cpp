@@ -3,7 +3,7 @@ Ruben Young (rubenaryo@gmail.com)
 Date : 2020/3
 Description : Implementation of Renderer class
 ----------------------------------------------*/
-#include "Renderer.h"
+#include "EntityRenderer.h"
 
 #include "Camera.h"
 #include "CBufferStructs.h"
