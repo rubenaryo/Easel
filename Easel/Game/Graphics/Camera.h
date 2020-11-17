@@ -30,6 +30,9 @@ public:
     // Updates Camera's View Matrix
     void UpdateView(ID3D11DeviceContext* context);
 
+    // Removes the translation from the view matrix, and then updates the view-projection constant buffer
+    void PrepareForSkyRender(ID3D11DeviceContext* context);
+
     // Updates Camera's Projection Matrix
     void UpdateProjection(float aspectRatio, ID3D11DeviceContext* context);
 

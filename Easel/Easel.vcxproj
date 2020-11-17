@@ -93,6 +93,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Game\Graphics\Shaders\PhongCommon.hlsli" />
+    <None Include="Game\Graphics\Shaders\VS_Common.hlsli" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

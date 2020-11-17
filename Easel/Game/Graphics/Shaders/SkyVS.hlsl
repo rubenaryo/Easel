@@ -1,3 +1,5 @@
+#include "VS_Common.hlsli"
+
 struct VertexIn
 {
     float3 position : POSITION;
@@ -9,23 +11,11 @@ struct VertexOut
     float3 sampleDir : DIRECTION;
 };
 
-// Basic camera matrix passed in every frame
-cbuffer VSPerPass : register(b10)
-{
-    float4x4 VP;
-}
-
 VertexOut main( VertexIn input )
 {
     VertexOut output;
 
-    // Remove translation from the view projection matrix:
-    float4x4 vp = VP;
-    vp._14 = 0;
-    vp._24 = 0;
-    vp._34 = 0;
-
-    output.position = mul(vp, float4(input.position, 1.0f));
+    output.position = mul(viewProjection, float4(input.position, 1.0f));
 
     // Prepare for perspective divide = 1
     output.position.z = output.position.w;

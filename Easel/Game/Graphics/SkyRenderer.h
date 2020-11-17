@@ -7,26 +7,32 @@ Description : Handles the rendering of the sky backdrop
 #define SKYRENDERER_H
 
 #include "DXCore.h"
-#include "ResourceCodex.h"
 
 namespace Rendering
 {
 struct VertexShader;
 struct PixelShader;
+struct Mesh;
+struct ResourceBindChord;
 }
 
 namespace Rendering {
 
 struct SkyRenderer
 {
-    ID3D11RasterizerState*   RasterState;
-    ID3D11DepthStencilState* DepthState;
-    const VertexShader*     SkyVS;
-    const PixelShader*      SkyPS;
-    MeshID                   CubeMeshID;
-    TextureID                SkyTextureID;
+public:
+    void Init(ID3D11Device* device);
+    void Draw(ID3D11DeviceContext* context);
+    void Cleanup();
 
-    void Init(const VertexShader* vs, const PixelShader* ps, MeshID cubeMeshID, TextureID skyTextureID, ID3D11Device* device);
+private:
+    // Drawing params
+    ID3D11RasterizerState*      RasterState;
+    ID3D11DepthStencilState*    DepthState;
+    const VertexShader*         SkyVS;
+    const PixelShader*          SkyPS;
+    const Mesh*                 CubeMesh;
+    const ResourceBindChord*    SkyTexture;
 };
 
 }

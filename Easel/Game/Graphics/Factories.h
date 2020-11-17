@@ -28,7 +28,7 @@ private: // For PixelShader
 struct TextureFactory final
 {
     typedef eastl::pair<TextureID, const ResourceBindChord> TexturePair;
-    static void LoadAllTextures(ID3D11Device* device, ID3D11DeviceContext* context, eastl::hash_map<TextureID, const ResourceBindChord>& out_texMap);
+    static void LoadAllTextures(ID3D11Device* device, ID3D11DeviceContext* context, ResourceCodex* codex);
 };
 
 struct MeshFactory final

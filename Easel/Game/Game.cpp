@@ -10,6 +10,8 @@ Description : Implementation of Game.h
 #include "Graphics/LightingManager.h"
 #include "Graphics/Renderer.h"
 
+#include "Graphics/ResourceCodex.h"
+
 #include "Input/GameInput.h"
 
 namespace Game {
@@ -27,6 +29,7 @@ Game::Game() :
 // Initialize device resource holder by creating all necessary resources
 bool Game::Init(HWND window, int width, int height)
 {
+    using namespace Rendering;
 
     // Grab Window handle, creates device and context
     mDeviceResources.SetWindow(window, width, height);
@@ -35,21 +38,25 @@ bool Game::Init(HWND window, int width, int height)
     
     auto device = mDeviceResources.GetDevice();
     auto context = mDeviceResources.GetContext();
+
+    // Init all game resources
+    ResourceCodex::Init(device, context);
     
     // Initialize game camera
-    mpCamera = new Rendering::Camera(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 1.5f, device, context);
+    mpCamera = new Camera(0.0f, 0.0f, -5.0f, width / (float)height, 0.1f, 100.0f, 1.5f, device, context);
 
     // Create Devices dependent on window size
     mDeviceResources.CreateWindowSizeDependentResources();
     CreateWindowSizeDependentResources(width, height);
 
     // Create Materials, Meshes, Entities
-    mRenderer.Init(mDeviceResources);
+    mEntityRenderer.Init(mDeviceResources);
+    mSkyRenderer.Init(device);
 
     // Create Lights and respective cbuffers
     DirectX::XMFLOAT3A camPos;
     mpCamera->GetPosition3A(&camPos);
-    mpLightingManager = new Rendering::LightingManager(mDeviceResources.GetDevice(), context, camPos);
+    mpLightingManager = new LightingManager(mDeviceResources.GetDevice(), context, camPos);
 
     return true;
 }
@@ -85,7 +92,7 @@ void Game::Update(StepTimer const& timer)
     mpLightingManager->Update(context, timer.GetTotalSeconds(), camPos);
     
     // Update the renderer's view matrices, lighting information.
-    mRenderer.Update(context, elapsedTime);
+    mEntityRenderer.Update(context, elapsedTime);
 }
 
 void Game::Render()
@@ -95,12 +102,19 @@ void Game::Render()
     {
         return;
     }
+    auto context = mDeviceResources.GetContext();
 
     // Clear the necessary backbuffer
     mDeviceResources.Clear(DirectX::Colors::Black);
 
     // Draw all geometries
-    mRenderer.Draw(mDeviceResources.GetContext());
+    mEntityRenderer.Draw(context);
+
+    // Remove Translation component from VP matrix
+    mpCamera->PrepareForSkyRender(context);
+
+    // Draw the sky, binding the appropriate rasterizer/depth states
+    mSkyRenderer.Draw(context);
 
     // Show the new frame
     mDeviceResources.Present();
@@ -123,6 +137,8 @@ Game::~Game()
     delete mpLightingManager;
     delete mpCamera;
     delete mpInput;
+
+    mSkyRenderer.Cleanup();
 }
 
 #pragma region Game State Callbacks

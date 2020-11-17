@@ -37,7 +37,7 @@ void ResourceCodex::Init(ID3D11Device* device, ID3D11DeviceContext* context)
 {
     CodexInstance = new ResourceCodex();
 
-    CodexInstance->BuildAllTextures(device, context);
+    TextureFactory::LoadAllTextures(device, context, CodexInstance);
     ShaderFactory::LoadAllShaders(device, CodexInstance);
     CodexInstance->BuildAllMaterials();
 }
@@ -77,6 +77,43 @@ void ResourceCodex::Destroy()
     delete CodexInstance;
 }
 
+const Mesh* ResourceCodex::GetMesh(MeshID UID) const
+{
+    if(mMeshMap.find(UID) != mMeshMap.end())
+        return &mMeshMap.at(UID);
+    else
+        return nullptr;
+}
+
+const Material* ResourceCodex::GetMaterial(uint8_t materialIndex) const
+{
+    return &Materials[materialIndex];
+}
+
+const ResourceBindChord* ResourceCodex::GetTexture(TextureID UID) const
+{
+    if(mTextureMap.find(UID) != mTextureMap.end())
+        return &mTextureMap.at(UID);
+    else
+        return nullptr;
+}
+
+const VertexShader* ResourceCodex::GetVertexShader(ShaderID UID) const
+{
+    if(mVertexShaders.find(UID) != mVertexShaders.end())
+        return &mVertexShaders.at(UID);
+    else
+        return nullptr;
+}
+
+const PixelShader* ResourceCodex::GetPixelShader(ShaderID UID) const
+{
+    if(mPixelShaders.find(UID) != mPixelShaders.end())
+        return &mPixelShaders.at(UID);
+    else
+        return nullptr;
+}
+
 void ResourceCodex::AddVertexShader(ShaderID hash, const wchar_t* path, ID3D11Device* pDevice)
 {
     VertexShader shader;
@@ -93,33 +130,21 @@ void ResourceCodex::AddPixelShader(ShaderID hash, const wchar_t* path, ID3D11Dev
     CodexInstance->mPixelShaders.insert(eastl::pair<ShaderID, const PixelShader>(hash, cShader));
 }
 
-const ResourceBindChord* ResourceCodex::GetTexture(TextureID UID)
+void ResourceCodex::InsertTexture(TextureID UID, UINT slot, ID3D11ShaderResourceView* pSRV)
 {
-    if(mTextureMap.find(UID) != mTextureMap.end())
-        return &mTextureMap[UID];
-    else
-        return nullptr;
-}
+    if (mTextureMap.find(UID) != mTextureMap.end())
+    {
+        if(mTextureMap[UID].SRVs[slot])
+            mTextureMap[UID].SRVs[slot]->Release();
 
-const VertexShader* ResourceCodex::GetVertexShader(ShaderID UID)
-{
-    if(mVertexShaders.find(UID) != mVertexShaders.end())
-        return &mVertexShaders[UID];
+        mTextureMap[UID].SRVs[slot] = pSRV;
+    }
     else
-        return nullptr;
-}
-
-const PixelShader* ResourceCodex::GetPixelShader(ShaderID UID)
-{
-    if(mPixelShaders.find(UID) != mPixelShaders.end())
-        return &mPixelShaders[UID];
-    else
-        return nullptr;
-}
-
-void ResourceCodex::BuildAllTextures(ID3D11Device* device, ID3D11DeviceContext* context)
-{
-    TextureFactory::LoadAllTextures(device, context, mTextureMap);
+    {
+        ResourceBindChord rbc = {0};
+        rbc.SRVs[slot] = pSRV;
+        mTextureMap.insert(eastl::pair<TextureID, ResourceBindChord>(UID, rbc));
+    }
 }
 
 void ResourceCodex::BuildAllMaterials()

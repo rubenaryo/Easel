@@ -11,6 +11,7 @@ This class encapsulates all app functionality
 
 #include "Graphics/DeviceResources.h"
 #include "Graphics/Renderer.h"
+#include "Graphics/SkyRenderer.h"
 
 namespace Rendering
 {
@@ -24,7 +25,7 @@ class GameInput;
 }
 
 namespace Game {
-class Game final : public Rendering::IDeviceNotify
+class alignas(8) Game final : public Rendering::IDeviceNotify
 {
 public:
     Game();
@@ -61,7 +62,10 @@ private:
     Rendering::DeviceResources mDeviceResources;
 
     // Renderer for handling smart binding of objects
-    Rendering::Renderer mRenderer;
+    Rendering::EntityRenderer mEntityRenderer;
+
+    // Handles the drawing of the skybox
+    Rendering::SkyRenderer mSkyRenderer;
 
     // Lights Manager
     Rendering::LightingManager* mpLightingManager;

@@ -47,6 +47,14 @@ void Camera::UpdateView(ID3D11DeviceContext* context)
     UpdateConstantBuffer(context);
 }
 
+void Camera::PrepareForSkyRender(ID3D11DeviceContext* context)
+{
+    // Remove translation from view matrix directly
+    mView.r[3] = XMVectorZero();
+
+    UpdateConstantBuffer(context);
+}
+
 // Updates the projection matrix (like on screen resize)
 void Camera::UpdateProjection(float aspectRatio, ID3D11DeviceContext* context)
 {
@@ -100,7 +108,7 @@ void Camera::Rotate(XMVECTOR quatRotation)
 void Camera::UpdateConstantBuffer(ID3D11DeviceContext* context)
 {
     cbCamera cb;
-    XMStoreFloat4x4(&cb.VP, XMMatrixMultiply(mView, mProjection));
+    XMStoreFloat4x4(&cb.viewProjection, XMMatrixMultiply(mView, mProjection));
 
     ConstantBufferUpdateManager::MapUnmap(&mBindPacket, &cb, context);
 }

@@ -4,10 +4,10 @@ struct VertexOut
     float3 sampleDir : DIRECTION;
 };
 
-TextureCube skyTex : register(t4);
+TextureCube skyCube : register(t4);
 SamplerState samplerOptions : register(s0);
 
 float4 main(VertexOut input) : SV_TARGET
 {
-    return skyTex.Sample(samplerOptions, input.sampleDir);
+    return skyCube.Sample(samplerOptions, input.sampleDir);
 }

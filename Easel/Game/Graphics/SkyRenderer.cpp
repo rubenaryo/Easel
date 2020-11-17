@@ -5,20 +5,30 @@ Description : Handles the rendering of the sky backdrop
 ----------------------------------------------*/
 #include "SkyRenderer.h"
 
-#include "Material.h"
 #include "ResourceCodex.h"
 #include "ThrowMacros.h"
 
-#include "../Mesh.h"
+#include "Mesh.h"
+#include "Shader.h"
+#include "Material.h"
 
 namespace Rendering {
 
-void SkyRenderer::Init(const VertexShader* vs, const PixelShader* ps, MeshID cubeMeshID, TextureID skyTextureID, ID3D11Device* device)
+void SkyRenderer::Init(ID3D11Device* device)
 {
-    this->SkyVS = vs;
-    this->SkyPS = ps;
-    this->CubeMeshID = cubeMeshID;
-    this->SkyTextureID = skyTextureID;
+    // Mesh, texture, and shaders
+    ResourceCodex const& sg_Codex = ResourceCodex::GetSingleton();
+    const ShaderID kSkyVSID = 0xeb5accd4;         // fnv1a L"SkyVS.cso"
+    const ShaderID kSkyPSID = 0x6ec235e6;         // fnv1a L"SkyPS.cso"
+    const TextureID kSkyTextureID = 0x2fb626d6;   // fnv1a L"Sky"
+    const TextureID kSpaceTextureID = 0xc1c43225; // fnv1a L"Space"
+    const MeshID kSkyMeshID = 0x4a986f37;
+
+    // Query the resource codex to get the bindables directly.
+    SkyVS = sg_Codex.GetVertexShader(kSkyVSID);
+    SkyPS = sg_Codex.GetPixelShader(kSkyPSID);
+    SkyTexture = sg_Codex.GetTexture(kSpaceTextureID);
+    CubeMesh = sg_Codex.GetMesh(kSkyMeshID);
 
     // Back-facing rasterizer state
     D3D11_RASTERIZER_DESC rastDesc = {};
@@ -41,6 +51,41 @@ void SkyRenderer::Init(const VertexShader* vs, const PixelShader* ps, MeshID cub
     hr = DepthState->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(DSdebugName) - 1, DSdebugName);
     COM_EXCEPT(hr);
     #endif
+}
+
+void SkyRenderer::Draw(ID3D11DeviceContext* context)
+{
+    // Sst backface culling
+    context->OMSetDepthStencilState(DepthState, 0);
+    context->RSSetState(RasterState);
+
+    UINT offsets = 0;
+
+    // Bind the Cube Mesh
+    const Mesh mesh = *CubeMesh;
+    context->IASetVertexBuffers(0, 1, &mesh.VertexBuffer, &mesh.Stride, &offsets);
+    context->IASetIndexBuffer(mesh.IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+    // Set Vertex Shader and Input
+    context->IASetInputLayout(SkyVS->InputLayout);
+    context->VSSetShader(SkyVS->Shader, 0, 0);
+
+    // Set Pixel Shader and Bind Textures
+    context->PSSetShaderResources(0, (UINT)TextureSlots::COUNT, SkyTexture->SRVs);
+    context->PSSetShader(SkyPS->Shader, 0, 0);
+
+    // Submit Draw Call
+    context->DrawIndexed(mesh.IndexCount, 0, 0);
+
+    // Reset states back to default
+    context->OMSetDepthStencilState(0, 0);
+    context->RSSetState(0);
+}
+
+void SkyRenderer::Cleanup()
+{
+    RasterState->Release();
+    DepthState->Release();
 }
 
 }

@@ -164,8 +164,8 @@ MeshID MeshFactory::CreateMesh(const char* fileName, const VertexBufferDescripti
         return 0;
     }
     
-    static const char vbDebug[] = "_VertexBuffer";
-    static const char ibDebug[] = "_IndexBuffer";
+    const char vbDebug[] = "_VertexBuffer";
+    const char ibDebug[] = "_IndexBuffer";
     char vbName[64];
     char ibName[64];
     ZeroMemory(vbName, 64);
@@ -234,7 +234,7 @@ void ShaderFactory::CreateVertexShader(const wchar_t* path, VertexShader* out_sh
     COM_EXCEPT(hr);
     
     #if defined(DEBUG)
-        static const char debugShaderName[] = "VS_Shader";
+        const char debugShaderName[] = "VS_Shader";
         hr = out_shader->Shader->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(debugShaderName) - 1, debugShaderName);
         COM_EXCEPT(hr);
     #endif
@@ -267,7 +267,7 @@ void ShaderFactory::CreatePixelShader(const wchar_t* path, PixelShader* out_shad
     COM_EXCEPT(hr);
 
     #if defined(DEBUG)
-        static const char debugShaderName[] = "PS_Shader";
+        const char debugShaderName[] = "PS_Shader";
         hr = out_shader->Shader->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(debugShaderName) - 1, debugShaderName);
         COM_EXCEPT(hr);
     #endif
@@ -391,7 +391,7 @@ void ShaderFactory::BuildInputLayout(ID3D11ShaderReflection* pReflection, ID3D10
 
     #if defined(DEBUG)
     COM_EXCEPT(hr);
-    static const char debugNameIL[] = "VS_InputLayout";
+    const char debugNameIL[] = "VS_InputLayout";
     hr = out_shader->InputLayout->SetPrivateData(WKPDID_D3DDebugObjectName, ARRAYSIZE(debugNameIL) - 1, debugNameIL);
     COM_EXCEPT(hr);
     #endif
@@ -465,7 +465,7 @@ void ShaderFactory::AssignDXGIFormatsAndByteOffsets(D3D11_INPUT_CLASSIFICATION s
 }
 
 // Loads all the textures from the directory and returns them as out params to the ResourceCodex
-void TextureFactory::LoadAllTextures(ID3D11Device* device, ID3D11DeviceContext* context, eastl::hash_map<TextureID, const ResourceBindChord>& out_texMap)
+void TextureFactory::LoadAllTextures(ID3D11Device* device, ID3D11DeviceContext* context, ResourceCodex* codex)
 {
     namespace fs = std::filesystem;
     std::string texturePath = TEXTUREPATH;
@@ -552,7 +552,7 @@ void TextureFactory::LoadAllTextures(ID3D11Device* device, ID3D11DeviceContext* 
         if (pSRV)
         {
             size_t byteSize;
-            static char texDebugName[64];
+            char texDebugName[64];
             wcstombs_s(&byteSize, texDebugName, name.c_str(), name.size());
             hr = pSRV->SetPrivateData(WKPDID_D3DDebugObjectName, byteSize, texDebugName);
             COM_EXCEPT(hr);
@@ -560,23 +560,7 @@ void TextureFactory::LoadAllTextures(ID3D11Device* device, ID3D11DeviceContext* 
         #endif
 
         TextureID tid = fnv1a(TexName.c_str());
-        if (tempTexMap.find(tid) == tempTexMap.end()) // New chord
-        {
-            ResourceBindChord rbc = {0};
-            rbc.SRVs[slot] = pSRV;
-            tempTexMap[tid] = rbc;
-        }
-        else
-        {
-            tempTexMap[tid].SRVs[slot] = pSRV;
-        }
-    }
-
-    // Now temp map is a non const version of the out param
-    for (eastl::pair<TextureID, ResourceBindChord> pair : tempTexMap)
-    {
-        const ResourceBindChord rbc = pair.second;
-        out_texMap.insert(eastl::pair<TextureID, const ResourceBindChord>(pair.first, rbc));
+        codex->InsertTexture(tid, slot, pSRV);
     }
 }
 

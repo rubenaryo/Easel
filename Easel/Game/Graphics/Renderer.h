@@ -9,7 +9,7 @@ Description : Manager-level class for intelligently binding and drawing objects
 #include "CBufferStructs.h"
 #include "ConstantBuffer.h"
 #include "DXCore.h"
-#include "SkyRenderer.h"
+#include "ResourceCodex.h"
 #include "../Transform.h"
 
 #include <EASTL/hash_map.h>
@@ -32,11 +32,11 @@ struct Entity
     uint32_t        MaterialIndex;
 };
 
-class Renderer
+class EntityRenderer
 {
 public:
-    Renderer();
-    ~Renderer();
+    EntityRenderer();
+    ~EntityRenderer();
 
     void Init(DeviceResources const& dr);
 
@@ -49,7 +49,7 @@ public:
 
 private:
     // Performs all the instanced draw steps
-    void InstancedDraw(InstancedDrawContext* drawContexts, UINT drawCallCount, ID3D11DeviceContext* context);
+    void InstancedDraw(ID3D11DeviceContext* context);
     
     // Loads the necessary models into a collection
     void InitMeshes(DeviceResources const& dr);
@@ -60,28 +60,25 @@ private:
     // Creates the necessary material keys within m_Map, 
     void InitDrawContexts(ID3D11Device* device);
 
-    // Self Contained DX Calls to Render the skybox
-    void RenderSky(ID3D11DeviceContext* context);
-
 private:
 
     // All the Entities
-    Entity* Entities;
+    Entity*  Entities;
     UINT     EntityCount;
 
     // Array of Instancing Information
     InstancedDrawContext* InstancingPasses;
     UINT                  InstancingPassCount;
 
-    // Sky that knows how to bind itself
-    SkyRenderer mSkyRenderer;
-
     // Constant Buffer that holds material parameters
-    ConstantBufferBindPacket MaterialParams;
+    ConstantBufferBindPacket MaterialParamsCB;
+
+    // Constant Buffer that holds non-instanced entity world matrices
+    ConstantBufferBindPacket EntityCB;
 
 public: // Enforce use of the default constructor
-    Renderer(Renderer const&)               = delete;
-    Renderer& operator=(Renderer const&)    = delete;
+    EntityRenderer(EntityRenderer const&)               = delete;
+    EntityRenderer& operator=(EntityRenderer const&)    = delete;
 };
 }
 #endif

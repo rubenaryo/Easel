@@ -181,6 +181,9 @@
     <None Include="Game\Graphics\Shaders\PhongCommon.hlsli">
       <Filter>Game\Graphics\Shaders</Filter>
     </None>
+    <None Include="Game\Graphics\Shaders\VS_Common.hlsli">
+      <Filter>Game\Graphics\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="C:\dev\EASTL\doc\EASTL.natvis" />

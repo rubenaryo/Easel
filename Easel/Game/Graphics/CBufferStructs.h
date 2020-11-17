@@ -14,7 +14,7 @@ namespace Rendering
 
 struct alignas(16) cbCamera
 {
-    DirectX::XMFLOAT4X4 VP;
+    DirectX::XMFLOAT4X4 viewProjection;
 };
 
 struct alignas(16) cbPerEntity

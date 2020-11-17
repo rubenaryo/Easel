@@ -10,7 +10,7 @@ struct InstancedDrawContext
     DirectX::XMFLOAT4X4*    WorldMatrices;
     ID3D11Buffer*           DynamicBuffer;
     uint32_t                MaterialIndex;
-    uint32_t                InstancedMeshID;
+    MeshID                  InstancedMeshID;
     UINT                    InstanceCount;
 };
 
