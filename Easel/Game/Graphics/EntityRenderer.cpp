@@ -18,10 +18,6 @@ Description : Implementation of Renderer class
 #include "SkyRenderer.h"
 #include "ThrowMacros.h"
 
-#if defined(DEBUG)
-#include <typeinfo>
-#endif
-
 #include <random>
 #include <time.h>
 
@@ -49,6 +45,8 @@ void EntityRenderer::Init(DeviceResources const& dr)
 
     ConstantBufferUpdateManager::Populate(sizeof(cbPerEntity), (UINT)VS_REGISTERS::WORLD, EASEL_SHADER_STAGE::ESS_VS, device, &EntityCB);
     ConstantBufferUpdateManager::Bind(&EntityCB, context);
+    
+    EntityBatchRenderer.Init(device);
 }
 
 //TODO: Lots of hardcoded hashes here huh
@@ -95,6 +93,8 @@ void EntityRenderer::InitEntities()
 void EntityRenderer::InitDrawContexts(ID3D11Device* device)
 {
     const UINT kInstancingPassCount = 1;
+    
+    ResourceCodex const& sg_Codex = ResourceCodex::GetSingleton();
 
     InstancingPassCount = kInstancingPassCount;
     InstancingPasses = (InstancedDrawContext*)malloc(sizeof(InstancedDrawContext) * kInstancingPassCount);
@@ -102,8 +102,8 @@ void EntityRenderer::InitDrawContexts(ID3D11Device* device)
     InstancedDrawContext& lunarDraw = InstancingPasses[0];
     lunarDraw.InstanceCount   = EntityCount;
     lunarDraw.WorldMatrices   = (DirectX::XMFLOAT4X4*)malloc(sizeof(DirectX::XMFLOAT4X4) * lunarDraw.InstanceCount);
-    lunarDraw.InstancedMeshID = Entities[0].mMeshID;
-    lunarDraw.MaterialIndex   = 0;
+    lunarDraw.InstancedMesh   = sg_Codex.GetMesh(Entities[0].mMeshID);
+    lunarDraw.EntityMaterial  = sg_Codex.GetMaterial(0);
 
     // Create the dynamic vertex buffer
     D3D11_BUFFER_DESC dynamicDesc = {0};
@@ -155,15 +155,15 @@ void EntityRenderer::InstancedDraw(ID3D11DeviceContext* context)
     InstancedDrawContext* const drawCtxItEnd = InstancingPasses + InstancingPassCount;
     for (; drawCtx != drawCtxItEnd; ++drawCtx)
     {
-        const Mesh* const mesh = sg_Codex.GetMesh(drawCtx->InstancedMeshID);
+        const Mesh mesh = *drawCtx->InstancedMesh;
 
         ID3D11Buffer* vertBuffers[2];
-        vertBuffers[0] = mesh->VertexBuffer;        // Vertices
+        vertBuffers[0] = mesh.VertexBuffer;        // Vertices
         vertBuffers[1] = drawCtx->DynamicBuffer;    // Instanced World Matrices
 
         static const UINT strides[2] = 
         {
-            mesh->Stride,
+            mesh.Stride,
             sizeof(DirectX::XMFLOAT4X4)
         };
 
@@ -174,25 +174,25 @@ void EntityRenderer::InstancedDraw(ID3D11DeviceContext* context)
         };
 
         context->IASetVertexBuffers(0, 2, &vertBuffers[0], &strides[0], &offsets[0]);
-        context->IASetIndexBuffer(mesh->IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+        context->IASetIndexBuffer(mesh.IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
         // Setup VS,PS
-        const Material mat = *sg_Codex.GetMaterial(drawCtx->MaterialIndex);
-        const VertexShader* VS = mat.VS;
-        const PixelShader*  PS = mat.PS;
+        const Material material = *drawCtx->EntityMaterial;
+        const VertexShader* VS = material.VS;
+        const PixelShader*  PS = material.PS;
 
         context->IASetInputLayout(VS->InputLayout);
         context->VSSetShader(VS->Shader, nullptr, 0);
         context->PSSetShader(PS->Shader, nullptr, 0);
 
         // Update Material Param Data:
-        ConstantBufferUpdateManager::MapUnmap(&MaterialParamsCB, (void*)&mat.Description, context);
+        ConstantBufferUpdateManager::MapUnmap(&MaterialParamsCB, (void*)&material.Description, context);
 
         // Bind Textures expected by the shader
-        context->PSSetShaderResources(0, (UINT)TextureSlots::COUNT, mat.Resources->SRVs);
+        context->PSSetShaderResources(0, (UINT)TextureSlots::COUNT, material.Resources->SRVs);
 
         // Submit draw call to GPU
-        context->DrawIndexedInstanced(mesh->IndexCount, drawCtx->InstanceCount, 0, 0, 0);
+        context->DrawIndexedInstanced(mesh.IndexCount, drawCtx->InstanceCount, 0, 0, 0);
     }
 }
 
@@ -209,7 +209,7 @@ EntityRenderer::~EntityRenderer()
 
     ConstantBufferUpdateManager::Cleanup(&MaterialParamsCB);
     ConstantBufferUpdateManager::Cleanup(&EntityCB);
-    
-    ResourceCodex::Destroy();
+
+    EntityBatchRenderer.Cleanup();
 }
 }

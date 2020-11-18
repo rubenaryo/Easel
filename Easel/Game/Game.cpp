@@ -138,6 +138,8 @@ Game::~Game()
     delete mpInput;
 
     mSkyRenderer.Cleanup();
+
+    Rendering::ResourceCodex::Destroy();
 }
 
 #pragma region Game State Callbacks

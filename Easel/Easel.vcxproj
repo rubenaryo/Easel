@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game\Game.h" />
+    <ClInclude Include="Game\Graphics\BatchRenderer.h" />
     <ClInclude Include="Game\Graphics\Camera.h" />
     <ClInclude Include="Game\Graphics\CBufferStructs.h" />
     <ClInclude Include="Game\Graphics\COMException.h" />
@@ -43,6 +44,7 @@
   <ItemGroup>
     <ClCompile Include="ea_new_overload.cpp" />
     <ClCompile Include="Game\Game.cpp" />
+    <ClCompile Include="Game\Graphics\BatchRenderer.cpp" />
     <ClCompile Include="Game\Graphics\Camera.cpp" />
     <ClCompile Include="Game\Graphics\DeviceResources.cpp" />
     <ClCompile Include="Game\Graphics\Factories.cpp" />

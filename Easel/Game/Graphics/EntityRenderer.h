@@ -6,6 +6,7 @@ Description : Manager-level class for intelligently binding and drawing objects
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#include "BatchRenderer.h"
 #include "CBufferStructs.h"
 #include "ConstantBuffer.h"
 #include "DXCore.h"
@@ -32,7 +33,7 @@ struct Entity
     uint32_t        MaterialIndex;
 };
 
-class EntityRenderer
+class alignas(8) EntityRenderer
 {
 public:
     EntityRenderer();
@@ -75,6 +76,9 @@ private:
 
     // Constant Buffer that holds non-instanced entity world matrices
     ConstantBufferBindPacket EntityCB;
+
+    // Distributes Draw and Update calls across multiple threads
+    BatchRenderer EntityBatchRenderer;
 
 public: // Enforce use of the default constructor
     EntityRenderer(EntityRenderer const&)               = delete;
