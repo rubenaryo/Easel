@@ -5,35 +5,36 @@ Description : Transform class implementation
 ----------------------------------------------*/
 #include "Transform.h"
 
-namespace Game {
+namespace Rendering {
 
 using namespace DirectX;
 
-Transform::Transform() :
-    mPosition       (XMVectorZero()),
-    mScale          (XMVectorReplicate(1.0f)),
-    mQuatRotation   (XMQuaternionIdentity())
+Transform::Transform()
 {
-    XMStoreFloat4x4(&mWorld, DirectX::XMMatrixIdentity());
+    ResetFields();
 }
 
 Transform::Transform(DirectX::XMVECTOR pos, DirectX::XMVECTOR scale, DirectX::XMVECTOR rotQuat) :
     mPosition(pos),
     mScale(scale),
     mQuatRotation(rotQuat)
+{}
+
+void Transform::ResetFields()
 {
-    // Generate proper world matrix for given parameters
-    this->Recompute();
+    mPosition       = XMVectorZero();
+    mScale          = XMVectorReplicate(1.0f);
+    mQuatRotation   = XMQuaternionIdentity();
 }
 
-DirectX::XMFLOAT4X4 Transform::Recompute()
+XMFLOAT4X4 Transform::Recompute()
 {
     // Recompute the world matrix
-    XMMATRIX tempWorld = XMMatrixAffineTransformation(mScale, XMVectorZero(), mQuatRotation, mPosition);
-    XMStoreFloat4x4(&mWorld, tempWorld);
+    XMFLOAT4X4 world;
+    XMStoreFloat4x4(&world, XMMatrixAffineTransformation(mScale, XMVectorZero(), mQuatRotation, mPosition));
 
     // Return it.
-    return mWorld;
+    return world;
 }
 
 
@@ -67,6 +68,7 @@ void Transform::Scale(XMVECTOR scales)
 {
     mScale = XMVectorAdd(mScale, scales);
 }
+
 
 void Transform::SetTranslation(float x, float y, float z)
 {

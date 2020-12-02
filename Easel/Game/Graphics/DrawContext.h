@@ -7,11 +7,10 @@ namespace Rendering {
 
 struct InstancedDrawContext
 {
-    DirectX::XMFLOAT4X4*    WorldMatrices;
-    ID3D11Buffer*           DynamicBuffer;
-    const Material*         EntityMaterial;
+    const EntityGroup*      Entities;
     const Mesh*             InstancedMesh;
-    UINT                    InstanceCount;
+    const Material*         EntityMaterial;
+    ID3D11Buffer*           DynamicBuffer;  // Cached GPU-friendly data of all the world matrices
 };
 
 }

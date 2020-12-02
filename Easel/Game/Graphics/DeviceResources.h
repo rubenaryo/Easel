@@ -47,6 +47,7 @@ public:
     ) noexcept;
 
     virtual ~DeviceResources();
+    void Shutdown();
 
     void CreateDeviceResources();
     void CreateWindowSizeDependentResources();
@@ -54,8 +55,11 @@ public:
     bool WindowSizeChanged(int width, int height);
     void HandleDeviceLost();
     void RegisterDeviceNotify(IDeviceNotify* device) { mpDeviceNotify = device; }
-    void Present();
-    void Clear(const FLOAT*);
+
+    // Public Wrappers for Msaa/non-msaa variants
+    void Present(ID3D11DeviceContext* context);
+    void Clear(const FLOAT* color, ID3D11DeviceContext* context) const;
+    void SetRTV(ID3D11DeviceContext* context) const;
 
     // Member field accessors
     ID3D11Device*            GetDevice()            const { return mpDevice;             }
@@ -84,6 +88,18 @@ private:
     void ReleaseAllComAndDumpLiveObjects();
     inline void ReportLiveDeviceObjects_d();
 
+    // The device context is passed in externally to support deferred contexts which live outside DeviceResources, as opposed to the immediate context which is the member mpContext.
+    void Present_noMSAA(ID3D11DeviceContext* context);
+    void Present_MSAA(ID3D11DeviceContext* context);
+    void Clear_noMSAA(const FLOAT*, ID3D11DeviceContext* context) const;
+    void Clear_MSAA(const FLOAT* color, ID3D11DeviceContext* context) const;
+    void SetRTV_noMSAA(ID3D11DeviceContext* context) const;
+    void SetRTV_MSAA(ID3D11DeviceContext* context) const;
+
+    // Different functions for MSAA and non-MSAA per-frame bindings
+    void (Rendering::DeviceResources::* PresentFunc)(ID3D11DeviceContext* context);
+    void (Rendering::DeviceResources::* ClearFunc)(const FLOAT* color, ID3D11DeviceContext* context) const;
+    void (Rendering::DeviceResources::* SetRTVFunc)(ID3D11DeviceContext* context) const;
 
     // Direct3D Objects (COM RefCounted)
     IDXGIFactory*                mpDXGIFactory;

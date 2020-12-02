@@ -469,11 +469,22 @@ void DeviceResources::CreateWindowSizeDependentResources()
                 );
                 COM_EXCEPT(hr);
                 MsaaDepthStencil->Release();
+
+                // Assign proper MSAA functions
+                this->ClearFunc = &DeviceResources::Clear_MSAA;
+                this->PresentFunc = &DeviceResources::Present_MSAA;
+                this->SetRTVFunc = &DeviceResources::SetRTV_MSAA;
+            }
+            else
+            {
+                this->ClearFunc = &DeviceResources::Clear_noMSAA;
+                this->PresentFunc = &DeviceResources::Present_noMSAA;
+                this->SetRTVFunc = &DeviceResources::SetRTV_noMSAA;
             }
             #pragma endregion
         }
 
-        // Set the 3D rendering viewport to target the entire window.
+        // Set the 3D rendering viewport to target the entire window. (Compile time check to ensure castability)
         #if defined(DEBUG)
         assert(sizeof(FLOAT) == sizeof(backBufferWidth));
         assert(sizeof(FLOAT) == sizeof(backBufferHeight));
@@ -522,17 +533,36 @@ bool DeviceResources::WindowSizeChanged(int width, int height)
 }
 
 // Presents the contents of the swap chain
-void DeviceResources::Present()
+void DeviceResources::Present_noMSAA(ID3D11DeviceContext* context)
+{
+    HRESULT hr;
+
+    hr = mpSwapChain->Present(0, mPresentFlags);
+
+    // If the device was removed either by a disconnection or a driver upgrade, we
+    // must recreate all device resources and try to re-establish the game.
+    // Note: Most AAA games just hard crash if this happens.
+    if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
+    {
+        #if defined(DEBUG)
+        static char buf[64];
+        ZeroMemory(buf, 64);
+        sprintf_s(buf, "Device Lost on Present: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? mpDevice->GetDeviceRemovedReason() : hr);
+        OutputDebugStringA(buf);
+        #endif
+
+        HandleDeviceLost();
+    }
+}
+
+void DeviceResources::Present_MSAA(ID3D11DeviceContext* context)
 {
     HRESULT hr;
 
     //@todo: LOTS OF BRANCHES HERE! BAD
 
     // Resolve the MSAA Render Target
-    if (OptionEnabled(DR_OPTIONS::DR_ENABLE_MSAA))
-    {
-        mpContext->ResolveSubresource(mpRenderTarget, 0, mpMSAARenderTarget, 0, mBackBufferFormat);
-    }
+    context->ResolveSubresource(mpRenderTarget, 0, mpMSAARenderTarget, 0, mBackBufferFormat);
 
     // Recommended to always use tearing if supported when using a sync interval of 0.
     hr = mpSwapChain->Present(0, mPresentFlags);
@@ -553,26 +583,34 @@ void DeviceResources::Present()
 }
 
 // Clears the back buffer to backgroundColor, taking into account MSAA
-void DeviceResources::Clear(const FLOAT* backgroundColor)
+void DeviceResources::Clear_noMSAA(const FLOAT* backgroundColor, ID3D11DeviceContext* context) const
 {
-    auto context = mpContext;
-
-    // Clear views @todo: Branch necessary?
-    if (OptionEnabled(DR_OPTIONS::DR_ENABLE_MSAA))
-    {
-        mpContext->ClearRenderTargetView(mpMSAARenderTargetView, backgroundColor);
-        mpContext->ClearDepthStencilView(mpMSAADepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-        mpContext->OMSetRenderTargets(1, &mpMSAARenderTargetView, mpMSAADepthStencilView);
-    }
-    else
-    {
-        mpContext->ClearRenderTargetView(mpRenderTargetView, backgroundColor);
-        mpContext->ClearDepthStencilView(mpDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-        mpContext->OMSetRenderTargets(1, &mpRenderTargetView, mpDepthStencilView);
-    }
+    context->ClearRenderTargetView(mpRenderTargetView, backgroundColor);
+    context->ClearDepthStencilView(mpDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    context->OMSetRenderTargets(1, &mpRenderTargetView, mpDepthStencilView);
     
     // Set the viewport
-    mpContext->RSSetViewports(1, &mViewportInfo);
+    context->RSSetViewports(1, &mViewportInfo);
+}
+
+void DeviceResources::Clear_MSAA(const FLOAT* color, ID3D11DeviceContext* context) const
+{
+    context->ClearRenderTargetView(mpMSAARenderTargetView, color);
+    context->ClearDepthStencilView(mpMSAADepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    context->OMSetRenderTargets(1, &mpMSAARenderTargetView, mpMSAADepthStencilView);
+    
+    // Set the viewport
+    context->RSSetViewports(1, &mViewportInfo);
+}
+
+void DeviceResources::SetRTV_noMSAA(ID3D11DeviceContext* context) const
+{
+    context->OMSetRenderTargets(1, &mpRenderTargetView, mpDepthStencilView);
+}
+
+void DeviceResources::SetRTV_MSAA(ID3D11DeviceContext* context) const
+{
+    context->OMSetRenderTargets(1, &mpMSAARenderTargetView, mpMSAADepthStencilView);
 }
 
 #ifdef DEBUG
@@ -659,6 +697,14 @@ void DeviceResources::ReleaseAllComAndDumpLiveObjects()
 
 DeviceResources::~DeviceResources()
 {
+    //#if defined(DEBUG)
+    //OutputDebugStringA("ENGINE: Shutting Down Rendering System...\n");
+    //#endif
+    //ReleaseAllComAndDumpLiveObjects();
+}
+
+void DeviceResources::Shutdown()
+{
     #if defined(DEBUG)
     OutputDebugStringA("ENGINE: Shutting Down Rendering System...\n");
     #endif
@@ -682,6 +728,21 @@ void DeviceResources::HandleDeviceLost()
     // Try to restore Game
     if (mpDeviceNotify)
         mpDeviceNotify->OnDeviceRestored();
+}
+
+void DeviceResources::Present(ID3D11DeviceContext* context)
+{
+    (this->*PresentFunc)(context);
+}
+
+void DeviceResources::Clear(const FLOAT* color, ID3D11DeviceContext* context) const
+{
+    (this->*ClearFunc)(color, context);
+}
+
+void DeviceResources::SetRTV(ID3D11DeviceContext* context) const
+{
+    (this->*SetRTVFunc)(context);
 }
 
 void DeviceResources::GetHardwareAdapter(IDXGIAdapter1** ppAdapter)

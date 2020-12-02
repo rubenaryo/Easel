@@ -13,12 +13,12 @@ struct ConstantBufferBindPacket
     ID3D11Buffer* Buffer;
     UINT          ByteSize;
     UINT          BindSlot;
-    UINT          ShaderStage; // EASEL_SHADER_STAGE type
+    UINT          ShaderStage; // EASEL_SHADER_STAGE
     BOOL          Stale;
 };
 
 typedef void (*BindFunction)(ID3D11DeviceContext* context, UINT slot, ID3D11Buffer*const* cbuffer);
-static const BindFunction kBindFunctions[(UINT)EASEL_SHADER_STAGE::ESS_COUNT] = 
+static const BindFunction sg_BindFunctions[(UINT)EASEL_SHADER_STAGE::ESS_COUNT] = 
 {
     [](ID3D11DeviceContext* context, UINT slot, ID3D11Buffer*const* cbuffer) -> void { context->VSSetConstantBuffers(slot, 1, cbuffer); },
     [](ID3D11DeviceContext* context, UINT slot, ID3D11Buffer*const* cbuffer) -> void { context->PSSetConstantBuffers(slot, 1, cbuffer); }
@@ -61,17 +61,19 @@ struct ConstantBufferUpdateManager
 
     static void Bind(ConstantBufferBindPacket* packet, ID3D11DeviceContext* context)
     {
-        kBindFunctions[packet->ShaderStage](context, packet->BindSlot, &packet->Buffer);
+        sg_BindFunctions[packet->ShaderStage](context, packet->BindSlot, &packet->Buffer);
     }
 
-    static void Cleanup(ConstantBufferBindPacket* packet)
+     static void Bind(const ConstantBufferBindPacket* packet, ID3D11DeviceContext* context)
+    {
+        sg_BindFunctions[packet->ShaderStage](context, packet->BindSlot, &packet->Buffer);
+    }
+
+    static void Shutdown(ConstantBufferBindPacket* packet)
     {
         packet->Buffer->Release();
     }
 };
-
-
-
 
 }
 

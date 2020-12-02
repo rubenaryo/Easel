@@ -4,17 +4,36 @@
 #include "DXCore.h"
 
 #include <thread>
-#include <EASTL/bonus/fixed_ring_buffer.h>
+#include <EASTL/bonus/ring_buffer.h>
+
+namespace Rendering
+{
+struct ConstantBufferBindPacket;
+struct InstancedDrawContext;
+
+class DeviceResources;
+class EntityRenderer;
+}
 
 namespace Rendering {
 
-typedef void (*RenderFunction)(ID3D11DeviceContext* context);
-
-struct RenderJob
+struct DeferredJob
 {
-    RenderFunction Job;
-    void* Args;
+    struct DeferredArgs
+    {
+        InstancedDrawContext* pass;
+        const ConstantBufferBindPacket* CameraPacket;
+        const ConstantBufferBindPacket* LightPacket;
+    };
+    typedef void (*DeferredFunc)(DeferredArgs* args, DeviceResources* dr, ID3D11DeviceContext* def_context, EntityRenderer* entityRenderer, ID3D11CommandList** out_cmdList);
+
+    DeferredFunc Job;
+    DeferredArgs Args;
+
+    DeferredJob() {};
+    DeferredJob(DeferredFunc _job, DeferredArgs _args) : Job(_job), Args(_args) {}
 };
+
 
 struct EaselWorker
 {
@@ -22,10 +41,10 @@ struct EaselWorker
     ID3D11DeviceContext*    DeferredContext;    // Owning pointer. BatchRenderer is in charge of releasing this.
     ID3D11CommandList*      FinalCommandList;   // Once the Deferred Context is done recording commands, it writes it into this list every frame.
 
-    void Dispatch(RenderJob job);
+    //void Dispatch(RenderJob job);
 };
 
-#define NUM_THREADS 4U
+#define NUM_THREADS 2U
 #define MAX_PENDING_JOBS 2U * NUM_THREADS
 
 class BatchRenderer
@@ -35,14 +54,17 @@ public:
     void Init(ID3D11Device* device);
     
     // Enqueues a job into the ring buffer, which the workers draw out from
-    void SubmitJob(RenderFunction job, void* data);
+    void SubmitJob(DeferredJob::DeferredFunc func, DeferredJob::DeferredArgs data);
 
-    void Cleanup();
+    // Executes the jobs in the ring buffer
+    void Render(DeviceResources* dr, EntityRenderer* entityRenderer);
+
+    void Shutdown();
 
 private:
     EaselWorker Workers[NUM_THREADS];
 
-    eastl::fixed_ring_buffer<RenderJob, MAX_PENDING_JOBS> JobQueue;
+    eastl::ring_buffer<DeferredJob> JobQueue;
 };
 
 }

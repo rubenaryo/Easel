@@ -42,7 +42,7 @@ void ResourceCodex::Init(ID3D11Device* device, ID3D11DeviceContext* context)
     CodexInstance->BuildAllMaterials();
 }
 
-void ResourceCodex::Destroy()
+void ResourceCodex::Shutdown()
 {
     for (auto const& m : CodexInstance->mMeshMap)
     {
@@ -151,13 +151,14 @@ void ResourceCodex::BuildAllMaterials()
 {
     // All this code can probably be put into a factory class.
     const uint32_t kLunarId = fnv1a(L"Lunar");       // FNV1A of L"Lunar"
+    const uint32_t kEarthId = fnv1a(L"Earth");
     
     const ShaderID kInstancedPhongVSID = 0xc8a366aa; // FNV1A of L"InstancedPhongVS.cso"
     const ShaderID kPhongPSID = 0x4dc6e249;          // FNV1A of L"PhongPS.cso"
     const ShaderID kPhongPSNormalMapID = 0x928ff72d; // FNV1A of L"PhongPS_NormalMap.cso"
 
     // Malloc the array
-    uint8_t kMaterialCount = 1;
+    const uint64_t kMaterialCount = 2;
     MaterialCount = kMaterialCount;
     Materials = (Material*)malloc(sizeof(Material) * kMaterialCount);
 
@@ -167,8 +168,15 @@ void ResourceCodex::BuildAllMaterials()
     lunarMaterial.Description.colorTint = DirectX::XMFLOAT4(DirectX::Colors::White);
     lunarMaterial.Description.specularExp = 128.0f;
     lunarMaterial.Resources = GetTexture(kLunarId);
-    
     Materials[0] = lunarMaterial;
+
+    Material earthMaterial;
+    earthMaterial.VS = GetVertexShader(kInstancedPhongVSID);
+    earthMaterial.PS = GetPixelShader(kPhongPSNormalMapID);
+    earthMaterial.Description.colorTint = DirectX::XMFLOAT4(DirectX::Colors::White);
+    earthMaterial.Description.specularExp = 32.0f;
+    earthMaterial.Resources = GetTexture(kEarthId);
+    Materials[1] = earthMaterial;
 }
 
 }

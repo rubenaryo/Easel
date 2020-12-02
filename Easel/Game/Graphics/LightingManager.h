@@ -27,6 +27,8 @@ public:
         mLightData.ambientColor = ambientColor;
     }
 
+    const ConstantBufferBindPacket* GetBindPacket() const { return &mBindPacket; }
+
 private:
     // Initializes the data for each directional light
     void InitLights(DirectX::XMFLOAT3A cameraPos);

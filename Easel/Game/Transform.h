@@ -8,12 +8,14 @@ Description : Transform class for game objects
 
 #include "Graphics/DXCore.h"
 
-namespace Game {
+namespace Rendering {
 
 struct Transform
 {
     explicit Transform();
     explicit Transform(DirectX::XMVECTOR pos, DirectX::XMVECTOR scale, DirectX::XMVECTOR rotQuat);
+
+    void ResetFields();
 
     // Returns World matrix from internal pos, scale, rot and stores it in mWorld
     DirectX::XMFLOAT4X4 Recompute();
@@ -37,8 +39,6 @@ struct Transform
 
     void SetScale(float x, float y, float z);
     void SetScale(DirectX::XMVECTOR scales);
-
-    DirectX::XMFLOAT4X4  mWorld;
 
 private:
     // Transformation Info

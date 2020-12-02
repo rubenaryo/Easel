@@ -67,32 +67,40 @@ void EntityRenderer::InitMeshes(DeviceResources const& dr)
     const MeshID sphereID = ResourceCodex::AddMeshFromFile("sphere.obj", phongVertDesc, device);
     const MeshID cubeID = ResourceCodex::AddMeshFromFile("cube.obj", phongVertDesc, device);
     
-    dr.GetContext()->PSSetSamplers(0, 1, &PhongPS->SamplerState);
+    //dr.GetContext()->PSSetSamplers(0, 1, &PhongPS->SamplerState);
 }
 
 void EntityRenderer::InitEntities()
 {
-    const UINT kNumEntities = 100;
-    EntityCount = kNumEntities;
+    const UINT kNumEntities1 = 100;
+    EntityGroups[0].WorldMatrices  = (DirectX::XMFLOAT4X4*)malloc(sizeof(DirectX::XMFLOAT4X4) * kNumEntities1);
+    EntityGroups[0].Transforms     = (Transform*)malloc(sizeof(Transform) * kNumEntities1);
+    EntityGroups[0].Count          = kNumEntities1;
 
-    Entities = (Entity*)malloc(sizeof(Entity) * kNumEntities);
-    for(UINT i = 0; i != kNumEntities; ++i)
+    for(UINT i = 0; i != kNumEntities1; ++i)
     { 
-        Game::Transform tfm;
-        tfm.SetTranslation(i * 2.f, 0.0f, 0.0f);
+        Transform& transform = EntityGroups[0].Transforms[i];
+        transform.ResetFields();
+        transform.SetTranslation(i * 1.5f, 0.0f, 0.0f);
+    }
 
-        Entity test;
-        test.MaterialIndex = 0; // Lunar
-        test.mMeshID = 0x4fd8281f; // Sphere
-        test.mTransform = tfm;
+    const UINT kNumEntities2 = 40;
+    EntityGroups[1].WorldMatrices  = (DirectX::XMFLOAT4X4*)malloc(sizeof(DirectX::XMFLOAT4X4) * kNumEntities2);
+    EntityGroups[1].Transforms     = (Transform*)malloc(sizeof(Transform) * kNumEntities2);
+    EntityGroups[1].Count          = kNumEntities2;
 
-        Entities[i] = test;
+    for(UINT i = 0; i != kNumEntities2; ++i)
+    { 
+        Transform& transform = EntityGroups[1].Transforms[i];
+        transform.ResetFields();
+        transform.SetTranslation(0.0f, i * 1.5f, 0.0f);
     }
 }
 
 void EntityRenderer::InitDrawContexts(ID3D11Device* device)
 {
-    const UINT kInstancingPassCount = 1;
+    const UINT kInstancingPassCount = 2;
+    const MeshID kSphereID = 0x4fd8281f;
     
     ResourceCodex const& sg_Codex = ResourceCodex::GetSingleton();
 
@@ -100,10 +108,14 @@ void EntityRenderer::InitDrawContexts(ID3D11Device* device)
     InstancingPasses = (InstancedDrawContext*)malloc(sizeof(InstancedDrawContext) * kInstancingPassCount);
 
     InstancedDrawContext& lunarDraw = InstancingPasses[0];
-    lunarDraw.InstanceCount   = EntityCount;
-    lunarDraw.WorldMatrices   = (DirectX::XMFLOAT4X4*)malloc(sizeof(DirectX::XMFLOAT4X4) * lunarDraw.InstanceCount);
-    lunarDraw.InstancedMesh   = sg_Codex.GetMesh(Entities[0].mMeshID);
-    lunarDraw.EntityMaterial  = sg_Codex.GetMaterial(0);
+    lunarDraw.Entities       = &EntityGroups[0];
+    lunarDraw.InstancedMesh  = sg_Codex.GetMesh(kSphereID);
+    lunarDraw.EntityMaterial = sg_Codex.GetMaterial(0);
+    
+    InstancedDrawContext& earthDraw = InstancingPasses[1];
+    earthDraw.Entities       = &EntityGroups[1];
+    earthDraw.InstancedMesh  = sg_Codex.GetMesh(kSphereID);
+    earthDraw.EntityMaterial = sg_Codex.GetMaterial(1);
 
     // Create the dynamic vertex buffer
     D3D11_BUFFER_DESC dynamicDesc = {0};
@@ -112,104 +124,141 @@ void EntityRenderer::InitDrawContexts(ID3D11Device* device)
     dynamicDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     dynamicDesc.MiscFlags = 0;
     dynamicDesc.StructureByteStride = 0;
-    dynamicDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * lunarDraw.InstanceCount;
+    dynamicDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * lunarDraw.Entities->Count;
     COM_EXCEPT(device->CreateBuffer(&dynamicDesc, nullptr, &lunarDraw.DynamicBuffer));
+    
+    // Second context
+    dynamicDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * earthDraw.Entities->Count;
+    COM_EXCEPT(device->CreateBuffer(&dynamicDesc, nullptr, &earthDraw.DynamicBuffer));
 }
 
-void EntityRenderer::Update(ID3D11DeviceContext* context, float dt)
+void EntityRenderer::Update(DeviceResources* dr, const ConstantBufferBindPacket* camPacket, const ConstantBufferBindPacket* lightPacket, float dt)
 {
     using namespace DirectX;
-    using Game::Transform;
 
-    const float rotSpeed = 1.25f;
-
+    static const float rotSpeed = 1.25f;
     static const XMVECTOR rot1 = DirectX::XMQuaternionRotationRollPitchYaw(rotSpeed, -rotSpeed, rotSpeed);
     static const XMVECTOR rot2 = -rot1;
 
-    InstancedDrawContext& lunarDraw = InstancingPasses[0];
-
-    for (UINT i = 0; i != EntityCount; ++i)
+    for (UINT i = 0; i != EntityGroups[0].Count; ++i)
     {
-        Transform* tfm = &Entities[i].mTransform;
-        tfm->Rotate(rot1*dt);
-        lunarDraw.WorldMatrices[i] = tfm->Recompute();
+        Transform& transform = EntityGroups[0].Transforms[i];
+
+        transform.Rotate(rot1 * dt);
+        EntityGroups[0].WorldMatrices[i] = transform.Recompute();
     }
 
-    // Rewrite the dynamic vertex buffer
+    for (UINT i = 0; i != EntityGroups[1].Count; ++i)
+    {
+        Transform& transform = EntityGroups[1].Transforms[i];
+
+        transform.Rotate(rot2 * dt);
+        EntityGroups[1].WorldMatrices[i] = transform.Recompute();
+    }
+
+    static DeferredJob::DeferredFunc drawWrapper = [](DeferredJob::DeferredArgs* args, DeviceResources* dr, ID3D11DeviceContext* def_context, EntityRenderer* entityRenderer, ID3D11CommandList** out_cmdList)
+    {
+        dr->SetRTV(def_context);
+        def_context->RSSetViewports(1, &dr->GetScreenViewport());
+        ConstantBufferUpdateManager::Bind(args->CameraPacket, def_context);
+        ConstantBufferUpdateManager::Bind(args->LightPacket, def_context);
+        entityRenderer->InstancedDraw(args->pass, def_context, out_cmdList);
+    };
+
+    for (UINT i = 0; i != InstancingPassCount; ++i)
+    {
+        DeferredJob::DeferredArgs args;
+        args.pass = &InstancingPasses[i];
+        args.CameraPacket = camPacket;
+        args.LightPacket = lightPacket;
+
+        EntityBatchRenderer.SubmitJob(drawWrapper, args);
+    }
+}
+
+void EntityRenderer::Draw(DeviceResources* dr)
+{
+    EntityBatchRenderer.Render(dr, this);
+    //this->InstancedDraw(&InstancingPasses[1], context);
+}
+
+void EntityRenderer::InstancedDraw(InstancedDrawContext* pDrawContext, ID3D11DeviceContext* context, ID3D11CommandList** out_cmdList)
+{
     D3D11_MAPPED_SUBRESOURCE mappedBuffer;
-    COM_EXCEPT(context->Map(lunarDraw.DynamicBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer));
-    memcpy(mappedBuffer.pData, lunarDraw.WorldMatrices, sizeof(DirectX::XMFLOAT4X4) * InstancingPasses[0].InstanceCount);
-    context->Unmap(lunarDraw.DynamicBuffer, 0);
-}
 
-void EntityRenderer::Draw(ID3D11DeviceContext* context)
-{
-    this->InstancedDraw(context);
-}
+    // Dereference the ptr up front
+    const InstancedDrawContext pass = *pDrawContext;
+    
+    // Rewrite the dynamic vertex buffer with new matrix data
+    COM_EXCEPT(context->Map(pass.DynamicBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer));
+    memcpy(mappedBuffer.pData, pass.Entities->WorldMatrices, sizeof(DirectX::XMFLOAT4X4) * pass.Entities->Count);
+    context->Unmap(pass.DynamicBuffer, 0);
 
-void EntityRenderer::InstancedDraw(ID3D11DeviceContext* context)
-{
-    ResourceCodex const& sg_Codex = ResourceCodex::GetSingleton();
+    const Mesh mesh = *pass.InstancedMesh;
 
-    InstancedDrawContext* drawCtx = InstancingPasses; 
-    InstancedDrawContext* const drawCtxItEnd = InstancingPasses + InstancingPassCount;
-    for (; drawCtx != drawCtxItEnd; ++drawCtx)
+    ID3D11Buffer* vertexBuffers[2];
+    vertexBuffers[0] = mesh.VertexBuffer;     // Vertices
+    vertexBuffers[1] = pass.DynamicBuffer;    // Instanced World Matrices
+
+    static const UINT strides[2] = 
     {
-        const Mesh mesh = *drawCtx->InstancedMesh;
+        mesh.Stride,
+        sizeof(DirectX::XMFLOAT4X4)
+    };
 
-        ID3D11Buffer* vertBuffers[2];
-        vertBuffers[0] = mesh.VertexBuffer;        // Vertices
-        vertBuffers[1] = drawCtx->DynamicBuffer;    // Instanced World Matrices
+    static const UINT offsets[2] = 
+    {
+        0, 
+        0
+    };
 
-        static const UINT strides[2] = 
-        {
-            mesh.Stride,
-            sizeof(DirectX::XMFLOAT4X4)
-        };
+    // Enqueue a bunch of commands into the deferred context
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    context->IASetVertexBuffers(0, 2, &vertexBuffers[0], &strides[0], &offsets[0]);
+    context->IASetIndexBuffer(mesh.IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-        static const UINT offsets[2] = 
-        {
-            0, 
-            0
-        };
+    // Setup VS,PS
+    const Material material = *pass.EntityMaterial;
+    const VertexShader* VS = material.VS;
+    const PixelShader*  PS = material.PS;
 
-        context->IASetVertexBuffers(0, 2, &vertBuffers[0], &strides[0], &offsets[0]);
-        context->IASetIndexBuffer(mesh.IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+    context->IASetInputLayout(VS->InputLayout);
+    context->VSSetShader(VS->Shader, nullptr, 0);
+    context->PSSetShader(PS->Shader, nullptr, 0);
+    context->PSSetSamplers(0, 1, &PS->SamplerState);
 
-        // Setup VS,PS
-        const Material material = *drawCtx->EntityMaterial;
-        const VertexShader* VS = material.VS;
-        const PixelShader*  PS = material.PS;
+    // Update Material Param Data:
+    ConstantBufferUpdateManager::Bind(&MaterialParamsCB, context);
+    ConstantBufferUpdateManager::MapUnmap(&MaterialParamsCB, (void*)&material.Description, context);
 
-        context->IASetInputLayout(VS->InputLayout);
-        context->VSSetShader(VS->Shader, nullptr, 0);
-        context->PSSetShader(PS->Shader, nullptr, 0);
+    // Bind Textures expected by the shader
+    context->PSSetShaderResources(0, (UINT)TextureSlots::COUNT, material.Resources->SRVs);
 
-        // Update Material Param Data:
-        ConstantBufferUpdateManager::MapUnmap(&MaterialParamsCB, (void*)&material.Description, context);
+    // Draw call
+    context->DrawIndexedInstanced(mesh.IndexCount, pass.Entities->Count, 0, 0, 0);
 
-        // Bind Textures expected by the shader
-        context->PSSetShaderResources(0, (UINT)TextureSlots::COUNT, material.Resources->SRVs);
-
-        // Submit draw call to GPU
-        context->DrawIndexedInstanced(mesh.IndexCount, drawCtx->InstanceCount, 0, 0, 0);
-    }
+    // Populate command list
+    context->FinishCommandList(FALSE, out_cmdList);
 }
 
-EntityRenderer::~EntityRenderer()
+void EntityRenderer::Shutdown()
 {
-    for (uint8_t i = 0; i != 1; ++i)
+    for (UINT i = 0; i != InstancingPassCount; ++i)
     {
-        free(InstancingPasses->WorldMatrices);
-        InstancingPasses->DynamicBuffer->Release();
+        InstancingPasses[i].DynamicBuffer->Release();
     }
     free(InstancingPasses);
 
-    free(Entities);
+    for (UINT i = 0; i != ENTITY_GROUP_COUNT; ++i)
+    {
+        free(EntityGroups[i].WorldMatrices);
+        free(EntityGroups[i].Transforms);
+    }
 
-    ConstantBufferUpdateManager::Cleanup(&MaterialParamsCB);
-    ConstantBufferUpdateManager::Cleanup(&EntityCB);
+    ConstantBufferUpdateManager::Shutdown(&MaterialParamsCB);
+    ConstantBufferUpdateManager::Shutdown(&EntityCB);
 
-    EntityBatchRenderer.Cleanup();
+    EntityBatchRenderer.Shutdown();
 }
+
 }

@@ -19,7 +19,7 @@ namespace Rendering
 
     LightingManager::~LightingManager()
     {
-        ConstantBufferUpdateManager::Cleanup(&mBindPacket);
+        ConstantBufferUpdateManager::Shutdown(&mBindPacket);
     }
 
     void LightingManager::Update(ID3D11DeviceContext* context, float dt, DirectX::XMFLOAT3A cameraPos)

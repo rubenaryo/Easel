@@ -65,6 +65,7 @@ void SkyRenderer::Draw(ID3D11DeviceContext* context)
     const Mesh mesh = *CubeMesh;
     context->IASetVertexBuffers(0, 1, &mesh.VertexBuffer, &mesh.Stride, &offsets);
     context->IASetIndexBuffer(mesh.IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     // Set Vertex Shader and Input
     context->IASetInputLayout(SkyVS->InputLayout);
@@ -73,6 +74,7 @@ void SkyRenderer::Draw(ID3D11DeviceContext* context)
     // Set Pixel Shader and Bind Textures
     context->PSSetShaderResources(0, (UINT)TextureSlots::COUNT, SkyTexture->SRVs);
     context->PSSetShader(SkyPS->Shader, 0, 0);
+    context->PSSetSamplers(0, 1, &SkyPS->SamplerState);
 
     // Submit Draw Call
     context->DrawIndexed(mesh.IndexCount, 0, 0);
@@ -82,7 +84,7 @@ void SkyRenderer::Draw(ID3D11DeviceContext* context)
     context->RSSetState(0);
 }
 
-void SkyRenderer::Cleanup()
+void SkyRenderer::Shutdown()
 {
     RasterState->Release();
     DepthState->Release();

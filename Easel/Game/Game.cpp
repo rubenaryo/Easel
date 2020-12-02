@@ -91,32 +91,30 @@ void Game::Update(StepTimer const& timer)
     mpLightingManager->Update(context, timer.GetTotalSeconds(), camPos);
     
     // Update the renderer's view matrices, lighting information.
-    mEntityRenderer.Update(context, elapsedTime);
+    mEntityRenderer.Update(&mDeviceResources, mpCamera->GetBindPacket(), mpLightingManager->GetBindPacket(), elapsedTime);
 }
 
 void Game::Render()
 {
-    // Don't try to render anything before the first Update.
-    if (mTimer.GetFrameCount() == 0)
-    {
-        return;
-    }
     auto context = mDeviceResources.GetContext();
 
     // Clear the necessary backbuffer
-    mDeviceResources.Clear(DirectX::Colors::Black);
+    mDeviceResources.Clear(DirectX::Colors::Black, context);
 
     // Draw all geometries
-    mEntityRenderer.Draw(context);
+    mEntityRenderer.Draw(&mDeviceResources);
 
     // Remove Translation component from VP matrix
     mpCamera->PrepareForSkyRender(context);
 
     // Draw the sky, binding the appropriate rasterizer/depth states
+    mDeviceResources.SetRTV(mDeviceResources.GetContext());
+    context->RSSetViewports(1, &mDeviceResources.GetScreenViewport());
+    Rendering::ConstantBufferUpdateManager::Bind(mpCamera->GetBindPacket(), context);
     mSkyRenderer.Draw(context);
 
     // Show the new frame
-    mDeviceResources.Present();
+    mDeviceResources.Present(context);
 }
 
 void Game::CreateDeviceDependentResources()
@@ -137,9 +135,11 @@ Game::~Game()
     delete mpCamera;
     delete mpInput;
 
-    mSkyRenderer.Cleanup();
+    mSkyRenderer.Shutdown();
+    mEntityRenderer.Shutdown();
 
-    Rendering::ResourceCodex::Destroy();
+    Rendering::ResourceCodex::Shutdown();
+    mDeviceResources.Shutdown();
 }
 
 #pragma region Game State Callbacks

@@ -43,6 +43,8 @@ public:
     void GetPosition3A(DirectX::XMFLOAT3A* out_pos) const;
     DirectX::XMVECTOR   GetPosition() const;
 
+    const ConstantBufferBindPacket* GetBindPacket() const { return &mBindPacket; }
+
 private:
     // View and Projection Matrices
     DirectX::XMMATRIX   mView;

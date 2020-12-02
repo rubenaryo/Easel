@@ -20,37 +20,40 @@ namespace Rendering
 {
     class DeviceResources;
     class Camera;
+    class LightingManager;
 
     struct InstancedDrawContext;
 }
 
 namespace Rendering {
 
-struct Entity
+struct EntityGroup
 {
-    Game::Transform mTransform;
-    MeshID          mMeshID;
-    uint32_t        MaterialIndex;
+    DirectX::XMFLOAT4X4*    WorldMatrices; // Mappable world matrices
+    Transform*              Transforms;    // Parameters used to generate each world matrix (Pos, Scale, Rot)
+    uint64_t                Count;
 };
+#define ENTITY_GROUP_COUNT 2
 
 class alignas(8) EntityRenderer
 {
 public:
     EntityRenderer();
-    ~EntityRenderer();
 
     void Init(DeviceResources const& dr);
 
     // For now, the renderer will handle updating the entities, 
     // In the future, perhaps a Physics Manager or AI Manager would be a good solution?
-    void Update(ID3D11DeviceContext* context, float dt);
+    void Update(DeviceResources* dr, const ConstantBufferBindPacket* camPacket, const ConstantBufferBindPacket* lightPacket, float dt);
 
     // Binds the fields necessary in the material, then draws every entity in m_EntityMap
-    void Draw(ID3D11DeviceContext* context);
+    void Draw(DeviceResources* dr);
+
+    void Shutdown();
 
 private:
     // Performs all the instanced draw steps
-    void InstancedDraw(ID3D11DeviceContext* context);
+    void InstancedDraw(InstancedDrawContext* pDrawContext, ID3D11DeviceContext* context, ID3D11CommandList** out_cmdList);
     
     // Loads the necessary models into a collection
     void InitMeshes(DeviceResources const& dr);
@@ -61,11 +64,11 @@ private:
     // Creates the necessary material keys within m_Map, 
     void InitDrawContexts(ID3D11Device* device);
 
-private:
+    //void PrepareForDeferredRender(InstancedDrawContext* pDrawContext, ID3D11DeviceContext* def_Context, 
 
+private:
     // All the Entities
-    Entity*  Entities;
-    UINT     EntityCount;
+    EntityGroup EntityGroups[ENTITY_GROUP_COUNT];
 
     // Array of Instancing Information
     InstancedDrawContext* InstancingPasses;

@@ -35,7 +35,7 @@ public:
     
     // Singleton Stuff
     static void Init(ID3D11Device* device, ID3D11DeviceContext* context);
-    static void Destroy();
+    static void Shutdown();
 
     inline static ResourceCodex const& GetSingleton() { return *CodexInstance; }
 

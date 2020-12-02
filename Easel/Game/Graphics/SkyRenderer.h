@@ -23,7 +23,7 @@ struct SkyRenderer
 public:
     void Init(ID3D11Device* device);
     void Draw(ID3D11DeviceContext* context);
-    void Cleanup();
+    void Shutdown();
 
 private:
     // Drawing params

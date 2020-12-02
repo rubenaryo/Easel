@@ -32,7 +32,7 @@ Camera::Camera(float x, float y, float z, float aspectRatio, float nearPlane, fl
 
 Camera::~Camera()
 {
-    ConstantBufferUpdateManager::Cleanup(&mBindPacket);
+    ConstantBufferUpdateManager::Shutdown(&mBindPacket);
 }
 
 // Creates a new view matrix based on current position and orientation
