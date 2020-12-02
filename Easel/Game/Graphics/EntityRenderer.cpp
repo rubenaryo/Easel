@@ -32,9 +32,17 @@ void EntityRenderer::Init(DeviceResources const& dr)
     auto device = dr.GetDevice();
     auto context = dr.GetContext();
 
+    #define NUM_ENTITIES 75000
+
     // Initialize meshes, materials, entities
     InitMeshes(dr);
-    InitEntities();
+
+    for (unsigned i = 0; i != ENTITY_GROUP_COUNT; ++i)
+    {
+        std::uniform_real_distribution<float> dist(-10.f * (i + 1), 10.f * (i + 1));
+        InitEntityGroup(&EntityGroups[i], NUM_ENTITIES / 4, dist);
+    }
+
     InitDrawContexts(device);
     
     // For now, assume we're only using trianglelist
@@ -65,57 +73,68 @@ void EntityRenderer::InitMeshes(DeviceResources const& dr)
 
     const VertexBufferDescription* phongVertDesc = &instancedPhongVS->VertexDesc;
     const MeshID sphereID = ResourceCodex::AddMeshFromFile("sphere.obj", phongVertDesc, device);
-    const MeshID cubeID = ResourceCodex::AddMeshFromFile("cube.obj", phongVertDesc, device);
-    
-    //dr.GetContext()->PSSetSamplers(0, 1, &PhongPS->SamplerState);
+    const MeshID cubeID = ResourceCodex::AddMeshFromFile("cube.obj", phongVertDesc, device); //0x4a986f37
+    const MeshID cylinderID = ResourceCodex::AddMeshFromFile("cylinder.obj", phongVertDesc, device); //0xdfc46858
+    const MeshID torusID = ResourceCodex::AddMeshFromFile("torus.obj", phongVertDesc, device); //0x31bf4b69
+
+    int x = 0;
 }
 
-void EntityRenderer::InitEntities()
+void EntityRenderer::InitEntityGroup(EntityGroup* grp, const UINT numEntities, std::uniform_real_distribution<float> dist)
 {
-    const UINT kNumEntities1 = 100;
-    EntityGroups[0].WorldMatrices  = (DirectX::XMFLOAT4X4*)malloc(sizeof(DirectX::XMFLOAT4X4) * kNumEntities1);
-    EntityGroups[0].Transforms     = (Transform*)malloc(sizeof(Transform) * kNumEntities1);
-    EntityGroups[0].Count          = kNumEntities1;
+    std::default_random_engine gen;
+    gen.seed(gen.default_seed);
+    
+    grp->WorldMatrices  = (DirectX::XMFLOAT4X4*)malloc(sizeof(DirectX::XMFLOAT4X4) * numEntities);
+    grp->Transforms     = (Transform*)malloc(sizeof(Transform) * numEntities);
+    grp->Count          = numEntities;
 
-    for(UINT i = 0; i != kNumEntities1; ++i)
+    for(UINT i = 0; i != numEntities; ++i)
     { 
-        Transform& transform = EntityGroups[0].Transforms[i];
-        transform.ResetFields();
-        transform.SetTranslation(i * 1.5f, 0.0f, 0.0f);
-    }
+        float d = dist(gen);
+        float r = dist(gen);
+        float r2 = dist(gen);
+        float r3 = dist(gen);
 
-    const UINT kNumEntities2 = 40;
-    EntityGroups[1].WorldMatrices  = (DirectX::XMFLOAT4X4*)malloc(sizeof(DirectX::XMFLOAT4X4) * kNumEntities2);
-    EntityGroups[1].Transforms     = (Transform*)malloc(sizeof(Transform) * kNumEntities2);
-    EntityGroups[1].Count          = kNumEntities2;
-
-    for(UINT i = 0; i != kNumEntities2; ++i)
-    { 
-        Transform& transform = EntityGroups[1].Transforms[i];
+        Transform& transform = grp->Transforms[i];
         transform.ResetFields();
-        transform.SetTranslation(0.0f, i * 1.5f, 0.0f);
+        transform.SetTranslation(r, r2, r3);
+        transform.SetRotation(r, r2, r3);
     }
 }
 
 void EntityRenderer::InitDrawContexts(ID3D11Device* device)
 {
-    const UINT kInstancingPassCount = 2;
-    const MeshID kSphereID = 0x4fd8281f;
+    const UINT kInstancingPassCount = ENTITY_GROUP_COUNT;
+    const MeshID kSphereID   = 0x4fd8281f;
+    const MeshID kCubeID     = 0x4a986f37;
+    const MeshID kCylinderID = 0xdfc46858;
+    const MeshID kTorusID    = 0x31bf4b69;
     
     ResourceCodex const& sg_Codex = ResourceCodex::GetSingleton();
 
     InstancingPassCount = kInstancingPassCount;
     InstancingPasses = (InstancedDrawContext*)malloc(sizeof(InstancedDrawContext) * kInstancingPassCount);
 
-    InstancedDrawContext& lunarDraw = InstancingPasses[0];
-    lunarDraw.Entities       = &EntityGroups[0];
-    lunarDraw.InstancedMesh  = sg_Codex.GetMesh(kSphereID);
-    lunarDraw.EntityMaterial = sg_Codex.GetMaterial(0);
+    InstancedDrawContext& sphereGrp = InstancingPasses[0];
+    sphereGrp.Entities       = &EntityGroups[0];
+    sphereGrp.InstancedMesh  = sg_Codex.GetMesh(kSphereID);
+    sphereGrp.EntityMaterial = sg_Codex.GetMaterial(0);
     
-    InstancedDrawContext& earthDraw = InstancingPasses[1];
-    earthDraw.Entities       = &EntityGroups[1];
-    earthDraw.InstancedMesh  = sg_Codex.GetMesh(kSphereID);
-    earthDraw.EntityMaterial = sg_Codex.GetMaterial(1);
+    InstancedDrawContext& cubeGrp = InstancingPasses[1];
+    cubeGrp.Entities       = &EntityGroups[1];
+    cubeGrp.InstancedMesh  = sg_Codex.GetMesh(kCubeID);
+    cubeGrp.EntityMaterial = sg_Codex.GetMaterial(1);
+
+    InstancedDrawContext& cylinderGrp = InstancingPasses[2];
+    cylinderGrp.Entities       = &EntityGroups[2];
+    cylinderGrp.InstancedMesh  = sg_Codex.GetMesh(kCylinderID);
+    cylinderGrp.EntityMaterial = sg_Codex.GetMaterial(1);
+
+    InstancedDrawContext& torusGrp = InstancingPasses[3];
+    torusGrp.Entities       = &EntityGroups[3];
+    torusGrp.InstancedMesh  = sg_Codex.GetMesh(kTorusID);
+    torusGrp.EntityMaterial = sg_Codex.GetMaterial(0);
 
     // Create the dynamic vertex buffer
     D3D11_BUFFER_DESC dynamicDesc = {0};
@@ -124,12 +143,26 @@ void EntityRenderer::InitDrawContexts(ID3D11Device* device)
     dynamicDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     dynamicDesc.MiscFlags = 0;
     dynamicDesc.StructureByteStride = 0;
-    dynamicDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * lunarDraw.Entities->Count;
-    COM_EXCEPT(device->CreateBuffer(&dynamicDesc, nullptr, &lunarDraw.DynamicBuffer));
-    
-    // Second context
-    dynamicDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * earthDraw.Entities->Count;
-    COM_EXCEPT(device->CreateBuffer(&dynamicDesc, nullptr, &earthDraw.DynamicBuffer));
+    dynamicDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * sphereGrp.Entities->Count;
+    //COM_EXCEPT(device->CreateBuffer(&dynamicDesc, nullptr, &sphereGrp.DynamicBuffer));
+    HRESULT hr = device->CreateBuffer(&dynamicDesc, nullptr, &sphereGrp.DynamicBuffer);
+    assert(!FAILED(hr));
+
+    // Build the other instancing groups
+    dynamicDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * cubeGrp.Entities->Count;
+    //COM_EXCEPT(device->CreateBuffer(&dynamicDesc, nullptr, &cubeGrp.DynamicBuffer));
+    hr = device->CreateBuffer(&dynamicDesc, nullptr, &cubeGrp.DynamicBuffer);
+    assert(!FAILED(hr));
+
+    dynamicDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * cylinderGrp.Entities->Count;
+    //COM_EXCEPT(device->CreateBuffer(&dynamicDesc, nullptr, &cylinderGrp.DynamicBuffer));
+    hr =device->CreateBuffer(&dynamicDesc, nullptr, &cylinderGrp.DynamicBuffer);
+    assert(!FAILED(hr));
+
+    dynamicDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * torusGrp.Entities->Count;
+    //COM_EXCEPT(device->CreateBuffer(&dynamicDesc, nullptr, &torusGrp.DynamicBuffer));
+    hr = device->CreateBuffer(&dynamicDesc, nullptr, &torusGrp.DynamicBuffer);
+    assert(!FAILED(hr));
 }
 
 void EntityRenderer::Update(DeviceResources* dr, const ConstantBufferBindPacket* camPacket, const ConstantBufferBindPacket* lightPacket, float dt)
@@ -140,21 +173,27 @@ void EntityRenderer::Update(DeviceResources* dr, const ConstantBufferBindPacket*
     static const XMVECTOR rot1 = DirectX::XMQuaternionRotationRollPitchYaw(rotSpeed, -rotSpeed, rotSpeed);
     static const XMVECTOR rot2 = -rot1;
 
-    for (UINT i = 0; i != EntityGroups[0].Count; ++i)
-    {
-        Transform& transform = EntityGroups[0].Transforms[i];
+    static std::thread updaters[ENTITY_GROUP_COUNT];
 
-        transform.Rotate(rot1 * dt);
-        EntityGroups[0].WorldMatrices[i] = transform.Recompute();
+    for (UINT i = 0; i != ENTITY_GROUP_COUNT; ++i)
+    {
+        
+        static auto updateFunc = [](EntityGroup* grp, XMVECTOR quat, float dt)
+        {
+            for (UINT j = 0; j != grp->Count; ++j)
+            {
+                Transform& transform = grp->Transforms[j];
+
+                transform.Rotate(quat * dt);
+                grp->WorldMatrices[j] = transform.Recompute();
+            }
+        };
+
+        updaters[i] = std::thread(updateFunc, &EntityGroups[i], rot1, dt);
     }
 
-    for (UINT i = 0; i != EntityGroups[1].Count; ++i)
-    {
-        Transform& transform = EntityGroups[1].Transforms[i];
-
-        transform.Rotate(rot2 * dt);
-        EntityGroups[1].WorldMatrices[i] = transform.Recompute();
-    }
+    for (UINT i = 0; i != ENTITY_GROUP_COUNT; ++i)
+        updaters[i].join();
 
     static DeferredJob::DeferredFunc drawWrapper = [](DeferredJob::DeferredArgs* args, DeviceResources* dr, ID3D11DeviceContext* def_context, EntityRenderer* entityRenderer, ID3D11CommandList** out_cmdList)
     {
@@ -184,13 +223,15 @@ void EntityRenderer::Draw(DeviceResources* dr)
 
 void EntityRenderer::InstancedDraw(InstancedDrawContext* pDrawContext, ID3D11DeviceContext* context, ID3D11CommandList** out_cmdList)
 {
-    D3D11_MAPPED_SUBRESOURCE mappedBuffer;
+    D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
 
     // Dereference the ptr up front
     const InstancedDrawContext pass = *pDrawContext;
     
     // Rewrite the dynamic vertex buffer with new matrix data
-    COM_EXCEPT(context->Map(pass.DynamicBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer));
+    //COM_EXCEPT(context->Map(pass.DynamicBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer));
+    HRESULT hr = context->Map(pass.DynamicBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
+    assert(!FAILED(hr));
     memcpy(mappedBuffer.pData, pass.Entities->WorldMatrices, sizeof(DirectX::XMFLOAT4X4) * pass.Entities->Count);
     context->Unmap(pass.DynamicBuffer, 0);
 

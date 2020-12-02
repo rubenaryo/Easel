@@ -44,7 +44,7 @@ struct EaselWorker
     //void Dispatch(RenderJob job);
 };
 
-#define NUM_THREADS 2U
+#define NUM_THREADS 4
 #define MAX_PENDING_JOBS 2U * NUM_THREADS
 
 class BatchRenderer

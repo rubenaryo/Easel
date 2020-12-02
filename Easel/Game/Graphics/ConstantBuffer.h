@@ -26,7 +26,7 @@ static const BindFunction sg_BindFunctions[(UINT)EASEL_SHADER_STAGE::ESS_COUNT] 
 
 struct ConstantBufferUpdateManager
 {
-    static void Populate(UINT byteSize, UINT slot, EASEL_SHADER_STAGE shaderStage, ID3D11Device* device, ConstantBufferBindPacket* out_packet)
+    __declspec(noinline) static void Populate(UINT byteSize, UINT slot, EASEL_SHADER_STAGE shaderStage, ID3D11Device* device, ConstantBufferBindPacket* out_packet)
     {
         // Buffer description
         D3D11_BUFFER_DESC dynamicDesc = {0};
@@ -38,8 +38,12 @@ struct ConstantBufferUpdateManager
         dynamicDesc.ByteWidth = byteSize;
         
         // Populate fields
-        ConstantBufferBindPacket cbp;
-        COM_EXCEPT(device->CreateBuffer(&dynamicDesc, nullptr, &cbp.Buffer));
+        ConstantBufferBindPacket cbp = {};
+        //COM_EXCEPT(device->CreateBuffer(&dynamicDesc, nullptr, &cbp.Buffer));
+        HRESULT hr = device->CreateBuffer(&dynamicDesc, nullptr, &cbp.Buffer);
+        assert(!FAILED(hr));
+        assert(cbp.Buffer);
+
         cbp.ByteSize    = byteSize;
         cbp.BindSlot    = slot;
         cbp.Stale       = true;
@@ -48,11 +52,16 @@ struct ConstantBufferUpdateManager
         *out_packet     = cbp;
     }
 
-    static void MapUnmap(ConstantBufferBindPacket* packet, void* newData, ID3D11DeviceContext* context)
+    __declspec(noinline) static void MapUnmap(ConstantBufferBindPacket* packet, void* newData, ID3D11DeviceContext* context)
     {
-        D3D11_MAPPED_SUBRESOURCE mappedBuffer = {0};
+        D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
 
-        COM_EXCEPT(context->Map(packet->Buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer));
+        assert(packet->Buffer);
+
+        //COM_EXCEPT(context->Map(packet->Buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer));
+        HRESULT hr = context->Map(packet->Buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
+        assert(!FAILED(hr));
+        assert(mappedBuffer.pData);
         memcpy(mappedBuffer.pData, newData, packet->ByteSize);
         context->Unmap(packet->Buffer, 0);
 

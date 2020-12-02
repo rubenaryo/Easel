@@ -16,6 +16,8 @@ Description : Manager-level class for intelligently binding and drawing objects
 #include <EASTL/hash_map.h>
 #include <EASTL/internal/thread_support.h>
 
+#include <random>
+
 namespace Rendering
 {
     class DeviceResources;
@@ -33,7 +35,7 @@ struct EntityGroup
     Transform*              Transforms;    // Parameters used to generate each world matrix (Pos, Scale, Rot)
     uint64_t                Count;
 };
-#define ENTITY_GROUP_COUNT 2
+#define ENTITY_GROUP_COUNT 4
 
 class alignas(8) EntityRenderer
 {
@@ -60,6 +62,8 @@ private:
 
     // Populates the Entity List
     void InitEntities();
+
+    void InitEntityGroup(EntityGroup* grp, const UINT numEntities, std::uniform_real_distribution<float> dist);
 
     // Creates the necessary material keys within m_Map, 
     void InitDrawContexts(ID3D11Device* device);
