@@ -12,6 +12,7 @@ This class encapsulates all app functionality
 #include "Graphics/DeviceResources.h"
 #include "Graphics/EntityRenderer.h"
 #include "Graphics/SkyRenderer.h"
+#include "Graphics/GameBoard.h"
 
 namespace Rendering
 {
@@ -75,6 +76,8 @@ private:
 
     // Main Camera
     Rendering::Camera* mpCamera;
+
+    Rendering::GameBoard mBoard;
     
     // Timer for the main game loop
     StepTimer mTimer;

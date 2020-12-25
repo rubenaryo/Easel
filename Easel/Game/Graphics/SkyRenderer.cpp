@@ -27,7 +27,7 @@ void SkyRenderer::Init(ID3D11Device* device)
     // Query the resource codex to get the bindables directly.
     SkyVS = sg_Codex.GetVertexShader(kSkyVSID);
     SkyPS = sg_Codex.GetPixelShader(kSkyPSID);
-    SkyTexture = sg_Codex.GetTexture(kSpaceTextureID);
+    SkyTexture = sg_Codex.GetTexture(kSkyTextureID);
     CubeMesh = sg_Codex.GetMesh(kSkyMeshID);
 
     // Back-facing rasterizer state

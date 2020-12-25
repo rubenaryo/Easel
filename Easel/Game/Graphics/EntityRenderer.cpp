@@ -32,7 +32,7 @@ void EntityRenderer::Init(DeviceResources const& dr)
     auto device = dr.GetDevice();
     auto context = dr.GetContext();
 
-    #define NUM_ENTITIES 75000
+    #define NUM_ENTITIES 75
 
     // Initialize meshes, materials, entities
     InitMeshes(dr);
@@ -76,8 +76,6 @@ void EntityRenderer::InitMeshes(DeviceResources const& dr)
     const MeshID cubeID = ResourceCodex::AddMeshFromFile("cube.obj", phongVertDesc, device); //0x4a986f37
     const MeshID cylinderID = ResourceCodex::AddMeshFromFile("cylinder.obj", phongVertDesc, device); //0xdfc46858
     const MeshID torusID = ResourceCodex::AddMeshFromFile("torus.obj", phongVertDesc, device); //0x31bf4b69
-
-    int x = 0;
 }
 
 void EntityRenderer::InitEntityGroup(EntityGroup* grp, const UINT numEntities, std::uniform_real_distribution<float> dist)
@@ -217,7 +215,7 @@ void EntityRenderer::Update(DeviceResources* dr, const ConstantBufferBindPacket*
 
 void EntityRenderer::Draw(DeviceResources* dr)
 {
-    EntityBatchRenderer.Render(dr, this);
+    //EntityBatchRenderer.Render(dr, this);
     //this->InstancedDraw(&InstancingPasses[1], context);
 }
 

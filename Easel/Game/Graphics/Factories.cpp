@@ -185,6 +185,109 @@ MeshID MeshFactory::CreateMesh(const char* fileName, const VertexBufferDescripti
     return meshId;
 }
 
+MeshID MeshFactory::CreateHexagon(ID3D11Device* device, Mesh* out_mesh)
+{
+    // GPU Friendly Transient Vertex Struct, this is only used for hex grids so it is declared locally.
+    struct HexVertex
+    {
+        DirectX::XMFLOAT3 Position;
+    } Vertices[12];
+    
+    const float sliceAngle = DirectX::XM_PI / 3;
+    
+    for (uint32_t i = 0; i != 6; ++i)
+    {
+        float angle = sliceAngle * i; // How many radians we are rotating counter clockwise
+        DirectX::XMFLOAT3 SideVector(cosf(angle), 0, sinf(angle)); // One pizza slice
+
+        Vertices[i].Position = SideVector;
+        SideVector.y -= 0.2f; // Shift down by 2 units for bottom hex
+        Vertices[11 - i].Position = SideVector; // Place backwards at the end of the array to reverse winding order and render externalities
+    }
+
+    // Define indices and winding order
+    uint32_t indices[60];
+    indices[0] = 2;
+    indices[1] = 1;
+    indices[2] = 3;
+    
+    indices[3] = 1;
+    indices[4] = 0;
+    indices[5] = 3;
+    
+    indices[6] = 3;
+    indices[7] = 0;
+    indices[8] = 4;
+    
+    indices[9]  = 4;
+    indices[10] = 0;
+    indices[11] = 5;
+
+    // Underside (12 - 23)
+    for (uint32_t i = 12; i != 24; ++i)
+    {
+        indices[i] = indices[i - 12] + 6;
+    }
+
+    // Border (24 - 60)
+    const uint32_t topMax = 5;
+    const uint32_t topMin = 0;
+    uint32_t topCount = topMin;
+    const uint32_t bottomMax = 11;
+    const uint32_t bottomMin = 6;
+    uint32_t bottomCount = bottomMax;
+    uint32_t mainCounter = 24;
+    for (uint32_t i = 0; i != 6; ++i) // For each side
+    {
+        indices[mainCounter++] = topCount++; 
+        
+        if (topCount > topMax) topCount = topMin;
+
+        indices[mainCounter++] = topCount;
+        indices[mainCounter++] = bottomCount;
+        
+        // Second tri
+        indices[mainCounter++] = bottomCount--;
+        
+        if (bottomCount < bottomMin) bottomCount = bottomMax;
+        
+        indices[mainCounter++] = topCount;
+        indices[mainCounter++] = bottomCount;
+    }
+    
+    Mesh hexMesh;
+    
+    // Create Vertex/Index Buffers
+    D3D11_BUFFER_DESC vbd;
+    vbd.Usage = D3D11_USAGE_IMMUTABLE;
+    vbd.ByteWidth = sizeof(HexVertex) * 12;
+    vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vbd.CPUAccessFlags = 0;
+    vbd.MiscFlags = 0;
+    vbd.StructureByteStride = 0;
+    D3D11_SUBRESOURCE_DATA initialVertexData;
+    initialVertexData.pSysMem = Vertices;
+    COM_EXCEPT(device->CreateBuffer(&vbd, &initialVertexData, &hexMesh.VertexBuffer));
+    
+    D3D11_BUFFER_DESC ibd;
+    ibd.Usage = D3D11_USAGE_IMMUTABLE;
+    ibd.ByteWidth = sizeof(uint32_t) * 60;
+    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    ibd.CPUAccessFlags = 0;
+    ibd.MiscFlags = 0;
+    ibd.StructureByteStride = 0;
+    D3D11_SUBRESOURCE_DATA initialIndexData;
+    initialIndexData.pSysMem = indices;
+    COM_EXCEPT(device->CreateBuffer(&ibd, &initialIndexData, &hexMesh.IndexBuffer));
+    
+    hexMesh.IndexCount = 60;
+    hexMesh.Stride = sizeof(HexVertex);
+    
+    *out_mesh = hexMesh;
+
+    return fnv1a("Hexagon");
+}
+
 void ShaderFactory::LoadAllShaders(ID3D11Device* device, ResourceCodex* codex)
 {
     namespace fs = std::filesystem;
@@ -294,7 +397,9 @@ const char* kSemanticNames[] =
     "COLOR",
     "BLENDINDICES",
     "BLENDWEIGHTS",
-    "WORLDMATRIX"
+    "WORLDMATRIX",
+    "HEX_INDEX",
+    "HEX_HEIGHT"
 };
 
 const char* kInstancedSemanticNames[] = 
@@ -307,7 +412,9 @@ const char* kInstancedSemanticNames[] =
     "INSTANCE_COLOR",
     "INSTANCE_BLENDINDICES",
     "INSTANCE_BLENDWEIGHTS",
-    "INSTANCE_WORLDMATRIX"
+    "INSTANCE_WORLDMATRIX",
+    "INSTANCE_HEX_INDEX",
+    "INSTANCE_HEX_HEIGHT"
 };
 
 void ShaderFactory::BuildInputLayout(ID3D11ShaderReflection* pReflection, ID3D10Blob* pBlob, VertexShader* out_shader, ID3D11Device* device)

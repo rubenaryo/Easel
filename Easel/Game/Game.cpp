@@ -51,6 +51,7 @@ bool Game::Init(HWND window, int width, int height)
     // Create Materials, Meshes, Entities
     mEntityRenderer.Init(mDeviceResources);
     mSkyRenderer.Init(device);
+    mBoard.Init(device);
 
     // Create Lights and respective cbuffers
     DirectX::XMFLOAT3A camPos;
@@ -103,6 +104,7 @@ void Game::Render()
 
     // Draw all geometries
     mEntityRenderer.Draw(&mDeviceResources);
+    mBoard.Render(context);
 
     // Remove Translation component from VP matrix
     mpCamera->PrepareForSkyRender(context);
@@ -137,6 +139,7 @@ Game::~Game()
 
     mSkyRenderer.Shutdown();
     mEntityRenderer.Shutdown();
+    mBoard.Shutdown();
 
     Rendering::ResourceCodex::Shutdown();
     mDeviceResources.Shutdown();

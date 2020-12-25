@@ -24,6 +24,8 @@ enum class Semantics : semantic_t
     BLENDINDICES,
     BLENDWEIGHTS,
     WORLDMATRIX,
+    HEX_INDEX,
+    HEX_HEIGHT,
     COUNT
 };
 

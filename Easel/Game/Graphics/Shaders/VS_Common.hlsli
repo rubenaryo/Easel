@@ -6,6 +6,13 @@ Description : Common Functions and Constant Buffers shared across ALL vertex sha
 #ifndef VS_COMMON_HLSLI
 #define VS_COMMON_HLSLI
 
+// These two vectors rarely get updated and are only used to place the hexes correctly
+cbuffer VSHexagonParams : register (b9)
+{
+    float3 XOffset;
+    float3 ZOffset;
+}
+
 // Basic camera matrix passed in every frame
 cbuffer VSPerPass : register(b10)
 {

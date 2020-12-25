@@ -34,6 +34,7 @@ struct TextureFactory final
 struct MeshFactory final
 {
     static MeshID CreateMesh(const char* fileName, const VertexBufferDescription* vertAttr, ID3D11Device* pDevice, Mesh* out_mesh);
+    static MeshID CreateHexagon(ID3D11Device* device, Mesh* out_mesh);
 };
 
 }

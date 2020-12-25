@@ -40,6 +40,12 @@ void ResourceCodex::Init(ID3D11Device* device, ID3D11DeviceContext* context)
     TextureFactory::LoadAllTextures(device, context, CodexInstance);
     ShaderFactory::LoadAllShaders(device, CodexInstance);
     CodexInstance->BuildAllMaterials();
+
+    Mesh hexagonMesh;
+    MeshID hexID = MeshFactory::CreateHexagon(device, &hexagonMesh);
+    const Mesh c_Hex = hexagonMesh;
+    CodexInstance->mMeshMap.insert(eastl::pair<MeshID, const Mesh>(hexID, c_Hex));
+
 }
 
 void ResourceCodex::Shutdown()
@@ -158,7 +164,7 @@ void ResourceCodex::BuildAllMaterials()
     const ShaderID kPhongPSNormalMapID = 0x928ff72d; // FNV1A of L"PhongPS_NormalMap.cso"
 
     // Malloc the array
-    const uint64_t kMaterialCount = 2;
+    const uint64_t kMaterialCount = 3;
     MaterialCount = kMaterialCount;
     Materials = (Material*)malloc(sizeof(Material) * kMaterialCount);
 
@@ -177,6 +183,14 @@ void ResourceCodex::BuildAllMaterials()
     earthMaterial.Description.specularExp = 32.0f;
     earthMaterial.Resources = GetTexture(kEarthId);
     Materials[1] = earthMaterial;
+
+    Material simpleMaterial;
+    simpleMaterial.VS = GetVertexShader(fnv1a(L"SimpleVS.cso"));
+    simpleMaterial.PS = GetPixelShader(fnv1a(L"SimplePS.cso"));
+    simpleMaterial.Description.colorTint = DirectX::XMFLOAT4(DirectX::Colors::White);
+    simpleMaterial.Description.specularExp = 1.0f;
+    simpleMaterial.Resources = nullptr;
+    Materials[2] = simpleMaterial;
 }
 
 }

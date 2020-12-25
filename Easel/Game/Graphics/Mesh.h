@@ -10,6 +10,7 @@ Description : Mesh stores the vertex,index buffers ready to be drawn by DirectX
 #include "Shader.h"
 
 namespace Rendering {
+
 struct Mesh
 {
     ID3D11Buffer* VertexBuffer;

@@ -21,6 +21,7 @@
     <ClInclude Include="Game\Graphics\DXCore.h" />
     <ClInclude Include="Game\Graphics\DeviceResources.h" />
     <ClInclude Include="Game\Graphics\Factories.h" />
+    <ClInclude Include="Game\Graphics\GameBoard.h" />
     <ClInclude Include="Game\Graphics\hash_util.h" />
     <ClInclude Include="Game\Graphics\LightingManager.h" />
     <ClInclude Include="Game\Graphics\LightStructs.h" />
@@ -48,6 +49,7 @@
     <ClCompile Include="Game\Graphics\Camera.cpp" />
     <ClCompile Include="Game\Graphics\DeviceResources.cpp" />
     <ClCompile Include="Game\Graphics\Factories.cpp" />
+    <ClCompile Include="Game\Graphics\GameBoard.cpp" />
     <ClCompile Include="Game\Graphics\LightingManager.cpp" />
     <ClCompile Include="Game\Graphics\EntityRenderer.cpp" />
     <ClCompile Include="Game\Graphics\ResourceCodex.cpp" />
@@ -83,6 +85,10 @@
     <FxCompile Include="Game\Graphics\Shaders\SimplePS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Game\Graphics\Shaders\SimpleVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="Game\Graphics\Shaders\SkyPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

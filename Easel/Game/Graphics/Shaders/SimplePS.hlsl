@@ -1,4 +1,11 @@
-float4 main(float4 in_position : SV_POSITION ) : SV_TARGET
+
+struct VertexOut
 {
-	return float4(1.0f, 1.0f, 1.0f, 1.0f);
+    float4 position : SV_POSITION;
+    float4 color    : COLOR;
+};
+
+float4 main(VertexOut vo ) : SV_TARGET
+{
+	return vo.color; // return green
 }
