@@ -21,24 +21,10 @@ VertexOut main(VertexIn vi)
 {
     VertexOut vo;
 
-    // Reposition hex relative to array index and adjust the height
-    //int odd = (int)(vi.indices.x % 2); // 0 if even, 1 if odd
+    uint odd = (vi.indices.x % 2); // 0 if even, 1 if odd
     float3 hexLocation = vi.position;
 
-    // Not Great Attempt at programmatically doing hexes.
-    //uint XCoeff = vi.indices.x;
-    //float3 XVector = (odd-1)*float3(-1.75, 0, 0) + odd*2*float3(cos(PI/6), 0, sin(PI/6));
-    //uint YCoeff = (uint)odd*((vi.indices.x / 2U)) + vi.indices.y;
-    //float3 YVector = float3(0, 0, -1);
-    //hexLocation += XCoeff*XVector + YCoeff*2*YVector;
-    //hexLocation.y += vi.height;
-    //
-    //if (odd)
-    //    vo.color = float4(1, 0, 0, 1);
-    //else
-    //    vo.color = float4(1, 1, 1, 1);
-
-    hexLocation += vi.indices.x * float3(2, 0, 0) + vi.indices.y * float3(0, 0, 2);
+    hexLocation += vi.indices.x * float3(2, 0, 0) + vi.indices.y * float3(0, 0, 2) + odd*float3(0,0,1); // Adding vertical offset for odd-numbered columns
     hexLocation.y += vi.height;
 
     vo.position = mul(viewProjection, float4(hexLocation, 1.0f));
