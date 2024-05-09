@@ -4,8 +4,16 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # User-defined binary and intermediate folders
-Z_DELETE/
-_Binary/
+_int/
+_bin/
+
+# Visual Studio solution and project files (We use premake now)
+*.vcxproj
+*.sln
+*.vcxproj.filters
+
+# GMake project files
+Makefile
 
 # User-specific files
 *.rsuser

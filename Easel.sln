@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29306.81
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Easel", "Easel\Easel.vcxproj", "{4F18A3BC-11B9-453E-9081-9896BAF4ED6C}"
+# Visual Studio Version 17
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IsoDungeon", "IsoDungeon\IsoDungeon.vcxproj", "{60C687AC-4C7E-C9F9-B585-A255A15C64EA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Easel", "Easel\Easel.vcxproj", "{4FC2160D-BBD6-3EBE-8458-E21DF02B3BEF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Shaders", "Assets\Shaders\Shaders.vcxproj", "{EFAC8DF2-5B8C-0C8E-64A4-9764D00273EF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +13,20 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4F18A3BC-11B9-453E-9081-9896BAF4ED6C}.Debug|x64.ActiveCfg = Debug|x64
-		{4F18A3BC-11B9-453E-9081-9896BAF4ED6C}.Debug|x64.Build.0 = Debug|x64
-		{4F18A3BC-11B9-453E-9081-9896BAF4ED6C}.Release|x64.ActiveCfg = Release|x64
-		{4F18A3BC-11B9-453E-9081-9896BAF4ED6C}.Release|x64.Build.0 = Release|x64
+		{60C687AC-4C7E-C9F9-B585-A255A15C64EA}.Debug|x64.ActiveCfg = Debug|x64
+		{60C687AC-4C7E-C9F9-B585-A255A15C64EA}.Debug|x64.Build.0 = Debug|x64
+		{60C687AC-4C7E-C9F9-B585-A255A15C64EA}.Release|x64.ActiveCfg = Release|x64
+		{60C687AC-4C7E-C9F9-B585-A255A15C64EA}.Release|x64.Build.0 = Release|x64
+		{4FC2160D-BBD6-3EBE-8458-E21DF02B3BEF}.Debug|x64.ActiveCfg = Debug|x64
+		{4FC2160D-BBD6-3EBE-8458-E21DF02B3BEF}.Debug|x64.Build.0 = Debug|x64
+		{4FC2160D-BBD6-3EBE-8458-E21DF02B3BEF}.Release|x64.ActiveCfg = Release|x64
+		{4FC2160D-BBD6-3EBE-8458-E21DF02B3BEF}.Release|x64.Build.0 = Release|x64
+		{EFAC8DF2-5B8C-0C8E-64A4-9764D00273EF}.Debug|x64.ActiveCfg = Debug|x64
+		{EFAC8DF2-5B8C-0C8E-64A4-9764D00273EF}.Debug|x64.Build.0 = Debug|x64
+		{EFAC8DF2-5B8C-0C8E-64A4-9764D00273EF}.Release|x64.ActiveCfg = Release|x64
+		{EFAC8DF2-5B8C-0C8E-64A4-9764D00273EF}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {CAD5EBB5-B5E0-4DFF-A2A7-D9B76009DDB8}
 	EndGlobalSection
 EndGlobal
