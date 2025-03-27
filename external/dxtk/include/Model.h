@@ -32,6 +32,21 @@
 #include <DirectXMath.h>
 #include <DirectXCollision.h>
 
+#ifndef DIRECTX_TOOLKIT_API
+#ifdef DIRECTX_TOOLKIT_EXPORT
+#define DIRECTX_TOOLKIT_API __declspec(dllexport)
+#elif defined(DIRECTX_TOOLKIT_IMPORT)
+#define DIRECTX_TOOLKIT_API __declspec(dllimport)
+#else
+#define DIRECTX_TOOLKIT_API
+#endif
+#endif
+
+#if defined(DIRECTX_TOOLKIT_IMPORT) && defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4251)
+#endif
+
 
 namespace DirectX
 {
@@ -57,7 +72,7 @@ namespace DirectX
 
         //------------------------------------------------------------------------------
         // Frame hierarchy for rigid body and skeletal animation
-        struct ModelBone
+        struct DIRECTX_TOOLKIT_API ModelBone
         {
             ModelBone() noexcept :
                 parentIndex(c_Invalid),
@@ -98,7 +113,7 @@ namespace DirectX
 
         //------------------------------------------------------------------------------
         // Each mesh part is a submesh with a single effect
-        class ModelMeshPart
+        class DIRECTX_TOOLKIT_API ModelMeshPart
         {
         public:
             ModelMeshPart() noexcept;
@@ -152,7 +167,7 @@ namespace DirectX
 
         //------------------------------------------------------------------------------
         // A mesh consists of one or more model mesh parts
-        class ModelMesh
+        class DIRECTX_TOOLKIT_API ModelMesh
         {
         public:
             ModelMesh() noexcept;
@@ -160,8 +175,8 @@ namespace DirectX
             ModelMesh(ModelMesh&&) = default;
             ModelMesh& operator= (ModelMesh&&) = default;
 
-            ModelMesh(ModelMesh const&) = default;
-            ModelMesh& operator= (ModelMesh const&) = default;
+            ModelMesh(ModelMesh const&) = delete;
+            ModelMesh& operator= (ModelMesh const&) = delete;
 
             virtual ~ModelMesh();
 
@@ -218,7 +233,7 @@ namespace DirectX
 
         //------------------------------------------------------------------------------
         // A model consists of one or more meshes
-        class Model
+        class DIRECTX_TOOLKIT_API Model
         {
         public:
             Model() = default;
@@ -327,6 +342,36 @@ namespace DirectX
                 _In_ std::shared_ptr<IEffect> ieffect = nullptr,
                 ModelLoaderFlags flags = ModelLoader_Clockwise);
 
+#ifdef __cpp_lib_byte
+            static std::unique_ptr<Model> __cdecl CreateFromCMO(
+                _In_ ID3D11Device* device,
+                _In_reads_bytes_(dataSize) const std::byte* meshData, size_t dataSize,
+                _In_ IEffectFactory& fxFactory,
+                ModelLoaderFlags flags = ModelLoader_CounterClockwise,
+                _Out_opt_ size_t* animsOffset = nullptr)
+            {
+                return CreateFromCMO(device, reinterpret_cast<const uint8_t*>(meshData), dataSize, fxFactory, flags, animsOffset);
+            }
+
+            static std::unique_ptr<Model> __cdecl CreateFromSDKMESH(
+                _In_ ID3D11Device* device,
+                _In_reads_bytes_(dataSize) const std::byte* meshData, _In_ size_t dataSize,
+                _In_ IEffectFactory& fxFactory,
+                ModelLoaderFlags flags = ModelLoader_Clockwise)
+            {
+                return CreateFromSDKMESH(device, reinterpret_cast<const uint8_t*>(meshData), dataSize, fxFactory, flags);
+            }
+
+            static std::unique_ptr<Model> __cdecl CreateFromVBO(
+                _In_ ID3D11Device* device,
+                _In_reads_bytes_(dataSize) const std::byte* meshData, _In_ size_t dataSize,
+                _In_ std::shared_ptr<IEffect> ieffect = nullptr,
+                ModelLoaderFlags flags = ModelLoader_Clockwise)
+            {
+                return CreateFromVBO(device, reinterpret_cast<const uint8_t*>(meshData), dataSize, ieffect, flags);
+            }
+#endif // __cpp_lib_byte
+
 #if defined(_MSC_VER) && !defined(_NATIVE_WCHAR_T_DEFINED)
             static std::unique_ptr<Model> __cdecl CreateFromCMO(
                 _In_ ID3D11Device* device,
@@ -363,10 +408,14 @@ namespace DirectX
     #pragma clang diagnostic ignored "-Wdeprecated-dynamic-exception-spec"
     #endif
 
-        DEFINE_ENUM_FLAG_OPERATORS(ModelLoaderFlags);
+        DEFINE_ENUM_FLAG_OPERATORS(ModelLoaderFlags)
 
     #ifdef __clang__
     #pragma clang diagnostic pop
     #endif
     }
 }
+
+#if defined(DIRECTX_TOOLKIT_IMPORT) && defined(_MSC_VER)
+#pragma warning(pop)
+#endif

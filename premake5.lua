@@ -44,9 +44,8 @@ project "Easel"
 
     links
     {
-        "assimp",
-        "DirectXTK",
-        "DirectXTKAudioWin7"
+        "external/assimp/assimp",
+        "external/dxtk/DirectXTK"
     }
 
     filter "system:Windows"
